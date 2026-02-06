@@ -1,0 +1,90 @@
+/* Question Input - Seer Theme */
+
+.question-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+}
+
+.question-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.question-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #222;
+  color: var(--text);
+  padding: 12px 0;
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: -0.01em;
+  border-radius: 0;
+}
+
+.question-input:focus {
+  border-color: var(--accent-dim);
+}
+
+.question-input::placeholder {
+  color: #444;
+  font-style: italic;
+}
+
+.question-input.has-error {
+  border-color: #8B4A4A;
+}
+
+.question-input:disabled {
+  opacity: 0.4;
+}
+
+/* Ask button */
+.ask-btn {
+  padding: 8px 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ask-btn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: var(--accent);
+}
+
+.ask-btn:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.ask-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Error */
+.input-error {
+  font-size: 0.75rem;
+  color: #A67458;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .question-input {
+    font-size: 16px;
+  }
+}

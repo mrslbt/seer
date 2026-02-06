@@ -1,0 +1,242 @@
+/* Seer Eye - SVG-based mystical eye */
+
+.seer-eye-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.seer-eye {
+  width: 180px;
+  height: 180px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Sclera - dark eye background */
+.eye-sclera {
+  transition: fill 0.6s ease;
+}
+
+.seer-eye--open .eye-sclera,
+.seer-eye--gazing .eye-sclera,
+.seer-eye--revealing .eye-sclera {
+  fill: #0a0a0a;
+}
+
+/* ---- Eyelids ---- */
+.eyelid {
+  transition: d 1.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.seer-eye--opening .eyelid {
+  transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Lash lines follow eyelids */
+.lash-line {
+  transition: d 1.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+              stroke 0.6s ease;
+}
+
+.seer-eye--opening .lash-line {
+  transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              stroke 0.6s ease;
+}
+
+.seer-eye--open .lash-line--top,
+.seer-eye--gazing .lash-line--top,
+.seer-eye--revealing .lash-line--top {
+  stroke: rgba(201, 168, 76, 0.35);
+}
+
+/* ---- Iris Group ---- */
+.iris-group {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  transform-origin: 80px 80px;
+}
+
+/* Iris outer glow */
+.iris-outer-glow {
+  transition: stroke 0.6s ease, stroke-width 0.6s ease;
+}
+
+.seer-eye--open .iris-outer-glow {
+  stroke: rgba(201, 168, 76, 0.18);
+}
+
+.seer-eye--revealing .iris-outer-glow {
+  stroke: rgba(201, 168, 76, 0.35);
+  stroke-width: 8;
+}
+
+/* Main iris */
+.iris-main {
+  transition: filter 0.6s ease;
+}
+
+.seer-eye--revealing .iris-main {
+  filter: brightness(1.2);
+}
+
+/* ---- Gazing Animations ---- */
+
+/* Iris breathes during gazing */
+.iris-group--gazing {
+  animation: irisBreath 3s ease-in-out infinite;
+}
+
+/* Revealing pulse */
+.iris-group--revealing {
+  animation: irisRevealPulse 1.2s ease-out;
+}
+
+/* Pupil dilates and shifts during gazing */
+.eye-pupil--gazing {
+  animation: pupilSearch 3.5s ease-in-out infinite;
+}
+
+/* Light glint subtle drift */
+.eye-glint-main {
+  transition: opacity 0.6s ease;
+}
+
+.seer-eye--gazing .eye-glint-main {
+  animation: glintShift 2.5s ease-in-out infinite;
+}
+
+.seer-eye--revealing .eye-glint-main {
+  animation: glintFlare 0.8s ease-out;
+}
+
+/* ---- Keyframes ---- */
+
+/* Iris breathing - organic scale + subtle rotation */
+@keyframes irisBreath {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.04) rotate(0.5deg);
+  }
+  60% {
+    transform: scale(0.98) rotate(-0.3deg);
+  }
+}
+
+/* Reveal pulse - flash of recognition */
+@keyframes irisRevealPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.08);
+    filter: brightness(1.4) drop-shadow(0 0 12px rgba(201, 168, 76, 0.4));
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.15) drop-shadow(0 0 6px rgba(201, 168, 76, 0.2));
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Pupil searching - organic movement with dilation */
+@keyframes pupilSearch {
+  0%, 100% {
+    r: 11;
+    transform: translate(0px, 0px);
+  }
+  15% {
+    r: 12;
+    transform: translate(1.5px, -1px);
+  }
+  35% {
+    r: 10;
+    transform: translate(-1px, 0.5px);
+  }
+  55% {
+    r: 13;
+    transform: translate(0.5px, 1px);
+  }
+  75% {
+    r: 11;
+    transform: translate(-0.5px, -0.5px);
+  }
+}
+
+/* Glint drift during gazing */
+@keyframes glintShift {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.55;
+  }
+  40% {
+    transform: translate(1px, -0.5px);
+    opacity: 0.7;
+  }
+  70% {
+    transform: translate(-0.5px, 0.5px);
+    opacity: 0.4;
+  }
+}
+
+/* Glint flash on reveal */
+@keyframes glintFlare {
+  0% {
+    opacity: 0.55;
+    r: 3;
+  }
+  30% {
+    opacity: 1;
+    r: 4.5;
+  }
+  100% {
+    opacity: 0.55;
+    r: 3;
+  }
+}
+
+/* ---- Gaze Status Dots ---- */
+.gaze-status {
+  font-size: 0.8125rem;
+  color: var(--accent-dim);
+  letter-spacing: 0.1em;
+}
+
+.gaze-dots span {
+  animation: dotFade 1s infinite;
+}
+
+.gaze-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.gaze-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dotFade {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .seer-eye {
+    width: 150px;
+    height: 150px;
+  }
+}

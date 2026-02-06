@@ -1,0 +1,169 @@
+/* Birth Data Form - Seer Theme */
+
+.birth-form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-intro {
+  text-align: center;
+  padding-bottom: 8px;
+}
+
+.form-intro-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.9375rem;
+  color: var(--accent-dim);
+  letter-spacing: 0.01em;
+}
+
+/* Field groups */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666;
+}
+
+.field-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #222;
+  color: #fff;
+  padding: 12px 0;
+  font-family: var(--font);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  border-radius: 0;
+}
+
+.field-input:focus {
+  border-color: var(--accent-dim);
+}
+
+.field-input::placeholder {
+  color: #444;
+}
+
+/* Date and time inputs */
+.field-input[type="date"],
+.field-input[type="time"] {
+  color-scheme: dark;
+}
+
+.field-input[type="date"]::-webkit-calendar-picker-indicator,
+.field-input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.field-input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.field-input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}
+
+/* Hint text */
+.field-hint {
+  font-size: 0.6875rem;
+  color: #444;
+}
+
+.field-hint.selected {
+  color: var(--accent-dim);
+}
+
+/* City autocomplete */
+.city-wrapper {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #111;
+  border: 1px solid #222;
+  border-top: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.suggestion {
+  padding: 12px 0;
+  color: #888;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-bottom: 1px solid #1a1a1a;
+  transition: color 0.15s;
+}
+
+.suggestion:hover {
+  color: var(--accent);
+}
+
+.suggestion:last-child {
+  border-bottom: none;
+}
+
+/* Error message */
+.form-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Submit button */
+.submit-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  padding: 14px;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.submit-btn:hover {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: var(--accent);
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .birth-form {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .field-input {
+    font-size: 16px;
+  }
+}
