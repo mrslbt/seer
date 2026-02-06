@@ -5,7 +5,7 @@
  * based on the user's daily report. This is what powers the "Why?" button.
  */
 
-import type { QuestionCategory } from '../types/astrology';
+import type { QuestionCategory, Verdict, AstroContext } from '../types/astrology';
 import type { PersonalDailyReport, CategoryScore } from './personalDailyReport';
 
 export interface InsightArticle {
@@ -192,4 +192,96 @@ export function getCategoryDisplayName(category: QuestionCategory): string {
  */
 export function getScoreLabel(score: number): string {
   return scoreLabel(score);
+}
+
+/**
+ * Verdict to a rough 1-10 score for the fallback article
+ */
+function verdictToScore(verdict: Verdict): number {
+  switch (verdict) {
+    case 'HARD_YES': return 9;
+    case 'SOFT_YES': return 7;
+    case 'NEUTRAL': return 5;
+    case 'SOFT_NO': return 3;
+    case 'HARD_NO': return 2;
+    case 'UNCLEAR': return 5;
+    default: return 5;
+  }
+}
+
+/**
+ * Generate a fallback insight article when no PersonalDailyReport is available.
+ * Uses the AstroContext (generic transits) to build a simpler reading.
+ */
+export function generateFallbackArticle(
+  category: QuestionCategory,
+  verdict: Verdict,
+  astroContext: AstroContext
+): InsightArticle {
+  const reportCat = CATEGORY_MAP[category] || 'decisions';
+  const theme = CATEGORY_THEMES[reportCat] || CATEGORY_THEMES.decisions;
+  const score = verdictToScore(verdict);
+
+  const sections: { heading: string; body: string }[] = [];
+
+  // Energy overview
+  sections.push({
+    heading: "Today's Energy",
+    body: describeEnergy(score),
+  });
+
+  // Moon phase
+  const moonDesc = astroContext.ephemeris.moonPhase;
+  const moonSign = astroContext.ephemeris.placements.find(p => p.planet === 'Moon');
+  if (moonDesc) {
+    const moonText = moonSign
+      ? `${moonDesc} in ${moonSign.sign}`
+      : `${moonDesc}`;
+    sections.push({
+      heading: "Lunar Guidance",
+      body: moonText,
+    });
+  }
+
+  // Retrogrades
+  if (astroContext.ephemeris.retrogrades.length > 0) {
+    const retroLines = astroContext.ephemeris.retrogrades.map(
+      (p) => `\u2022 ${p} is retrograde`
+    );
+    sections.push({
+      heading: "Retrograde Influence",
+      body: retroLines.join("\n"),
+    });
+  }
+
+  // Vibe tags as general guidance
+  if (astroContext.vibeTags.length > 0) {
+    const vibeText = astroContext.vibeTags
+      .slice(0, 5)
+      .map((v) => v.charAt(0).toUpperCase() + v.slice(1))
+      .join(", ");
+    sections.push({
+      heading: "Cosmic Themes",
+      body: `The day carries energies of: ${vibeText}.`,
+    });
+  }
+
+  // Key transits
+  const transits = astroContext.transits.slice(0, 3);
+  if (transits.length > 0) {
+    const transitLines = transits.map((t) => {
+      const aspect = t.type.charAt(0).toUpperCase() + t.type.slice(1);
+      return `\u2022 ${t.transitPlanet} ${aspect} your natal ${t.natalPlanet}`;
+    });
+    sections.push({
+      heading: "Active Transits",
+      body: transitLines.join("\n"),
+    });
+  }
+
+  return {
+    title: theme.title,
+    score,
+    sections,
+  };
 }

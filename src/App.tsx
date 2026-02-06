@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { BirthData, AstroContext, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
 import { scoreDecision } from './lib/scoreDecision';
 import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
-import { generateInsightArticle } from './lib/insightArticle';
+import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
 import type { InsightArticle } from './lib/insightArticle';
 
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
@@ -28,7 +28,7 @@ function App() {
   const [submittedQuestion, setSubmittedQuestion] = useState('');
   const [oracleText, setOracleText] = useState('');
   const [oracleVerdict, setOracleVerdict] = useState<Verdict>('NEUTRAL');
-  const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
+  const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -40,14 +40,6 @@ function App() {
   } = usePersonalCosmos();
 
   const hasBirthData = birthData !== null;
-
-  // Generate the insight article when we have a category and daily report
-  const insightArticle: InsightArticle | null = useMemo(() => {
-    if (appState === 'revealing' && dailyReport && oracleCategory) {
-      return generateInsightArticle(oracleCategory, dailyReport);
-    }
-    return null;
-  }, [appState, dailyReport, oracleCategory]);
 
   // Load saved birth data
   useEffect(() => {
@@ -137,7 +129,13 @@ function App() {
     const response = generateOracleResponse(verdict, category);
     setOracleText(response);
     setOracleVerdict(verdict);
-    setOracleCategory(category);
+
+    // Generate the insight article
+    if (dailyReport) {
+      setOracleArticle(generateInsightArticle(category, dailyReport));
+    } else if (astroContext) {
+      setOracleArticle(generateFallbackArticle(category, verdict, astroContext));
+    }
 
     setTimeout(() => {
       playVerdictSound(verdict);
@@ -148,6 +146,7 @@ function App() {
   const handleDismiss = useCallback(() => {
     setAppState('idle');
     setOracleText('');
+    setOracleArticle(null);
     setSubmittedQuestion('');
     setQuestionText('');
   }, []);
@@ -156,6 +155,7 @@ function App() {
   const handleAskAgain = useCallback(() => {
     playClick();
     setOracleText('');
+    setOracleArticle(null);
     setSubmittedQuestion('');
     setQuestionText('');
     setAppState('awaiting_question');
@@ -196,7 +196,7 @@ function App() {
         </button>
         {hasBirthData && (
           <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
-            \u2699\uFE0F
+            {'\u2699\uFE0F'}
           </button>
         )}
       </header>
@@ -277,7 +277,7 @@ function App() {
         <OracleReading
           oracleText={oracleText}
           verdict={oracleVerdict}
-          article={insightArticle}
+          article={oracleArticle}
           onAskAgain={handleAskAgain}
           onDismiss={handleDismiss}
         />
