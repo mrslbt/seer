@@ -40,23 +40,78 @@ interface UsePersonalCosmosReturn {
 }
 
 /**
+ * IANA timezone string to UTC offset (standard time, no DST).
+ * Covers all timezones used in the cities database plus common extras.
+ */
+const TIMEZONE_OFFSETS: Record<string, number> = {
+  // Americas
+  'America/New_York': -5,
+  'America/Toronto': -5,
+  'America/Montreal': -5,
+  'America/Chicago': -6,
+  'America/Denver': -7,
+  'America/Phoenix': -7,
+  'America/Los_Angeles': -8,
+  'America/Vancouver': -8,
+  'America/Mexico_City': -6,
+  'America/Sao_Paulo': -3,
+  'America/Argentina/Buenos_Aires': -3,
+  'America/Lima': -5,
+  'America/Bogota': -5,
+  'America/Santiago': -4,
+  // Europe
+  'Europe/London': 0,
+  'Europe/Dublin': 0,
+  'Europe/Lisbon': 0,
+  'Europe/Paris': 1,
+  'Europe/Berlin': 1,
+  'Europe/Madrid': 1,
+  'Europe/Rome': 1,
+  'Europe/Amsterdam': 1,
+  'Europe/Vienna': 1,
+  'Europe/Brussels': 1,
+  'Europe/Stockholm': 1,
+  'Europe/Oslo': 1,
+  'Europe/Copenhagen': 1,
+  'Europe/Prague': 1,
+  'Europe/Warsaw': 1,
+  'Europe/Budapest': 1,
+  'Europe/Athens': 2,
+  'Europe/Moscow': 3,
+  'Europe/Istanbul': 3,
+  // Africa
+  'Africa/Casablanca': 1,
+  'Africa/Lagos': 1,
+  'Africa/Cairo': 2,
+  'Africa/Johannesburg': 2,
+  'Africa/Nairobi': 3,
+  // Asia
+  'Asia/Dubai': 4,
+  'Asia/Kolkata': 5.5,
+  'Asia/Bangkok': 7,
+  'Asia/Jakarta': 7,
+  'Asia/Singapore': 8,
+  'Asia/Hong_Kong': 8,
+  'Asia/Manila': 8,
+  'Asia/Taipei': 8,
+  'Asia/Shanghai': 8,
+  'Asia/Seoul': 9,
+  'Asia/Tokyo': 9,
+  'Asia/Jerusalem': 2,
+  // Oceania
+  'Australia/Perth': 8,
+  'Australia/Brisbane': 10,
+  'Australia/Sydney': 10,
+  'Australia/Melbourne': 10,
+  'Pacific/Auckland': 12,
+};
+
+/**
  * Convert old BirthData format to new format
  */
 function convertOldBirthData(old: OldBirthData): BirthData {
-  // Parse timezone string to number (e.g., "Asia/Manila" -> 8)
-  // For simplicity, we'll use a lookup or default to 0
-  const timezoneOffsets: Record<string, number> = {
-    'Asia/Manila': 8,
-    'America/New_York': -5,
-    'America/Los_Angeles': -8,
-    'Europe/London': 0,
-    'Europe/Paris': 1,
-    'Asia/Tokyo': 9,
-    'Australia/Sydney': 10,
-  };
-
   const tzOffset = typeof old.timezone === 'string'
-    ? (timezoneOffsets[old.timezone] ?? 0)
+    ? (TIMEZONE_OFFSETS[old.timezone] ?? 0)
     : (old.timezone as unknown as number) ?? 0;
 
   return {

@@ -926,17 +926,6 @@ export function scoreDecision(
   // Calculate total score
   let totalScore = factors.reduce((sum, f) => sum + f.points, 0);
 
-  // Add cosmic variance - the universe has an element of mystery
-  // This adds -15 to +15 points of unpredictability
-  const cosmicVariance = Math.floor(Math.random() * 31) - 15;
-  totalScore += cosmicVariance;
-
-  factors.push({
-    description: 'Cosmic variance - the universe keeps some secrets',
-    points: cosmicVariance,
-    source: 'Mystery of the cosmos'
-  });
-
   // Clamp to -100 to +100
   const clampedScore = Math.max(-100, Math.min(100, totalScore));
 
@@ -967,7 +956,7 @@ export function getVerdictText(verdict: Verdict): string {
     NEUTRAL: 'THE VIBES ARE UNCLEAR',
     SOFT_NO: 'PROBABLY NOT',
     HARD_NO: 'ABSOLUTELY NOT',
-    UNCLEAR: 'GIRL, WHAT?'
+    UNCLEAR: 'THE QUESTION IS UNCLEAR'
   };
   return texts[verdict];
 }

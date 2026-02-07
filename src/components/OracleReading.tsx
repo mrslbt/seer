@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Verdict } from '../types/astrology';
 import { getSeerVerdictColor } from '../lib/oracleResponse';
 import type { InsightArticle } from '../lib/insightArticle';
@@ -17,9 +17,25 @@ export function OracleReading({ oracleText, verdict, article, onAskAgain, onDism
   const color = getSeerVerdictColor(verdict);
   const [showArticle, setShowArticle] = useState(false);
 
+  // Escape key handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (showArticle) {
+        setShowArticle(false);
+      } else {
+        onDismiss();
+      }
+    }
+  }, [showArticle, onDismiss]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   if (showArticle && article) {
     return (
-      <div className="oracle-overlay">
+      <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label={article.title}>
         <div className="oracle-reading oracle-reading--article" onClick={(e) => e.stopPropagation()}>
           {/* Article header */}
           <div className="article-header">
@@ -56,7 +72,7 @@ export function OracleReading({ oracleText, verdict, article, onAskAgain, onDism
   }
 
   return (
-    <div className="oracle-overlay" onClick={onDismiss}>
+    <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading">
       <div className="oracle-reading" onClick={(e) => e.stopPropagation()}>
         <div className="oracle-text" style={{ color }}>
           {oracleText}

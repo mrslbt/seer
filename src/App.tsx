@@ -34,6 +34,8 @@ function App() {
 
   const {
     isInitialized: cosmosReady,
+    isLoading: cosmosLoading,
+    error: cosmosError,
     dailyReport,
     setUserFromOldBirthData,
     userProfile
@@ -214,6 +216,16 @@ function App() {
               <BirthDataForm onSubmit={handleBirthDataSubmit} />
             </div>
           </div>
+        )}
+
+        {/* Loading indicator while cosmos engine initializes */}
+        {hasBirthData && cosmosLoading && appState === 'idle' && (
+          <p className="cosmos-status">Aligning the cosmos...</p>
+        )}
+
+        {/* Cosmos error - non-blocking, show subtle warning */}
+        {hasBirthData && cosmosError && !cosmosLoading && (
+          <p className="cosmos-status cosmos-status--warn">Readings may be less precise today</p>
         )}
 
         {/* Main seer interface */}

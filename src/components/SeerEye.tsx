@@ -8,7 +8,7 @@ interface SeerEyeProps {
 }
 
 const OPEN_DURATION = 1500;
-const GAZE_DURATION = 2000;
+const GAZE_DURATION = 3500;
 
 export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps) {
   const [internalState, setInternalState] = useState(state);

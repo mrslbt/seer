@@ -102,6 +102,19 @@
   gap: 32px;
 }
 
+/* Cosmos status */
+.cosmos-status {
+  font-size: 0.75rem;
+  color: var(--accent-dim);
+  letter-spacing: 0.1em;
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.cosmos-status--warn {
+  color: #666;
+}
+
 /* Submitted question */
 .current-question {
   font-size: 0.875rem;

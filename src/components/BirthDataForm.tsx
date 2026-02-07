@@ -68,8 +68,12 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
         return;
       }
 
+      // Parse as local date (not UTC) by splitting the YYYY-MM-DD string
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const birthDate = new Date(year, month - 1, day);
+
       const birthData: BirthData = {
-        date: new Date(dateStr),
+        date: birthDate,
         time: timeStr,
         city: selectedCity.city,
         country: selectedCity.country,
@@ -141,7 +145,8 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
         </div>
         {selectedCity && (
           <span className="field-hint selected">
-            {selectedCity.latitude.toFixed(1)}°N, {selectedCity.longitude.toFixed(1)}°E
+            {Math.abs(selectedCity.latitude).toFixed(1)}{'\u00B0'}{selectedCity.latitude >= 0 ? 'N' : 'S'},{' '}
+            {Math.abs(selectedCity.longitude).toFixed(1)}{'\u00B0'}{selectedCity.longitude >= 0 ? 'E' : 'W'}
           </span>
         )}
       </div>

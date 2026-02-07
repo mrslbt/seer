@@ -180,10 +180,6 @@ export function scorePersonalDecision(
   // Calculate final score
   let totalScore = factors.reduce((sum, f) => sum + f.points, 0);
 
-  // Add small cosmic variance
-  const variance = Math.floor(Math.random() * 11) - 5;
-  totalScore += variance;
-
   // Clamp to -100 to +100
   const clampedScore = Math.max(-100, Math.min(100, totalScore));
 
