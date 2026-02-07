@@ -1,0 +1,87 @@
+/* ── Suggested Questions ─────────────────────────── */
+
+.suggestions-divider {
+  text-align: center;
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #222;
+  margin: 20px 0 10px;
+  animation: fadeIn 0.4s ease 0.15s both;
+  user-select: none;
+}
+
+.suggested-questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  animation: fadeIn 0.5s ease 0.2s both;
+}
+
+/* ── Chip ────────────────────────────────────────── */
+
+.suggestion-chip {
+  padding: 8px 16px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--transition),
+              border-color var(--transition),
+              background var(--transition),
+              transform var(--transition-fast);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: chipAppear 0.4s ease both;
+}
+
+.suggestion-chip:nth-child(1) { animation-delay: 0.25s; }
+.suggestion-chip:nth-child(2) { animation-delay: 0.35s; }
+.suggestion-chip:nth-child(3) { animation-delay: 0.45s; }
+.suggestion-chip:nth-child(4) { animation-delay: 0.55s; }
+.suggestion-chip:nth-child(5) { animation-delay: 0.65s; }
+
+.suggestion-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: rgba(201, 168, 76, 0.04);
+}
+
+.suggestion-chip:active {
+  transform: scale(0.96);
+  background: rgba(201, 168, 76, 0.08);
+}
+
+/* ── Keyframes ───────────────────────────────────── */
+
+@keyframes chipAppear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mobile ──────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .suggested-questions {
+    gap: 6px;
+  }
+
+  .suggestion-chip {
+    font-size: 0.6875rem;
+    padding: 7px 12px;
+  }
+}

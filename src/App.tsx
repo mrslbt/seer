@@ -14,6 +14,7 @@ import { BirthDataForm } from './components/BirthDataForm';
 import { QuestionInput, validateQuestionInput } from './components/QuestionInput';
 import { SeerEye } from './components/SeerEye';
 import { OracleReading } from './components/OracleReading';
+import { SuggestedQuestions } from './components/SuggestedQuestions';
 
 import './App.css';
 
@@ -163,6 +164,15 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
+  // Select a pre-made suggestion
+  const handleSuggestedSelect = useCallback((question: string) => {
+    playClick();
+    setQuestionText(question);
+    setQuestionError(null);
+    setSubmittedQuestion(question);
+    setAppState('gazing');
+  }, []);
+
   // Clear error when typing
   const handleQuestionChange = useCallback((value: string) => {
     setQuestionText(value);
@@ -262,6 +272,7 @@ function App() {
                   disabled={false}
                   error={questionError}
                 />
+                <SuggestedQuestions onSelect={handleSuggestedSelect} />
               </div>
             )}
           </>
