@@ -4,38 +4,42 @@ import path from 'path'
 import fs from 'fs'
 
 /**
- * Vite plugin that copies the swisseph-wasm .data file into the build output.
+ * Vite plugin that copies swisseph-wasm runtime files into the build output.
  *
- * The Emscripten-generated loader fetches swisseph.data at runtime.
- * After bundling, the library's locateFile resolves it to /wsam/swisseph.data
- * (relative to the assets directory). This plugin ensures the file exists
- * at that path in the final dist output.
+ * The library's locateFile resolves BOTH .data and .wasm to /wsam/ (relative
+ * to the /assets/ directory). Vite bundles the .wasm into /assets/ with a
+ * content hash, but locateFile overrides that path to /wsam/swisseph.wasm.
+ * So we must copy both files to dist/wsam/ for the loader to find them.
  */
-function copySwissEphData() {
+function copySwissEphFiles() {
   return {
-    name: 'copy-swisseph-data',
+    name: 'copy-swisseph-files',
     writeBundle() {
-      const src = path.resolve(__dirname, 'node_modules/swisseph-wasm/wsam/swisseph.data')
+      const wsamDir = path.resolve(__dirname, 'node_modules/swisseph-wasm/wsam')
       const destDir = path.resolve(__dirname, 'dist/wsam')
-      const dest = path.resolve(destDir, 'swisseph.data')
 
       if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true })
       }
 
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, dest)
-        const sizeMB = (fs.statSync(dest).size / 1024 / 1024).toFixed(1)
-        console.log(`\n  ✓ Copied swisseph.data (${sizeMB} MB) → dist/wsam/`)
-      } else {
-        console.warn('\n  ⚠ swisseph.data not found in node_modules — ephemeris will not load')
+      const files = ['swisseph.data', 'swisseph.wasm']
+      for (const file of files) {
+        const src = path.resolve(wsamDir, file)
+        const dest = path.resolve(destDir, file)
+        if (fs.existsSync(src)) {
+          fs.copyFileSync(src, dest)
+          const sizeMB = (fs.statSync(dest).size / 1024 / 1024).toFixed(1)
+          console.log(`  ✓ Copied ${file} (${sizeMB} MB) → dist/wsam/`)
+        } else {
+          console.warn(`  ⚠ ${file} not found in node_modules`)
+        }
       }
     }
   }
 }
 
 export default defineConfig({
-  plugins: [react(), copySwissEphData()],
+  plugins: [react(), copySwissEphFiles()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
