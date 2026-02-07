@@ -4,3 +4,6 @@ dist
 *.local
 .env
 .env.*
+
+# Ephemeris data file copied from node_modules by postinstall
+public/wsam/

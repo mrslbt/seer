@@ -20,21 +20,25 @@ let SwissEphClass: any = null;
 
 /**
  * Initialize Swiss Ephemeris (call once on app start)
+ *
+ * The swisseph-wasm package requires a .wasm binary (bundled by Vite) and a
+ * .data file (~12 MB of ephemeris tables) fetched at runtime by the Emscripten
+ * loader. After Vite bundles, the library's locateFile resolves .data to
+ * /wsam/swisseph.data — so we place the file at public/wsam/swisseph.data
+ * to match that path in production.
  */
 export async function initEphemeris(): Promise<void> {
   if (isInitialized) return;
 
   try {
-    // Dynamically import to avoid blocking app load
     const module = await import('swisseph-wasm');
     SwissEphClass = module.default;
-
     sweInstance = new SwissEphClass();
     await sweInstance.initSwissEph();
     isInitialized = true;
-    console.log('✅ Swiss Ephemeris initialized successfully');
+    console.log('Swiss Ephemeris initialized successfully');
   } catch (err) {
-    console.error('❌ Swiss Ephemeris initialization failed:', err);
+    console.error('Swiss Ephemeris initialization failed:', err);
     throw err;
   }
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "mkdir -p public/wsam && cp node_modules/swisseph-wasm/wsam/swisseph.data public/wsam/swisseph.data"
   },
   "dependencies": {
     "react": "^18.2.0",
