@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './SeerEye.css';
 
 interface SeerEyeProps {
@@ -10,16 +10,21 @@ interface SeerEyeProps {
 const OPEN_DURATION = 1500;
 const GAZE_DURATION = 3500;
 
-// Blink timing: random interval between blinks
-const BLINK_MIN_INTERVAL = 2500;
-const BLINK_MAX_INTERVAL = 6000;
-const BLINK_DURATION = 180;
+// --- Blink physiology ---
+// Real human blinks: close ~75-90ms, stay shut ~50-70ms, reopen ~120-170ms
+// We add variance so no two blinks feel identical.
+// Occasional double-blinks (~20% chance) add organic texture.
+type BlinkPhase = 'none' | 'closing' | 'shut' | 'opening';
+
+function randomBetween(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
 
 export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps) {
   const [internalState, setInternalState] = useState(state);
-  const [isBlinking, setIsBlinking] = useState(false);
+  const [blinkPhase, setBlinkPhase] = useState<BlinkPhase>('none');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blinkChainRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -43,78 +48,177 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
     };
   }, [state, onOpenComplete, onGazeComplete]);
 
-  // Random blinking when eye is open
+  const clearBlinkChain = useCallback(() => {
+    blinkChainRef.current.forEach(clearTimeout);
+    blinkChainRef.current = [];
+  }, []);
+
+  // Execute a single blink with phased timing, returns total duration
+  const executeBlink = useCallback((onComplete: () => void) => {
+    const closeTime = randomBetween(70, 100);    // snap shut
+    const shutTime = randomBetween(40, 80);       // held closed
+    const openTime = randomBetween(130, 200);     // slower reopen
+
+    // Phase 1: closing
+    setBlinkPhase('closing');
+
+    const t1 = setTimeout(() => {
+      // Phase 2: fully shut
+      setBlinkPhase('shut');
+
+      const t2 = setTimeout(() => {
+        // Phase 3: reopening
+        setBlinkPhase('opening');
+
+        const t3 = setTimeout(() => {
+          // Done
+          setBlinkPhase('none');
+          onComplete();
+        }, openTime);
+        blinkChainRef.current.push(t3);
+      }, shutTime);
+      blinkChainRef.current.push(t2);
+    }, closeTime);
+    blinkChainRef.current.push(t1);
+  }, []);
+
+  // Random blinking when eye is open or revealing
   useEffect(() => {
     const canBlink = internalState === 'open' || internalState === 'revealing';
     if (!canBlink) {
-      setIsBlinking(false);
-      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      setBlinkPhase('none');
+      clearBlinkChain();
       return;
     }
 
     function scheduleBlink() {
-      const delay = BLINK_MIN_INTERVAL + Math.random() * (BLINK_MAX_INTERVAL - BLINK_MIN_INTERVAL);
-      blinkTimeoutRef.current = setTimeout(() => {
-        setIsBlinking(true);
-        // Re-open after blink duration
-        setTimeout(() => {
-          setIsBlinking(false);
-          scheduleBlink();
-        }, BLINK_DURATION);
-      }, delay);
+      // Interval: 2–7s, weighted toward 3–5s (human average ~3-4s)
+      const baseDelay = randomBetween(2000, 7000);
+      const t = setTimeout(() => {
+        // ~20% chance of a double-blink
+        const isDouble = Math.random() < 0.2;
+        executeBlink(() => {
+          if (isDouble) {
+            // Second blink comes faster, shorter pause
+            const gapDelay = randomBetween(100, 200);
+            const tGap = setTimeout(() => {
+              executeBlink(() => {
+                scheduleBlink();
+              });
+            }, gapDelay);
+            blinkChainRef.current.push(tGap);
+          } else {
+            scheduleBlink();
+          }
+        });
+      }, baseDelay);
+      blinkChainRef.current.push(t);
     }
 
-    // Initial delay before first blink (longer so eye settles first)
-    const initialDelay = 1500 + Math.random() * 2000;
-    blinkTimeoutRef.current = setTimeout(() => {
+    // Initial delay — let the eye settle before first blink
+    const initialDelay = randomBetween(1800, 3500);
+    const tInit = setTimeout(() => {
       scheduleBlink();
     }, initialDelay);
+    blinkChainRef.current.push(tInit);
 
     return () => {
-      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      clearBlinkChain();
     };
-  }, [internalState]);
+  }, [internalState, executeBlink, clearBlinkChain]);
 
   const isOpen = internalState === 'open' || internalState === 'gazing' || internalState === 'revealing';
   const isOpening = internalState === 'opening';
   const isGazing = internalState === 'gazing';
   const isRevealing = internalState === 'revealing';
+  const isBlinkActive = blinkPhase !== 'none';
 
-  // Eyelid path: when open, lids recede to thin curves at top/bottom
-  // When closed, both lids meet at the center horizontal line
+  // --- Eyelid paths ---
+  // Open: lids recede to thin curves at top/bottom
+  // Closed: both lids meet at center horizontal
   const topLidClosed = "M 0,80 Q 40,80 80,80 Q 120,80 160,80 L 160,0 L 0,0 Z";
   const topLidOpen = "M 0,80 Q 40,20 80,12 Q 120,20 160,80 L 160,0 L 0,0 Z";
-  // Blink: lids nearly closed but not fully — a quick natural blink
-  const topLidBlink = "M 0,80 Q 40,72 80,70 Q 120,72 160,80 L 160,0 L 0,0 Z";
 
   const bottomLidClosed = "M 0,80 Q 40,80 80,80 Q 120,80 160,80 L 160,160 L 0,160 Z";
   const bottomLidOpen = "M 0,80 Q 40,140 80,148 Q 120,140 160,80 L 160,160 L 0,160 Z";
-  const bottomLidBlink = "M 0,80 Q 40,88 80,90 Q 120,88 160,80 L 160,160 L 0,160 Z";
 
-  // Determine which lid paths to use
+  // Blink positions — closing phase goes nearly shut, shut phase fully meets
+  const topLidClosing = "M 0,80 Q 40,68 80,64 Q 120,68 160,80 L 160,0 L 0,0 Z";
+  const topLidShut = "M 0,80 Q 40,78 80,77 Q 120,78 160,80 L 160,0 L 0,0 Z";
+
+  const bottomLidClosing = "M 0,80 Q 40,92 80,96 Q 120,92 160,80 L 160,160 L 0,160 Z";
+  const bottomLidShut = "M 0,80 Q 40,82 80,83 Q 120,82 160,80 L 160,160 L 0,160 Z";
+
+  // Determine which lid paths to use based on blink phase
   const getTopLidPath = () => {
-    if (isBlinking) return topLidBlink;
-    if (isOpen || isOpening) return topLidOpen;
-    return topLidClosed;
+    switch (blinkPhase) {
+      case 'closing': return topLidClosing;
+      case 'shut': return topLidShut;
+      case 'opening': return topLidClosing; // reopening passes through closing position
+      default: return (isOpen || isOpening) ? topLidOpen : topLidClosed;
+    }
   };
   const getBottomLidPath = () => {
-    if (isBlinking) return bottomLidBlink;
-    if (isOpen || isOpening) return bottomLidOpen;
-    return bottomLidClosed;
-  };
-  const getTopLashPath = () => {
-    if (isBlinking) return "M 0,80 Q 40,72 80,70 Q 120,72 160,80";
-    if (isOpen || isOpening) return "M 0,80 Q 40,20 80,12 Q 120,20 160,80";
-    return "M 0,80 Q 40,80 80,80 Q 120,80 160,80";
-  };
-  const getBottomLashPath = () => {
-    if (isBlinking) return "M 0,80 Q 40,88 80,90 Q 120,88 160,80";
-    if (isOpen || isOpening) return "M 0,80 Q 40,140 80,148 Q 120,140 160,80";
-    return "M 0,80 Q 40,80 80,80 Q 120,80 160,80";
+    switch (blinkPhase) {
+      case 'closing': return bottomLidClosing;
+      case 'shut': return bottomLidShut;
+      case 'opening': return bottomLidClosing;
+      default: return (isOpen || isOpening) ? bottomLidOpen : bottomLidClosed;
+    }
   };
 
+  // Lash lines (no fill, just the edge stroke) — same positions without L/Z
+  const lashPaths = {
+    topOpen: "M 0,80 Q 40,20 80,12 Q 120,20 160,80",
+    topClosed: "M 0,80 Q 40,80 80,80 Q 120,80 160,80",
+    topClosing: "M 0,80 Q 40,68 80,64 Q 120,68 160,80",
+    topShut: "M 0,80 Q 40,78 80,77 Q 120,78 160,80",
+    bottomOpen: "M 0,80 Q 40,140 80,148 Q 120,140 160,80",
+    bottomClosed: "M 0,80 Q 40,80 80,80 Q 120,80 160,80",
+    bottomClosing: "M 0,80 Q 40,92 80,96 Q 120,92 160,80",
+    bottomShut: "M 0,80 Q 40,82 80,83 Q 120,82 160,80",
+  };
+
+  const getTopLashPath = () => {
+    switch (blinkPhase) {
+      case 'closing': return lashPaths.topClosing;
+      case 'shut': return lashPaths.topShut;
+      case 'opening': return lashPaths.topClosing;
+      default: return (isOpen || isOpening) ? lashPaths.topOpen : lashPaths.topClosed;
+    }
+  };
+  const getBottomLashPath = () => {
+    switch (blinkPhase) {
+      case 'closing': return lashPaths.bottomClosing;
+      case 'shut': return lashPaths.bottomShut;
+      case 'opening': return lashPaths.bottomClosing;
+      default: return (isOpen || isOpening) ? lashPaths.bottomOpen : lashPaths.bottomClosed;
+    }
+  };
+
+  // Clip paths follow the same logic
+  const getClipTopPath = () => {
+    switch (blinkPhase) {
+      case 'closing': return lashPaths.topClosing;
+      case 'shut': return lashPaths.topShut;
+      case 'opening': return lashPaths.topClosing;
+      default: return (isOpen || isOpening) ? lashPaths.topOpen : lashPaths.topClosed;
+    }
+  };
+  const getClipBottomPath = () => {
+    switch (blinkPhase) {
+      case 'closing': return lashPaths.bottomClosing;
+      case 'shut': return lashPaths.bottomShut;
+      case 'opening': return lashPaths.bottomClosing;
+      default: return (isOpen || isOpening) ? lashPaths.bottomOpen : lashPaths.bottomClosed;
+    }
+  };
+
+  // Build CSS class for blink phase
+  const blinkClass = blinkPhase !== 'none' ? `seer-eye--blink-${blinkPhase}` : '';
+
   return (
-    <div className={`seer-eye-container seer-eye--${internalState} ${isBlinking ? 'seer-eye--blinking' : ''}`}>
+    <div className={`seer-eye-container seer-eye--${internalState} ${blinkClass}`}>
       <div className="seer-eye">
         <svg
           viewBox="0 0 160 160"
@@ -126,14 +230,14 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
             <clipPath id="eyeOpening">
               <path
                 className="eye-opening-clip-top"
-                d={isBlinking ? "M 0,80 Q 40,72 80,70 Q 120,72 160,80" : (isOpen || isOpening ? "M 0,80 Q 40,20 80,12 Q 120,20 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80")}
+                d={getClipTopPath()}
               />
               <rect x="0" y="80" width="160" height="80" />
             </clipPath>
             <clipPath id="eyeOpeningBottom">
               <path
                 className="eye-opening-clip-bottom"
-                d={isBlinking ? "M 0,80 Q 40,88 80,90 Q 120,88 160,80" : (isOpen || isOpening ? "M 0,80 Q 40,140 80,148 Q 120,140 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80")}
+                d={getClipBottomPath()}
               />
               <rect x="0" y="0" width="160" height="80" />
             </clipPath>
@@ -189,7 +293,7 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
           />
 
           {/* Iris group */}
-          <g className={`iris-group ${isGazing ? 'iris-group--gazing' : ''} ${isRevealing ? 'iris-group--revealing' : ''}`}>
+          <g className={`iris-group ${isGazing ? 'iris-group--gazing' : ''} ${isRevealing ? 'iris-group--revealing' : ''} ${isBlinkActive ? 'iris-group--blink' : ''}`}>
             {/* Outer iris glow */}
             <circle
               cx="80" cy="80" r="28"

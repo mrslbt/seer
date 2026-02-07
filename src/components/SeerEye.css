@@ -42,9 +42,18 @@
   transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Blink: fast down, slightly slower up — natural blink rhythm */
-.seer-eye--blinking .eyelid {
-  transition: d 0.08s ease-in;
+/* Blink phases — asymmetric timing like a real eye */
+/* Closing: fast snap down */
+.seer-eye--blink-closing .eyelid {
+  transition: d 0.07s ease-in;
+}
+/* Shut: instant lock */
+.seer-eye--blink-shut .eyelid {
+  transition: d 0.03s linear;
+}
+/* Opening: slower, softer reopen */
+.seer-eye--blink-opening .eyelid {
+  transition: d 0.14s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Lash lines follow eyelids */
@@ -58,9 +67,15 @@
               stroke 0.6s ease;
 }
 
-.seer-eye--blinking .lash-line {
-  transition: d 0.08s ease-in,
-              stroke 0.08s ease;
+/* Lash lines match blink phases */
+.seer-eye--blink-closing .lash-line {
+  transition: d 0.07s ease-in, stroke 0.07s ease;
+}
+.seer-eye--blink-shut .lash-line {
+  transition: d 0.03s linear, stroke 0.03s ease;
+}
+.seer-eye--blink-opening .lash-line {
+  transition: d 0.14s cubic-bezier(0.25, 0.46, 0.45, 0.94), stroke 0.14s ease;
 }
 
 .seer-eye--open .lash-line--top,
@@ -96,6 +111,23 @@
 
 .seer-eye--revealing .iris-main {
   filter: brightness(1.2);
+}
+
+/* ---- Blink reactions on iris/glint ---- */
+/* During blink, iris dims and glint vanishes — light is occluded */
+.iris-group--blink {
+  transition: opacity 0.06s ease;
+  opacity: 0.4;
+}
+
+.iris-group--blink .eye-glint-main {
+  opacity: 0 !important;
+  transition: opacity 0.04s ease;
+}
+
+.iris-group--blink .eye-glint-secondary {
+  opacity: 0;
+  transition: opacity 0.04s ease;
 }
 
 /* ---- Gazing Animations ---- */
