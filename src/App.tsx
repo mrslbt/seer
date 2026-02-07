@@ -15,6 +15,8 @@ import { QuestionInput, validateQuestionInput } from './components/QuestionInput
 import { SeerEye } from './components/SeerEye';
 import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
+import { CosmicDashboard } from './components/CosmicDashboard';
+import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
 
@@ -32,6 +34,7 @@ function App() {
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const {
     isInitialized: cosmosReady,
@@ -39,10 +42,14 @@ function App() {
     error: cosmosError,
     dailyReport,
     setUserFromOldBirthData,
+    refreshDailyReport,
     userProfile
   } = usePersonalCosmos();
 
   const hasBirthData = birthData !== null;
+
+  // Auto-refresh dashboard data every 30 minutes while visible
+  useDashboardRefresh(showDashboard, refreshDailyReport);
 
   // Load saved birth data
   useEffect(() => {
@@ -206,6 +213,11 @@ function App() {
         <button className="header-btn" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
           {isMuted ? '\u{1F507}' : '\u{1F50A}'}
         </button>
+        {hasBirthData && dailyReport && appState !== 'revealing' && (
+          <button className="header-btn" onClick={() => { playClick(); setShowDashboard(true); }} aria-label="Cosmic Dashboard">
+            {'\u2728'}
+          </button>
+        )}
         {hasBirthData && (
           <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
             {'\u2699\uFE0F'}
@@ -293,6 +305,15 @@ function App() {
             />
           </div>
         </div>
+      )}
+
+      {/* Cosmic Dashboard overlay */}
+      {showDashboard && dailyReport && (
+        <CosmicDashboard
+          report={dailyReport}
+          onClose={() => setShowDashboard(false)}
+          onRefresh={refreshDailyReport}
+        />
       )}
 
       {/* Oracle reading overlay */}

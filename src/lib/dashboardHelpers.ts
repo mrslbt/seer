@@ -1,0 +1,65 @@
+/**
+ * Dashboard display helpers
+ *
+ * Category metadata (icons, display names) and score-to-color/label
+ * utilities for the Cosmic Dashboard. Pure data — no side effects.
+ */
+
+import type { PersonalDailyReport } from './personalDailyReport';
+
+export interface CategoryMeta {
+  key: keyof PersonalDailyReport['categories'];
+  displayName: string;
+  icon: string;
+  planetName: string;
+}
+
+/**
+ * Display metadata for each scoring category.
+ * Icons use astrological planet symbols (Unicode).
+ */
+export const CATEGORY_META: CategoryMeta[] = [
+  { key: 'love',       displayName: 'Love',       icon: '\u2640', planetName: 'Venus' },      // ♀
+  { key: 'career',     displayName: 'Career',     icon: '\u2644', planetName: 'Saturn' },     // ♄
+  { key: 'money',      displayName: 'Money',      icon: '\u2643', planetName: 'Jupiter' },    // ♃
+  { key: 'health',     displayName: 'Health',     icon: '\u2642', planetName: 'Mars' },       // ♂
+  { key: 'social',     displayName: 'Social',     icon: '\u263F', planetName: 'Mercury' },    // ☿
+  { key: 'decisions',  displayName: 'Decisions',  icon: '\u2609', planetName: 'Sun' },        // ☉
+  { key: 'creativity', displayName: 'Creativity', icon: '\u2646', planetName: 'Neptune' },    // ♆
+  { key: 'spiritual',  displayName: 'Spiritual',  icon: '\u263D', planetName: 'Moon' },       // ☽
+];
+
+/**
+ * Score → color (CSS variable reference)
+ */
+export function getScoreColor(score: number): string {
+  if (score >= 7) return 'var(--accent)';
+  if (score >= 4) return 'var(--text-secondary)';
+  return 'var(--no)';
+}
+
+/**
+ * Score → human-readable energy label
+ */
+export function getEnergyLabel(score: number): string {
+  if (score >= 9) return 'Exceptional';
+  if (score >= 7) return 'Favorable';
+  if (score >= 6) return 'Steady';
+  if (score >= 5) return 'Balanced';
+  if (score >= 4) return 'Cautious';
+  if (score >= 2) return 'Challenged';
+  return 'Difficult';
+}
+
+/**
+ * Overall energy level → short poetic descriptor
+ */
+export function getOverallDescriptor(energy: PersonalDailyReport['overallEnergy']): string {
+  switch (energy) {
+    case 'excellent':   return 'The cosmos align in your favor';
+    case 'good':        return 'Celestial currents support you';
+    case 'mixed':       return 'Stars offer guidance through complexity';
+    case 'challenging': return 'Navigate with awareness today';
+    case 'difficult':   return 'Rest and reflect — patience is power';
+  }
+}
