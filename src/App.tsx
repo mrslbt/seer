@@ -90,20 +90,17 @@ function App() {
     setShowSettings(false);
   }, [cosmosReady, setUserFromOldBirthData]);
 
-  // Summon the seer
-  const handleSummon = useCallback(() => {
-    if (!hasBirthData) return;
-    playClick();
-    setAppState('summoning');
-  }, [hasBirthData]);
-
-  // Eye finished opening
+  // Eye finished opening — if question is waiting, go to gazing; otherwise await input
   const handleEyeOpenComplete = useCallback(() => {
     playReveal();
-    setAppState('awaiting_question');
-  }, []);
+    if (submittedQuestion) {
+      setAppState('gazing');
+    } else {
+      setAppState('awaiting_question');
+    }
+  }, [submittedQuestion]);
 
-  // Submit question
+  // Submit question — works from both idle and awaiting_question states
   const handleSubmitQuestion = useCallback(() => {
     const validation = validateQuestionInput(questionText);
     if (!validation.valid) {
@@ -114,8 +111,15 @@ function App() {
     setQuestionError(null);
     playClick();
     setSubmittedQuestion(questionText.trim());
-    setAppState('gazing');
-  }, [questionText]);
+
+    if (appState === 'idle') {
+      // Eye is closed — open it, then gaze
+      setAppState('summoning');
+    } else {
+      // Eye is already open — go straight to gazing
+      setAppState('gazing');
+    }
+  }, [questionText, appState]);
 
   // Eye finished gazing - generate reading
   const handleGazeComplete = useCallback(() => {
@@ -171,14 +175,19 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
-  // Select a pre-made suggestion
+  // Select a pre-made suggestion — works from idle or awaiting_question
   const handleSuggestedSelect = useCallback((question: string) => {
     playClick();
     setQuestionText(question);
     setQuestionError(null);
     setSubmittedQuestion(question);
-    setAppState('gazing');
-  }, []);
+
+    if (appState === 'idle') {
+      setAppState('summoning'); // Open eye first, then gaze
+    } else {
+      setAppState('gazing');
+    }
+  }, [appState]);
 
   // Clear error when typing
   const handleQuestionChange = useCallback((value: string) => {
@@ -253,6 +262,14 @@ function App() {
         {/* Main seer interface */}
         {hasBirthData && (
           <>
+            {/* Branding - visible when idle or awaiting question */}
+            {(appState === 'idle' || appState === 'awaiting_question') && (
+              <div className="seer-brand">
+                <span className="brand-the">The</span>
+                <span className="brand-seer">Seer</span>
+              </div>
+            )}
+
             {/* The Eye */}
             <div className="eye-section">
               <SeerEye
@@ -267,15 +284,8 @@ function App() {
               <p className="current-question">"{submittedQuestion}"</p>
             )}
 
-            {/* Summon button - only in idle state */}
-            {appState === 'idle' && (
-              <button className="summon-btn" onClick={handleSummon}>
-                Summon
-              </button>
-            )}
-
-            {/* Question input - only when eye is open */}
-            {appState === 'awaiting_question' && (
+            {/* Question input - visible in idle AND awaiting_question */}
+            {(appState === 'idle' || appState === 'awaiting_question') && (
               <div className="input-container">
                 <QuestionInput
                   value={questionText}

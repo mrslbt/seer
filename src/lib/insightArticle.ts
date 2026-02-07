@@ -94,10 +94,21 @@ export function generateInsightArticle(
   });
 
   // Section 2: The reasoning (why the cosmos say what they say)
+  // Show natal warnings first, then top 3 transit reasons to avoid overwhelming the user
   if (catScore.reasoning.length > 0) {
-    const reasoningText = catScore.reasoning
+    const natalReasons = catScore.reasoning.filter(r => !r.startsWith('Transit'));
+    const transitReasons = catScore.reasoning.filter(r => r.startsWith('Transit'));
+    const visibleReasons = [...natalReasons, ...transitReasons.slice(0, 3)];
+    const overflow = transitReasons.length > 3 ? transitReasons.length - 3 : 0;
+
+    let reasoningText = visibleReasons
       .map((r) => `\u2022 ${r}`)
       .join("\n");
+
+    if (overflow > 0) {
+      reasoningText += `\n\n+${overflow} more transit${overflow > 1 ? 's' : ''} in Active Transits below`;
+    }
+
     sections.push({
       heading: "What the Stars Reveal",
       body: reasoningText,

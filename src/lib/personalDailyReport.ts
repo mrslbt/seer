@@ -492,7 +492,14 @@ function generateCategoryScore(
     goodFor.push('reflection', 'planning');
   }
 
-  return { score, reasoning, advice, goodFor, badFor };
+  // Deduplicate lists
+  return {
+    score,
+    reasoning: [...new Set(reasoning)],
+    advice,
+    goodFor: [...new Set(goodFor)],
+    badFor: [...new Set(badFor)],
+  };
 }
 
 /**

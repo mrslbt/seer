@@ -71,9 +71,23 @@ export function OracleReading({ oracleText, verdict, article, onAskAgain, onDism
     );
   }
 
+  const verdictLabels: Record<Verdict, string> = {
+    HARD_YES: 'Yes',
+    SOFT_YES: 'Leaning Yes',
+    NEUTRAL: 'Uncertain',
+    SOFT_NO: 'Leaning No',
+    HARD_NO: 'No',
+    UNCLEAR: 'Unclear',
+  };
+
   return (
     <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading">
       <div className="oracle-reading" onClick={(e) => e.stopPropagation()}>
+        {/* Verdict label */}
+        <div className="verdict-label" style={{ color }}>
+          {verdictLabels[verdict]}
+        </div>
+
         <div className="oracle-text" style={{ color }}>
           <span className="oracle-quote oracle-quote--open">{'\u201C'}</span>
           {oracleText}
