@@ -75,7 +75,9 @@ export function OracleReading({ oracleText, verdict, article, onAskAgain, onDism
     <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading">
       <div className="oracle-reading" onClick={(e) => e.stopPropagation()}>
         <div className="oracle-text" style={{ color }}>
+          <span className="oracle-quote oracle-quote--open">{'\u201C'}</span>
           {oracleText}
+          <span className="oracle-quote oracle-quote--close">{'\u201D'}</span>
         </div>
 
         <div className="oracle-actions">

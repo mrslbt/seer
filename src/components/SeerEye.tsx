@@ -10,9 +10,16 @@ interface SeerEyeProps {
 const OPEN_DURATION = 1500;
 const GAZE_DURATION = 3500;
 
+// Blink timing: random interval between blinks
+const BLINK_MIN_INTERVAL = 2500;
+const BLINK_MAX_INTERVAL = 6000;
+const BLINK_DURATION = 180;
+
 export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps) {
   const [internalState, setInternalState] = useState(state);
+  const [isBlinking, setIsBlinking] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -36,6 +43,38 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
     };
   }, [state, onOpenComplete, onGazeComplete]);
 
+  // Random blinking when eye is open
+  useEffect(() => {
+    const canBlink = internalState === 'open' || internalState === 'revealing';
+    if (!canBlink) {
+      setIsBlinking(false);
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      return;
+    }
+
+    function scheduleBlink() {
+      const delay = BLINK_MIN_INTERVAL + Math.random() * (BLINK_MAX_INTERVAL - BLINK_MIN_INTERVAL);
+      blinkTimeoutRef.current = setTimeout(() => {
+        setIsBlinking(true);
+        // Re-open after blink duration
+        setTimeout(() => {
+          setIsBlinking(false);
+          scheduleBlink();
+        }, BLINK_DURATION);
+      }, delay);
+    }
+
+    // Initial delay before first blink (longer so eye settles first)
+    const initialDelay = 1500 + Math.random() * 2000;
+    blinkTimeoutRef.current = setTimeout(() => {
+      scheduleBlink();
+    }, initialDelay);
+
+    return () => {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+    };
+  }, [internalState]);
+
   const isOpen = internalState === 'open' || internalState === 'gazing' || internalState === 'revealing';
   const isOpening = internalState === 'opening';
   const isGazing = internalState === 'gazing';
@@ -45,12 +84,37 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
   // When closed, both lids meet at the center horizontal line
   const topLidClosed = "M 0,80 Q 40,80 80,80 Q 120,80 160,80 L 160,0 L 0,0 Z";
   const topLidOpen = "M 0,80 Q 40,20 80,12 Q 120,20 160,80 L 160,0 L 0,0 Z";
+  // Blink: lids nearly closed but not fully — a quick natural blink
+  const topLidBlink = "M 0,80 Q 40,72 80,70 Q 120,72 160,80 L 160,0 L 0,0 Z";
 
   const bottomLidClosed = "M 0,80 Q 40,80 80,80 Q 120,80 160,80 L 160,160 L 0,160 Z";
   const bottomLidOpen = "M 0,80 Q 40,140 80,148 Q 120,140 160,80 L 160,160 L 0,160 Z";
+  const bottomLidBlink = "M 0,80 Q 40,88 80,90 Q 120,88 160,80 L 160,160 L 0,160 Z";
+
+  // Determine which lid paths to use
+  const getTopLidPath = () => {
+    if (isBlinking) return topLidBlink;
+    if (isOpen || isOpening) return topLidOpen;
+    return topLidClosed;
+  };
+  const getBottomLidPath = () => {
+    if (isBlinking) return bottomLidBlink;
+    if (isOpen || isOpening) return bottomLidOpen;
+    return bottomLidClosed;
+  };
+  const getTopLashPath = () => {
+    if (isBlinking) return "M 0,80 Q 40,72 80,70 Q 120,72 160,80";
+    if (isOpen || isOpening) return "M 0,80 Q 40,20 80,12 Q 120,20 160,80";
+    return "M 0,80 Q 40,80 80,80 Q 120,80 160,80";
+  };
+  const getBottomLashPath = () => {
+    if (isBlinking) return "M 0,80 Q 40,88 80,90 Q 120,88 160,80";
+    if (isOpen || isOpening) return "M 0,80 Q 40,140 80,148 Q 120,140 160,80";
+    return "M 0,80 Q 40,80 80,80 Q 120,80 160,80";
+  };
 
   return (
-    <div className={`seer-eye-container seer-eye--${internalState}`}>
+    <div className={`seer-eye-container seer-eye--${internalState} ${isBlinking ? 'seer-eye--blinking' : ''}`}>
       <div className="seer-eye">
         <svg
           viewBox="0 0 160 160"
@@ -62,14 +126,14 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
             <clipPath id="eyeOpening">
               <path
                 className="eye-opening-clip-top"
-                d={isOpen || isOpening ? "M 0,80 Q 40,20 80,12 Q 120,20 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80"}
+                d={isBlinking ? "M 0,80 Q 40,72 80,70 Q 120,72 160,80" : (isOpen || isOpening ? "M 0,80 Q 40,20 80,12 Q 120,20 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80")}
               />
               <rect x="0" y="80" width="160" height="80" />
             </clipPath>
             <clipPath id="eyeOpeningBottom">
               <path
                 className="eye-opening-clip-bottom"
-                d={isOpen || isOpening ? "M 0,80 Q 40,140 80,148 Q 120,140 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80"}
+                d={isBlinking ? "M 0,80 Q 40,88 80,90 Q 120,88 160,80" : (isOpen || isOpening ? "M 0,80 Q 40,140 80,148 Q 120,140 160,80" : "M 0,80 Q 40,80 80,80 Q 120,80 160,80")}
               />
               <rect x="0" y="0" width="160" height="80" />
             </clipPath>
@@ -185,34 +249,28 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
           {/* Top eyelid */}
           <path
             className="eyelid eyelid--top"
-            d={isOpen || isOpening ? topLidOpen : topLidClosed}
+            d={getTopLidPath()}
             fill="#000"
           />
 
           {/* Bottom eyelid */}
           <path
             className="eyelid eyelid--bottom"
-            d={isOpen || isOpening ? bottomLidOpen : bottomLidClosed}
+            d={getBottomLidPath()}
             fill="#000"
           />
 
           {/* Eyelid edge lines (lash lines) */}
           <path
             className="lash-line lash-line--top"
-            d={isOpen || isOpening
-              ? "M 0,80 Q 40,20 80,12 Q 120,20 160,80"
-              : "M 0,80 Q 40,80 80,80 Q 120,80 160,80"
-            }
+            d={getTopLashPath()}
             fill="none"
             stroke="rgba(201, 168, 76, 0.25)"
             strokeWidth="1"
           />
           <path
             className="lash-line lash-line--bottom"
-            d={isOpen || isOpening
-              ? "M 0,80 Q 40,140 80,148 Q 120,140 160,80"
-              : "M 0,80 Q 40,80 80,80 Q 120,80 160,80"
-            }
+            d={getBottomLashPath()}
             fill="none"
             stroke="rgba(201, 168, 76, 0.15)"
             strokeWidth="0.5"

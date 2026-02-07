@@ -42,6 +42,11 @@
   transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Blink: fast down, slightly slower up — natural blink rhythm */
+.seer-eye--blinking .eyelid {
+  transition: d 0.08s ease-in;
+}
+
 /* Lash lines follow eyelids */
 .lash-line {
   transition: d 1.4s cubic-bezier(0.25, 0.1, 0.25, 1),
@@ -51,6 +56,11 @@
 .seer-eye--opening .lash-line {
   transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1),
               stroke 0.6s ease;
+}
+
+.seer-eye--blinking .lash-line {
+  transition: d 0.08s ease-in,
+              stroke 0.08s ease;
 }
 
 .seer-eye--open .lash-line--top,

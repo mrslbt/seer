@@ -16,7 +16,7 @@
 .oracle-reading {
   text-align: center;
   max-width: 380px;
-  animation: oracleReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: oracleReveal 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
 }
 
@@ -41,6 +41,28 @@
   font-style: italic;
   line-height: 1.5;
   letter-spacing: 0.01em;
+  position: relative;
+  animation: textMaterialize 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Decorative quotation marks */
+.oracle-quote {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  line-height: 0;
+  vertical-align: -0.15em;
+  opacity: 0.25;
+  color: var(--accent);
+  display: inline;
+  animation: quoteGlow 4s ease-in-out infinite;
+}
+
+.oracle-quote--open {
+  margin-right: 2px;
+}
+
+.oracle-quote--close {
+  margin-left: 2px;
 }
 
 /* Action buttons row */
@@ -49,6 +71,18 @@
   gap: 16px;
   justify-content: center;
   margin-top: 48px;
+  animation: actionsAppear 0.6s ease 1.6s both;
+}
+
+@keyframes actionsAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Button base */
@@ -191,16 +225,57 @@
 @keyframes oracleReveal {
   0% {
     opacity: 0;
-    transform: translateY(20px);
-    filter: blur(4px);
+    transform: translateY(24px) scale(0.96);
+    filter: blur(8px);
   }
-  60% {
+  40% {
+    opacity: 0.6;
+    filter: blur(2px);
+    transform: translateY(8px) scale(0.99);
+  }
+  70% {
     filter: blur(0);
+    transform: translateY(-2px) scale(1.005);
+  }
+  85% {
+    transform: translateY(1px) scale(1);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     filter: blur(0);
+  }
+}
+
+/* Text materializes - ethereal entrance */
+@keyframes textMaterialize {
+  0% {
+    text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+    opacity: 0;
+  }
+  30% {
+    text-shadow: 0 0 20px currentColor, 0 0 40px rgba(201, 168, 76, 0.15);
+    opacity: 0.7;
+  }
+  60% {
+    text-shadow: 0 0 8px currentColor;
+    opacity: 0.9;
+  }
+  100% {
+    text-shadow: none;
+    opacity: 1;
+  }
+}
+
+/* Quotation mark subtle glow pulse */
+@keyframes quoteGlow {
+  0%, 100% {
+    opacity: 0.2;
+    text-shadow: none;
+  }
+  50% {
+    opacity: 0.35;
+    text-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
   }
 }
 
@@ -239,6 +314,10 @@
 
   .oracle-text {
     font-size: 1.25rem;
+  }
+
+  .oracle-quote {
+    font-size: 2.2rem;
   }
 
   .oracle-actions {
