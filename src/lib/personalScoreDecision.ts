@@ -143,9 +143,11 @@ export function scorePersonalDecision(
     t.affectedCategories.includes(questionCategory as any)
   );
 
-  for (const transitData of relevantTransits.slice(0, 1)) {
-    const impactPoints = transitData.impact === 'positive' ? 10 :
-                         transitData.impact === 'negative' ? -10 : 0;
+  for (const [i, transitData] of relevantTransits.slice(0, 3).entries()) {
+    const weight = i === 0 ? 1 : i === 1 ? 0.6 : 0.3; // Diminishing returns
+    const basePoints = transitData.impact === 'positive' ? 10 :
+                       transitData.impact === 'negative' ? -10 : 0;
+    const impactPoints = Math.round(basePoints * weight);
     factors.push({
       description: transitData.interpretation,
       points: impactPoints,
@@ -158,6 +160,20 @@ export function scorePersonalDecision(
     factors.push({
       description: `${report.moonPhase.name}`,
       points: -8,
+      source: 'Moon phase'
+    });
+  }
+  if (actionPolarity === 'push' && report.moonPhase.name.includes('Waxing')) {
+    factors.push({
+      description: `${report.moonPhase.name}`,
+      points: 6,
+      source: 'Moon phase'
+    });
+  }
+  if (actionPolarity === 'pull' && report.moonPhase.name.includes('Waning')) {
+    factors.push({
+      description: `${report.moonPhase.name}`,
+      points: 6,
       source: 'Moon phase'
     });
   }
@@ -191,12 +207,12 @@ export function scorePersonalDecision(
   // NEVER override a NO verdict to YES just because of accumulated points
   if (verdict === 'NEUTRAL') {
     // Neutral can be nudged either way
-    if (clampedScore >= 30) verdict = 'SOFT_YES';
-    if (clampedScore <= -30) verdict = 'SOFT_NO';
-  } else if (verdict === 'SOFT_NO' && clampedScore <= -40) {
+    if (clampedScore >= 20) verdict = 'SOFT_YES';
+    if (clampedScore <= -20) verdict = 'SOFT_NO';
+  } else if (verdict === 'SOFT_NO' && clampedScore <= -30) {
     // Can strengthen a NO but never flip to YES
     verdict = 'HARD_NO';
-  } else if (verdict === 'SOFT_YES' && clampedScore >= 40) {
+  } else if (verdict === 'SOFT_YES' && clampedScore >= 30) {
     // Can strengthen a YES
     verdict = 'HARD_YES';
   }

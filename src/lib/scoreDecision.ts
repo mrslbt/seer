@@ -115,21 +115,21 @@ const ASPECT_BASE_POINTS: Record<AspectType, number> = {
   conjunction: 10,     // Reduced from 15 - conjunctions are intense, not always good
   sextile: 8,          // Reduced from 10
   trine: 15,           // Reduced from 20
-  square: -18,         // Increased from -15 - squares are genuinely challenging
-  opposition: -22,     // Increased from -20 - oppositions create real tension
+  square: -20,         // Grinding friction — hardest aspect to resolve
+  opposition: -16,     // Clear polarity — tense but workable
   quincunx: -12,       // Increased from -8 - quincunx requires real adjustment
   'semi-sextile': 2    // Reduced from 3
 };
 
 // Day ruler bonuses by category - BALANCED: each day has strengths AND weaknesses
 const DAY_RULER_BONUS: Record<string, Record<QuestionCategory, number>> = {
-  Sun: { love: -3, career: 8, money: 5, communication: 0, conflict: 5, timing: 3, health: 10, social: 5, decisions: 5, creativity: 3, spiritual: 0 },
+  Sun: { love: -3, career: 8, money: 5, communication: 0, conflict: 5, timing: 3, health: 8, social: 5, decisions: 5, creativity: 3, spiritual: 0 },
   Moon: { love: 6, career: -5, money: -3, communication: 3, conflict: -8, timing: 5, health: 3, social: 5, decisions: -3, creativity: 8, spiritual: 8 },
-  Mars: { love: -5, career: 5, money: 0, communication: -8, conflict: 10, timing: 3, health: 12, social: -5, decisions: 5, creativity: -3, spiritual: -5 },
-  Mercury: { love: 0, career: 5, money: 5, communication: 10, conflict: -5, timing: 3, health: 0, social: 8, decisions: 8, creativity: 5, spiritual: 0 },
-  Jupiter: { love: 5, career: 8, money: 10, communication: 5, conflict: -3, timing: 5, health: 5, social: 8, decisions: 5, creativity: 5, spiritual: 10 },
-  Venus: { love: 10, career: -3, money: 8, communication: 5, conflict: -10, timing: 0, health: -5, social: 10, decisions: -3, creativity: 10, spiritual: 5 },
-  Saturn: { love: -10, career: 10, money: 5, communication: -5, conflict: 8, timing: -8, health: 8, social: -5, decisions: 8, creativity: -5, spiritual: 5 }
+  Mars: { love: -5, career: 5, money: 0, communication: -8, conflict: 8, timing: 3, health: 8, social: -5, decisions: 5, creativity: -3, spiritual: -5 },
+  Mercury: { love: 0, career: 5, money: 5, communication: 8, conflict: -5, timing: 3, health: 0, social: 8, decisions: 8, creativity: 5, spiritual: 0 },
+  Jupiter: { love: 5, career: 8, money: 8, communication: 5, conflict: -3, timing: 5, health: 5, social: 8, decisions: 5, creativity: 5, spiritual: 8 },
+  Venus: { love: 8, career: -3, money: 8, communication: 5, conflict: -8, timing: 0, health: -5, social: 8, decisions: -3, creativity: 8, spiritual: 5 },
+  Saturn: { love: -8, career: 8, money: 5, communication: -5, conflict: 8, timing: -8, health: 8, social: -5, decisions: 8, creativity: -5, spiritual: 5 }
 };
 
 /**
@@ -669,7 +669,7 @@ function scoreDignities(
     if (!relevantPlanets.includes(dignity.planet)) continue;
     if (dignity.dignity === 'neutral') continue;
 
-    const points = dignity.strength * 8; // +16, +8, -8, or -16
+    const points = dignity.strength * 5; // +10, +5, -5, or -10
 
     factors.push({
       description: `${dignity.planet} in ${dignity.dignity}`,

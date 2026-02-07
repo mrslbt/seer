@@ -102,8 +102,8 @@ const ASPECT_IMPACTS: Record<AspectType, { score: number; nature: 'positive' | '
   conjunction: { score: 0, nature: 'neutral' }, // Can be positive or negative depending on planets
   trine: { score: 2, nature: 'positive' },
   sextile: { score: 1, nature: 'positive' },
-  square: { score: -2, nature: 'negative' },
-  opposition: { score: -1, nature: 'negative' },
+  square: { score: -2, nature: 'negative' },       // Grinding friction — hardest aspect
+  opposition: { score: -1.5, nature: 'negative' },  // Clear polarity — tense but resolvable
   quincunx: { score: -1, nature: 'negative' }
 };
 
@@ -204,42 +204,130 @@ function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier
     const sign = data.sign as ZodiacSign;
     const element = SIGN_ELEMENTS[sign];
 
-    // Venus placement affects love and money
-    if (planet === 'venus') {
-      if (sign === 'Pisces') {
+    // ---- Sun placement ----
+    if (planet === 'sun') {
+      if (sign === 'Leo') {
         modifiers.push({
-          planet: planet as Planet,
-          sign,
-          categoryModifiers: {
-            money: -2,  // Pisces Venus = idealistic about money, not strategic
-            love: 1     // But great for romance
-          },
-          warnings: {
-            money: 'Your Venus in Pisces makes you idealistic about money - be extra cautious with financial risks'
-          }
-        });
-      } else if (sign === 'Taurus' || sign === 'Capricorn') {
-        modifiers.push({
-          planet: planet as Planet,
-          sign,
-          categoryModifiers: { money: 1 },
+          planet: planet as Planet, sign,
+          categoryModifiers: { creativity: 1, social: 1 },
           warnings: {}
+        });
+      } else if (sign === 'Capricorn') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { career: 1, creativity: -1 },
+          warnings: { creativity: 'Your Capricorn Sun favors structure over spontaneity' }
         });
       }
     }
 
-    // Mars placement affects action-taking and health
-    if (planet === 'mars') {
-      if (element === 'water') {
-        // Water Mars (Cancer, Scorpio, Pisces) = passive, intuitive action
+    // ---- Moon placement ----
+    if (planet === 'moon') {
+      if (sign === 'Cancer') {
         modifiers.push({
-          planet: planet as Planet,
-          sign,
-          categoryModifiers: {
-            money: -1,      // Not great for aggressive financial moves
-            decisions: -1,  // Hesitant decision-making
-            health: 0       // Depends on the day
-          },
+          planet: planet as Planet, sign,
+          categoryModifiers: { love: 1, health: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Aquarius') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { love: -1, social: 1, spiritual: 1 },
+          warnings: { love: 'Your Aquarius Moon may overthink emotional matters' }
+        });
+      } else if (sign === 'Capricorn') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { love: -1, career: 1 },
+          warnings: { love: 'Your Capricorn Moon can hold back emotional expression' }
+        });
+      } else if (sign === 'Scorpio') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { spiritual: 1, social: -1 },
+          warnings: { social: 'Your Scorpio Moon prefers depth over breadth in connections' }
+        });
+      }
+    }
+
+    // ---- Mercury placement ----
+    if (planet === 'mercury') {
+      if (sign === 'Gemini' || sign === 'Virgo') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { decisions: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Pisces') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { decisions: -1 },
+          warnings: { decisions: 'Your Pisces Mercury thinks in dreams, not data' }
+        });
+      } else if (sign === 'Sagittarius') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { social: -1 },
+          warnings: { social: 'Your Sagittarius Mercury can be blunt in communication' }
+        });
+      }
+    }
+
+    // ---- Venus placement ----
+    if (planet === 'venus') {
+      if (sign === 'Pisces') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { money: -2, love: 1 },
+          warnings: { money: 'Your Venus in Pisces makes you idealistic about money - be extra cautious with financial risks' }
+        });
+      } else if (sign === 'Taurus' || sign === 'Capricorn') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { money: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Libra') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { social: 1, love: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Scorpio') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { social: -1, spiritual: 1 },
+          warnings: { social: 'Your Scorpio Venus craves intensity over casual connection' }
+        });
+      } else if (sign === 'Aries') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { love: -1 },
+          warnings: { love: 'Your Aries Venus can be impatient in romance' }
+        });
+      }
+    }
+
+    // ---- Mars placement ----
+    if (planet === 'mars') {
+      if (sign === 'Aries' || sign === 'Scorpio') {
+        // Mars in domicile
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { career: 1, decisions: 1, health: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Libra') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { decisions: -1 },
+          warnings: { decisions: 'Your Libra Mars hesitates under pressure' }
+        });
+      } else if (element === 'water') {
+        // Water Mars (Cancer, Pisces) = passive, intuitive action
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { money: -1, decisions: -1 },
           warnings: {
             money: 'Your Mars in water sign prefers flowing with circumstances over forcing outcomes',
             decisions: 'Trust your gut but verify with logic'
@@ -247,39 +335,36 @@ function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier
         });
       } else if (element === 'fire') {
         modifiers.push({
-          planet: planet as Planet,
-          sign,
+          planet: planet as Planet, sign,
           categoryModifiers: { decisions: 1, health: 1 },
           warnings: {}
         });
       }
     }
 
-    // Moon placement affects emotional responses
-    if (planet === 'moon') {
-      if (sign === 'Aquarius') {
+    // ---- Jupiter placement ----
+    if (planet === 'jupiter') {
+      if (sign === 'Sagittarius' || sign === 'Pisces') {
         modifiers.push({
-          planet: planet as Planet,
-          sign,
-          categoryModifiers: {
-            love: -1,       // Emotionally detached
-            social: 1,      // Great for groups/community
-            spiritual: 1
-          },
-          warnings: {
-            love: 'Your Aquarius Moon may overthink emotional matters'
-          }
+          planet: planet as Planet, sign,
+          categoryModifiers: { money: 1, spiritual: 1 },
+          warnings: {}
+        });
+      } else if (sign === 'Capricorn') {
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { spiritual: -1 },
+          warnings: { spiritual: 'Your Capricorn Jupiter favors material over mystical' }
         });
       }
     }
 
-    // Saturn placement creates challenges
+    // ---- Saturn placement ----
     if (planet === 'saturn') {
       modifiers.push({
-        planet: planet as Planet,
-        sign,
+        planet: planet as Planet, sign,
         categoryModifiers: {
-          [SIGN_ELEMENTS[sign] === 'earth' ? 'career' : 'decisions']: -1
+          [element === 'earth' ? 'career' : 'decisions']: -1
         },
         warnings: {}
       });
@@ -334,7 +419,7 @@ function generateCategoryScore(
       }
 
       // Tighter orbs have stronger effects
-      const orbMultiplier = transit.isExact ? 1.5 : (1 - transit.orb / 10);
+      const orbMultiplier = transit.isExact ? 1.5 : (1 - transit.orb / 8);
       score += impact * orbMultiplier;
 
       const interpretation = interpretTransit(transit);
@@ -342,17 +427,48 @@ function generateCategoryScore(
     }
   }
 
-  // Moon phase influence
-  if (category === 'decisions' || category === 'creativity') {
-    if (moonPhase.phaseName === 'New Moon') {
+  // Moon phase influence — affects more than just decisions/creativity
+  if (moonPhase.phaseName === 'New Moon') {
+    if (category === 'decisions' || category === 'creativity') {
       score += 1;
       reasoning.push('New Moon favors new beginnings');
       goodFor.push('starting projects');
-    } else if (moonPhase.phaseName === 'Full Moon') {
+    }
+    if (category === 'spiritual') {
+      score += 0.5;
+      reasoning.push('New Moon deepens introspection');
+    }
+  } else if (moonPhase.phaseName === 'Full Moon') {
+    if (category === 'decisions' || category === 'creativity') {
       score += 0.5;
       reasoning.push('Full Moon brings clarity but high emotions');
       goodFor.push('completion', 'celebration');
       badFor.push('starting new things');
+    }
+    if (category === 'love') {
+      score += 0.5;
+      reasoning.push('Full Moon heightens emotional connections');
+    }
+    if (category === 'social') {
+      score += 0.5;
+      reasoning.push('Full Moon increases visibility and social energy');
+    }
+    if (category === 'health') {
+      score -= 0.5;
+      reasoning.push('Full Moon can bring restlessness and poor sleep');
+      badFor.push('rest', 'recovery');
+    }
+  } else if (moonPhase.phaseName.includes('Waning')) {
+    if (category === 'decisions') {
+      score -= 0.5;
+      reasoning.push('Waning moon is not the time to initiate');
+      badFor.push('starting new ventures');
+    }
+  } else if (moonPhase.phaseName.includes('Waxing')) {
+    if (category === 'career') {
+      score += 0.5;
+      reasoning.push('Waxing moon builds career momentum');
+      goodFor.push('pushing forward');
     }
   }
 
