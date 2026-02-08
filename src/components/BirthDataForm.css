@@ -32,7 +32,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #666;
+  color: #888;
 }
 
 .field-input {
@@ -54,7 +54,7 @@
 }
 
 .field-input::placeholder {
-  color: #444;
+  color: #666;
 }
 
 /* Date and time inputs */
@@ -78,7 +78,7 @@
 /* Hint text */
 .field-hint {
   font-size: 0.6875rem;
-  color: #444;
+  color: #777;
 }
 
 .field-hint.selected {

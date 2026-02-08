@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  color: #444;
+  color: #777;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -89,7 +89,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
-  color: #444;
+  color: #777;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -160,7 +160,7 @@
 .overall-score-max {
   font-family: var(--font);
   font-size: 0.75rem;
-  color: #333;
+  color: #777;
   position: relative;
   z-index: 1;
   margin-top: -4px;
@@ -179,7 +179,7 @@
   font-family: var(--font-display);
   font-size: 0.875rem;
   font-style: italic;
-  color: #555;
+  color: #888;
   text-align: center;
   line-height: 1.4;
   max-width: 280px;
@@ -237,7 +237,7 @@
 
 .category-icon {
   font-size: 0.875rem;
-  opacity: 0.4;
+  opacity: 0.6;
   width: 16px;
   text-align: center;
 }
@@ -282,7 +282,7 @@
 .category-advice {
   font-family: var(--font);
   font-size: 0.625rem;
-  color: #555;
+  color: #888;
   line-height: 1.3;
   display: block;
 }
@@ -304,7 +304,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #444;
+  color: #777;
   margin-bottom: 12px;
 }
 
@@ -324,7 +324,7 @@
 
 .moon-advice {
   font-size: 0.75rem;
-  color: #666;
+  color: #888;
   line-height: 1.4;
 }
 
@@ -373,14 +373,14 @@
 
 .retrograde-advice {
   font-size: 0.75rem;
-  color: #666;
+  color: #888;
   line-height: 1.4;
 }
 
 /* Timestamp */
 .dashboard-timestamp {
   font-size: 0.5625rem;
-  color: #2a2a2a;
+  color: #666;
   text-align: center;
   margin-top: 24px;
   letter-spacing: 0.1em;
@@ -399,7 +399,7 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #555;
+  color: #777;
   background: none;
   border: none;
   cursor: pointer;
@@ -427,7 +427,7 @@
 
 .detail-icon {
   font-size: 1.25rem;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .detail-title {
@@ -453,14 +453,14 @@
 
 .detail-score-max {
   font-size: 0.875rem;
-  color: #444;
+  color: #777;
 }
 
 .detail-score-label {
   font-size: 0.6875rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #555;
+  color: #777;
   margin-left: 12px;
 }
 
@@ -489,7 +489,7 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #555;
+  color: #777;
   margin-bottom: 8px;
 }
 

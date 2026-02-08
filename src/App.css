@@ -42,13 +42,13 @@
   font-size: 1rem;
   background: transparent;
   border: none;
-  opacity: 0.2;
+  opacity: 0.4;
   transition: opacity 0.4s ease, transform 0.2s ease;
   cursor: pointer;
 }
 
 .header-btn:hover {
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 .header-btn:active {
@@ -128,7 +128,7 @@
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--accent-dim);
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .brand-seer {
@@ -138,7 +138,7 @@
   color: var(--accent);
   letter-spacing: 0.03em;
   line-height: 1;
-  opacity: 0.45;
+  opacity: 0.65;
 }
 
 @keyframes brandFadeIn {
@@ -170,14 +170,14 @@
 }
 
 .cosmos-status--warn {
-  color: #666;
+  color: #888;
 }
 
 /* Submitted question */
 .current-question {
   font-family: var(--font-display);
   font-size: 0.9375rem;
-  color: #444;
+  color: #777;
   font-style: italic;
   text-align: center;
   max-width: 300px;
@@ -301,7 +301,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  color: #555;
+  color: #777;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -345,7 +345,7 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-style: italic;
-  color: #333;
+  color: #777;
   text-align: center;
   max-width: 280px;
   line-height: 1.5;
@@ -385,9 +385,9 @@
   text-transform: uppercase;
   color: var(--no);
   padding: 4px 10px;
-  border: 1px solid rgba(139, 74, 74, 0.2);
+  border: 1px solid rgba(139, 74, 74, 0.3);
   border-radius: 999px;
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 /* ---- Moon Phase Ritual (Feature 8) ---- */
@@ -403,14 +403,14 @@
 
 .moon-ritual-icon {
   font-size: 0.875rem;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .moon-ritual-text {
   font-family: var(--font-display);
   font-size: 0.6875rem;
   font-style: italic;
-  color: #444;
+  color: #777;
   letter-spacing: 0.01em;
 }
 

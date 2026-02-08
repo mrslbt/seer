@@ -8,9 +8,17 @@ interface BirthDataFormProps {
   initialData?: BirthData | null;
 }
 
+// Format a Date to YYYY-MM-DD using local timezone (not UTC)
+function formatLocalDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
   const [dateStr, setDateStr] = useState(
-    initialData?.date ? initialData.date.toISOString().split('T')[0] : ''
+    initialData?.date ? formatLocalDate(initialData.date) : ''
   );
   const [timeStr, setTimeStr] = useState(initialData?.time || '12:00');
   const [cityQuery, setCityQuery] = useState(
@@ -30,6 +38,23 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
   const [suggestions, setSuggestions] = useState<CityData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState('');
+
+  // Sync form state when initialData changes (e.g., reopening settings)
+  useEffect(() => {
+    if (initialData) {
+      setDateStr(formatLocalDate(initialData.date));
+      setTimeStr(initialData.time || '12:00');
+      setCityQuery(`${initialData.city}, ${initialData.country}`);
+      setSelectedCity({
+        city: initialData.city,
+        country: initialData.country,
+        latitude: initialData.latitude,
+        longitude: initialData.longitude,
+        timezone: initialData.timezone,
+      });
+      setError('');
+    }
+  }, [initialData]);
 
   useEffect(() => {
     if (cityQuery.length >= 2 && !selectedCity) {
@@ -102,7 +127,7 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
           className="field-input"
           value={dateStr}
           onChange={(e) => setDateStr(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
+          max={formatLocalDate(new Date())}
         />
       </div>
 
