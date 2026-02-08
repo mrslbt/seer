@@ -1,0 +1,312 @@
+/* NatalChartView — natal placements overlay */
+
+/* ---- Overlay & Container ---- */
+.chart-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.98);
+  z-index: 999;
+  overflow-y: auto;
+  animation: chartFadeIn 0.4s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #1a1a1a transparent;
+}
+
+.chart-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 50% 30% at 50% 20%,
+    rgba(201, 168, 76, 0.02) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.chart-container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+@keyframes chartFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- Header ---- */
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.chart-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.chart-title-sub {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chart-title-main {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+  color: var(--accent);
+}
+
+.chart-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  color: #777;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.chart-close:hover {
+  color: #999;
+}
+
+/* ---- Sections ---- */
+.chart-section {
+  margin-bottom: 28px;
+}
+
+.chart-section-label {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.chart-house-system {
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-dim, rgba(201, 168, 76, 0.4));
+  font-weight: 400;
+}
+
+/* ---- Key Points (ASC / MC) ---- */
+.chart-points {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(201, 168, 76, 0.04);
+  border: 1px solid rgba(201, 168, 76, 0.08);
+  border-radius: 8px;
+}
+
+.chart-point-glyph {
+  font-size: 1.125rem;
+  color: var(--accent);
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.chart-point-name {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  min-width: 80px;
+}
+
+.chart-point-sign {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.chart-point-degree {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Planet Rows ---- */
+.chart-planets {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-planet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.chart-planet-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.chart-planet-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 110px;
+}
+
+.chart-planet-glyph {
+  font-size: 1rem;
+  color: var(--accent);
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.chart-planet-name {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.chart-planet-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chart-planet-sign {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.zodiac-glyph {
+  font-size: 0.875rem;
+  color: var(--accent-dim, rgba(201, 168, 76, 0.5));
+}
+
+.chart-planet-degree {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+  text-align: right;
+}
+
+.chart-rx {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--no, #A67458);
+  background: rgba(166, 116, 88, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.chart-planet-house {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ---- House Cusps Grid ---- */
+.chart-houses-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.chart-house-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.chart-house-num {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent-dim, rgba(201, 168, 76, 0.5));
+  letter-spacing: 0.05em;
+}
+
+.chart-house-sign {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-house-meaning {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 380px) {
+  .chart-container {
+    padding: 20px 16px 40px;
+  }
+
+  .chart-planet-left {
+    min-width: 90px;
+  }
+
+  .chart-planet-house {
+    display: none;
+  }
+
+  .chart-houses-grid {
+    grid-template-columns: 1fr;
+  }
+}

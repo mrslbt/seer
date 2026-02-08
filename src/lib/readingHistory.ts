@@ -91,6 +91,61 @@ export function getTodayReadingCount(): number {
 }
 
 /**
+ * Reading patterns for session memory
+ */
+export interface ReadingPatterns {
+  /** How many times each category was asked in the last 7 days */
+  categoryFrequency: Partial<Record<QuestionCategory, number>>;
+  /** Most asked category (null if no readings) */
+  mostAskedCategory: QuestionCategory | null;
+  /** Total readings in the last 7 days */
+  totalReadingsThisWeek: number;
+  /** The most recent verdict for each category */
+  previousVerdictForCategory: Partial<Record<QuestionCategory, Verdict>>;
+}
+
+/**
+ * Analyze reading patterns for session memory.
+ * Looks at readings from the last 7 days.
+ */
+export function analyzePatterns(): ReadingPatterns {
+  const readings = getReadings();
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const recentReadings = readings.filter(r => r.timestamp >= sevenDaysAgo);
+
+  // Count category frequency
+  const categoryFrequency: Partial<Record<QuestionCategory, number>> = {};
+  for (const r of recentReadings) {
+    categoryFrequency[r.category] = (categoryFrequency[r.category] || 0) + 1;
+  }
+
+  // Find most asked category
+  let mostAskedCategory: QuestionCategory | null = null;
+  let maxCount = 0;
+  for (const [cat, count] of Object.entries(categoryFrequency)) {
+    if (count! > maxCount) {
+      maxCount = count!;
+      mostAskedCategory = cat as QuestionCategory;
+    }
+  }
+
+  // Get last verdict per category (most recent reading first)
+  const previousVerdictForCategory: Partial<Record<QuestionCategory, Verdict>> = {};
+  for (const r of recentReadings) {
+    if (!(r.category in previousVerdictForCategory)) {
+      previousVerdictForCategory[r.category] = r.verdict;
+    }
+  }
+
+  return {
+    categoryFrequency,
+    mostAskedCategory,
+    totalReadingsThisWeek: recentReadings.length,
+    previousVerdictForCategory,
+  };
+}
+
+/**
  * Clear all history
  */
 export function clearHistory(): void {

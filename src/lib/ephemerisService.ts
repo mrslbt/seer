@@ -9,7 +9,10 @@ import {
   PlanetPosition,
   Planet,
   Transit,
+  TransitTiming,
   AspectType,
+  HouseCusp,
+  HouseSystem,
   getZodiacFromLongitude
 } from '../types/userProfile';
 
@@ -102,6 +105,88 @@ function calculatePlanetPosition(jd: number, planetId: number): PlanetPosition {
 }
 
 /**
+ * Calculate house cusps using Swiss Ephemeris.
+ * Uses Placidus by default, falls back to Whole Sign for high latitudes.
+ */
+export function calculateHouseCusps(
+  jd: number,
+  latitude: number,
+  longitude: number,
+): HouseSystem {
+  const swe = getSwe();
+  let systemCode = 'P'; // Placidus
+
+  try {
+    const result = swe.houses(jd, latitude, longitude, systemCode);
+    // result.cusps is Float64Array[13] where cusps[1..12] are the 12 house cusps
+    // result.ascmc is Float64Array[10] where ascmc[0] = ASC, ascmc[1] = MC
+
+    const cusps: HouseCusp[] = [];
+    for (let i = 1; i <= 12; i++) {
+      const lon = result.cusps[i];
+      const { sign, degree } = getZodiacFromLongitude(lon);
+      cusps.push({ house: i, longitude: lon, sign, degree });
+    }
+
+    return {
+      system: 'P',
+      cusps,
+      ascendantLongitude: result.ascmc[0],
+      midheavenLongitude: result.ascmc[1],
+    };
+  } catch {
+    // Placidus can fail at extreme latitudes (>66°) — fall back to Whole Sign
+    console.warn('Placidus failed, falling back to Whole Sign houses');
+    systemCode = 'W';
+    const result = swe.houses(jd, latitude, longitude, systemCode);
+
+    const cusps: HouseCusp[] = [];
+    for (let i = 1; i <= 12; i++) {
+      const lon = result.cusps[i];
+      const { sign, degree } = getZodiacFromLongitude(lon);
+      cusps.push({ house: i, longitude: lon, sign, degree });
+    }
+
+    return {
+      system: 'W',
+      cusps,
+      ascendantLongitude: result.ascmc[0],
+      midheavenLongitude: result.ascmc[1],
+    };
+  }
+}
+
+/**
+ * Determine which house (1-12) a planet falls in given house cusps.
+ * A planet is in house N if its longitude is between cusp N and cusp N+1
+ * (wrapping around at 360°).
+ */
+export function getHouseForLongitude(longitude: number, cusps: HouseCusp[]): number {
+  // Normalize longitude to 0-360
+  const lon = ((longitude % 360) + 360) % 360;
+
+  for (let i = 0; i < 12; i++) {
+    const currentCusp = cusps[i].longitude;
+    const nextCusp = cusps[(i + 1) % 12].longitude;
+
+    if (nextCusp > currentCusp) {
+      // Normal case: no 360° wrap
+      if (lon >= currentCusp && lon < nextCusp) {
+        return cusps[i].house;
+      }
+    } else {
+      // Wraps around 360°
+      if (lon >= currentCusp || lon < nextCusp) {
+        return cusps[i].house;
+      }
+    }
+  }
+
+  // Fallback — should not reach here
+  return 1;
+}
+
+/**
  * Calculate complete natal chart from birth data
  */
 export function calculateNatalChart(birthData: BirthData): NatalChart {
@@ -119,6 +204,17 @@ export function calculateNatalChart(birthData: BirthData): NatalChart {
     birthData.birthLocation.timezone
   );
 
+  // Calculate house cusps
+  const houses = calculateHouseCusps(
+    jd,
+    birthData.birthLocation.latitude,
+    birthData.birthLocation.longitude,
+  );
+
+  // Calculate ascendant/midheaven from house data (more accurate than planet calc)
+  const ascSign = getZodiacFromLongitude(houses.ascendantLongitude);
+  const mcSign = getZodiacFromLongitude(houses.midheavenLongitude);
+
   return {
     sun: calculatePlanetPosition(jd, swe.SE_SUN),
     moon: calculatePlanetPosition(jd, swe.SE_MOON),
@@ -131,7 +227,24 @@ export function calculateNatalChart(birthData: BirthData): NatalChart {
     neptune: calculatePlanetPosition(jd, swe.SE_NEPTUNE),
     pluto: calculatePlanetPosition(jd, swe.SE_PLUTO),
     northNode: calculatePlanetPosition(jd, swe.SE_TRUE_NODE),
-    chiron: calculatePlanetPosition(jd, swe.SE_CHIRON)
+    chiron: calculatePlanetPosition(jd, swe.SE_CHIRON),
+    ascendant: {
+      longitude: houses.ascendantLongitude,
+      latitude: 0,
+      speed: 0,
+      sign: ascSign.sign,
+      degree: ascSign.degree,
+      isRetrograde: false,
+    },
+    midheaven: {
+      longitude: houses.midheavenLongitude,
+      latitude: 0,
+      speed: 0,
+      sign: mcSign.sign,
+      degree: mcSign.degree,
+      isRetrograde: false,
+    },
+    houses,
   };
 }
 
@@ -226,7 +339,7 @@ export function calculateTransits(
       const aspect = findAspect(transitPos.longitude, natalPos.longitude);
 
       if (aspect) {
-        transits.push({
+        const transitEntry: Transit = {
           transitPlanet,
           natalPlanet,
           aspectType: aspect.type,
@@ -234,13 +347,130 @@ export function calculateTransits(
           transitPosition: transitPos.longitude,
           natalPosition: natalPos.longitude,
           isExact: aspect.orb < 1
-        });
+        };
+
+        // Tag with house if natal chart has house data
+        if (natalChart.houses) {
+          transitEntry.transitHouse = getHouseForLongitude(
+            transitPos.longitude,
+            natalChart.houses.cusps
+          );
+        }
+
+        transits.push(transitEntry);
       }
     }
   }
 
   // Sort by orb (tightest aspects first)
   return transits.sort((a, b) => a.orb - b.orb);
+}
+
+/**
+ * Planet name → Swiss Ephemeris constant ID
+ */
+function getPlanetId(planet: Planet): number | null {
+  const swe = getSwe();
+  const map: Partial<Record<Planet, number>> = {
+    sun: swe.SE_SUN,
+    moon: swe.SE_MOON,
+    mercury: swe.SE_MERCURY,
+    venus: swe.SE_VENUS,
+    mars: swe.SE_MARS,
+    jupiter: swe.SE_JUPITER,
+    saturn: swe.SE_SATURN,
+    uranus: swe.SE_URANUS,
+    neptune: swe.SE_NEPTUNE,
+    pluto: swe.SE_PLUTO,
+    northNode: swe.SE_TRUE_NODE,
+    chiron: swe.SE_CHIRON,
+  };
+  return map[planet] ?? null;
+}
+
+/**
+ * Scan forward in time to find when a transit becomes exact and/or separates.
+ * Steps day-by-day (2hr for Moon) up to maxDays, tracking the orb.
+ */
+export function scanTransitTiming(
+  natalLongitude: number,
+  transitPlanet: Planet,
+  aspectAngle: number,
+  aspectOrb: number,
+  currentOrb: number,
+  maxDays: number = 60,
+): TransitTiming | null {
+  const swe = getSwe();
+  const planetId = getPlanetId(transitPlanet);
+  if (planetId === null) return null;
+
+  const stepHours = transitPlanet === 'moon' ? 2 : 24;
+  const stepDays = stepHours / 24;
+  const now = new Date();
+  const nowJd = swe.julday(
+    now.getUTCFullYear(),
+    now.getUTCMonth() + 1,
+    now.getUTCDate(),
+    now.getUTCHours() + now.getUTCMinutes() / 60
+  );
+
+  // Current state
+  let prevOrb = currentOrb;
+  let exactDate: Date | undefined;
+  let separationDate: Date | undefined;
+  let isApplying = false;
+
+  // Check direction: step forward once and see if orb is shrinking
+  const nextJd = nowJd + stepDays;
+  const nextPos = swe.calc_ut(nextJd, planetId, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
+  const nextLon = nextPos[0];
+  let nextDiff = Math.abs(nextLon - natalLongitude);
+  if (nextDiff > 180) nextDiff = 360 - nextDiff;
+  const nextOrb = Math.abs(nextDiff - aspectAngle);
+  isApplying = nextOrb < currentOrb;
+
+  // Scan forward
+  for (let day = stepDays; day <= maxDays; day += stepDays) {
+    const jd = nowJd + day;
+    const pos = swe.calc_ut(jd, planetId, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
+    const lon = pos[0];
+
+    let diff = Math.abs(lon - natalLongitude);
+    if (diff > 180) diff = 360 - diff;
+    const orb = Math.abs(diff - aspectAngle);
+
+    // Check for exact (orb crossed zero or reached minimum)
+    if (!exactDate && prevOrb > orb && orb < 0.5) {
+      // Near exact — interpolate to the day
+      const daysFromNow = day;
+      exactDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000);
+    }
+
+    // Check for separation (orb exceeds the aspect's max orb)
+    if (!separationDate && orb > aspectOrb && prevOrb <= aspectOrb) {
+      const daysFromNow = day;
+      separationDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000);
+      break; // Once separated, we're done
+    }
+
+    prevOrb = orb;
+  }
+
+  const daysUntilExact = exactDate
+    ? Math.round((exactDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
+    : undefined;
+  const daysUntilSeparation = separationDate
+    ? Math.round((separationDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
+    : undefined;
+
+  return {
+    currentOrb,
+    isApplying,
+    exactDate,
+    separationDate,
+    daysUntilExact,
+    daysUntilSeparation,
+  };
 }
 
 /**

@@ -49,7 +49,7 @@
 /* Verdict label */
 .verdict-label {
   font-family: var(--font);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -353,7 +353,7 @@
 
 .follow-up-label {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -415,6 +415,23 @@
 
 .follow-up-btn:active {
   transform: scale(0.96);
+}
+
+.follow-up-btn--contextual {
+  white-space: normal;
+  text-align: left;
+  font-style: normal;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #999);
+  border-color: rgba(201, 168, 76, 0.15);
+  line-height: 1.4;
+}
+
+.follow-up-btn--contextual:hover {
+  color: var(--accent);
+  border-color: rgba(201, 168, 76, 0.35);
+  background: rgba(201, 168, 76, 0.06);
 }
 
 .follow-up-btn--share {

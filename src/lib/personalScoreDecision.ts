@@ -74,9 +74,12 @@ function flipVerdict(verdict: Verdict): Verdict {
  */
 export function scorePersonalDecision(
   question: string,
-  report: PersonalDailyReport
+  report: PersonalDailyReport,
+  overrideCategory?: QuestionCategory,
 ): ScoringResult {
-  const { category: questionCategory, confidence } = classifyQuestionWithConfidence(question);
+  const classified = classifyQuestionWithConfidence(question);
+  const questionCategory = overrideCategory ?? classified.category;
+  const confidence = overrideCategory ? 1.0 : classified.confidence;
   const isNegativeQuestion = hasNegativeIntent(question);
   const actionPolarity = detectActionPolarity(question);
   const factors: ScoringFactor[] = [];

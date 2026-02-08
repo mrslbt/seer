@@ -157,6 +157,19 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
           profile.createdAt = new Date(profile.createdAt);
           profile.updatedAt = new Date(profile.updatedAt);
 
+          // Migration: recalculate natal chart if houses are missing
+          if (!profile.natalChart.houses) {
+            try {
+              const freshChart = calculateNatalChart(profile.birthData);
+              profile.natalChart = freshChart;
+              profile.updatedAt = new Date();
+              localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+              console.log('Migrated profile: added house data');
+            } catch (err) {
+              console.warn('House migration failed, continuing without houses:', err);
+            }
+          }
+
           setUserProfile(profile);
 
           // Generate today's report

@@ -64,7 +64,7 @@
 
 .history-title-sub {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -117,7 +117,7 @@
 
 .history-date-label {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -144,14 +144,14 @@
 
 .history-time {
   font-family: var(--font);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: #777;
   letter-spacing: 0.05em;
 }
 
 .history-verdict-badge {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -161,7 +161,7 @@
 }
 
 .verdict-icon {
-  font-size: 0.5rem;
+  font-size: 0.6875rem;
   opacity: 0.7;
 }
 

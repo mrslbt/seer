@@ -1,0 +1,97 @@
+/* ── Category Selector ─────────────────────────── */
+
+.category-selector {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 360px;
+  margin: 0 auto 12px;
+  animation: fadeIn 0.4s ease 0.1s both;
+}
+
+/* ── Glyph Button ─────────────────────────────── */
+.selector-glyph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  min-width: 44px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full, 999px);
+  cursor: pointer;
+  transition: border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glyph-icon {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.35;
+  transition: opacity 0.3s ease, color 0.3s ease;
+  color: var(--accent, #C9A84C);
+}
+
+.glyph-label {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #555;
+  transition: color 0.3s ease;
+  line-height: 1;
+}
+
+/* ── Hover ─────────────────────────────────────── */
+.selector-glyph:hover .glyph-icon {
+  opacity: 0.6;
+}
+
+.selector-glyph:hover .glyph-label {
+  color: #777;
+}
+
+/* ── Active (selected) ─────────────────────────── */
+.selector-glyph--active {
+  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.04);
+}
+
+.selector-glyph--active .glyph-icon {
+  opacity: 1;
+  color: var(--accent, #C9A84C);
+}
+
+.selector-glyph--active .glyph-label {
+  color: var(--accent, #C9A84C);
+}
+
+/* ── Press ─────────────────────────────────────── */
+.selector-glyph:active {
+  transform: scale(0.92);
+}
+
+/* ── Mobile ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .category-selector {
+    gap: 2px;
+  }
+
+  .selector-glyph {
+    padding: 5px 8px;
+    min-width: 40px;
+  }
+
+  .glyph-icon {
+    font-size: 0.9375rem;
+  }
+
+  .glyph-label {
+    font-size: 0.5rem;
+  }
+}

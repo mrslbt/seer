@@ -3,7 +3,13 @@ import type { Verdict, QuestionCategory } from '../types/astrology';
 import { getSeerVerdictColor } from '../lib/oracleResponse';
 import type { InsightArticle } from '../lib/insightArticle';
 import { getScoreLabel } from '../lib/insightArticle';
-import { generateFollowUpResponse, type FollowUpType } from '../lib/followUpResponse';
+import {
+  generateFollowUpResponse,
+  generateFollowUpQuestions,
+  generateContextualFollowUpResponse,
+  type FollowUpType,
+  type FollowUpQuestion,
+} from '../lib/followUpResponse';
 import type { PersonalDailyReport } from '../lib/personalDailyReport';
 import './OracleReading.css';
 
@@ -26,8 +32,16 @@ export function OracleReading({
   const [showArticle, setShowArticle] = useState(false);
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
+  const [followUpRound, setFollowUpRound] = useState(0); // 0 = initial, 1 = first follow-up, 2 = max
+  const [contextualQuestions, setContextualQuestions] = useState<FollowUpQuestion[]>([]);
   const [shareToast, setShareToast] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Generate contextual follow-up questions on mount
+  useEffect(() => {
+    const questions = generateFollowUpQuestions(verdict, category, dailyReport);
+    setContextualQuestions(questions);
+  }, [verdict, category, dailyReport]);
 
   // Escape key handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -48,12 +62,32 @@ export function OracleReading({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Handle follow-up
+  // Handle follow-up (static buttons)
   const handleFollowUp = useCallback((type: FollowUpType) => {
     const response = generateFollowUpResponse(type, verdict, category, dailyReport);
     setFollowUpText(response);
     setFollowUpType(type);
+    setFollowUpRound(prev => prev + 1);
   }, [verdict, category, dailyReport]);
+
+  // Handle contextual follow-up question tap
+  const handleContextualQuestion = useCallback((question: FollowUpQuestion) => {
+    const response = generateContextualFollowUpResponse(
+      question.text, verdict, category, dailyReport
+    );
+    setFollowUpText(response);
+    setFollowUpType('contextual');
+    setFollowUpRound(prev => prev + 1);
+
+    // Generate new questions for next round (if under max)
+    if (followUpRound < 1) {
+      const nextQuestions = generateFollowUpQuestions(verdict, category, dailyReport)
+        .filter(q => q.text !== question.text); // Don't repeat
+      setContextualQuestions(nextQuestions.slice(0, 2));
+    } else {
+      setContextualQuestions([]); // Max rounds reached
+    }
+  }, [verdict, category, dailyReport, followUpRound]);
 
   // Handle share — generate canvas image
   const handleShare = useCallback(async () => {
@@ -228,27 +262,39 @@ export function OracleReading({
           </button>
         </div>
 
-        {/* Follow-up actions */}
-        {!followUpText && (
+        {/* Follow-up actions — contextual questions + fixed options */}
+        {followUpRound < 2 && (
           <div className="oracle-follow-ups">
-            <button
-              className="follow-up-btn"
-              onClick={() => handleFollowUp('tell_me_more')}
-            >
-              Tell Me More
-            </button>
-            <button
-              className="follow-up-btn"
-              onClick={() => handleFollowUp('when_change')}
-            >
-              When Will This Change?
-            </button>
-            <button
-              className="follow-up-btn follow-up-btn--share"
-              onClick={handleShare}
-            >
-              Share
-            </button>
+            {/* Contextual questions (transit-aware) */}
+            {contextualQuestions.map((q, i) => (
+              <button
+                key={i}
+                className="follow-up-btn follow-up-btn--contextual"
+                onClick={() => handleContextualQuestion(q)}
+              >
+                {q.text}
+              </button>
+            ))}
+
+            {/* Fixed: When Will This Change? (always available) */}
+            {followUpType !== 'when_change' && (
+              <button
+                className="follow-up-btn"
+                onClick={() => handleFollowUp('when_change')}
+              >
+                When Will This Change?
+              </button>
+            )}
+
+            {/* Share button (first round only) */}
+            {followUpRound === 0 && (
+              <button
+                className="follow-up-btn follow-up-btn--share"
+                onClick={handleShare}
+              >
+                Share
+              </button>
+            )}
           </div>
         )}
 

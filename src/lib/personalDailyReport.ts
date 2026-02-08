@@ -18,7 +18,8 @@ import {
   calculateTransits,
   getMoonPhase,
   getDayRuler,
-  isRetrograde
+  isRetrograde,
+  scanTransitTiming,
 } from './ephemerisService';
 
 export interface CategoryScore {
@@ -56,6 +57,7 @@ export interface PersonalDailyReport {
     interpretation: string;
     affectedCategories: QuestionCategory[];
     impact: 'positive' | 'negative' | 'neutral';
+    timing?: import('../types/userProfile').TransitTiming;
   }[];
 
   // General guidance
@@ -74,6 +76,24 @@ export interface PersonalDailyReport {
   // Cached timestamp
   generatedAt: Date;
 }
+
+/**
+ * House meanings — what life area each house governs
+ */
+export const HOUSE_MEANINGS: Record<number, string> = {
+  1: 'self and identity',
+  2: 'money and possessions',
+  3: 'communication and siblings',
+  4: 'home and family',
+  5: 'creativity and romance',
+  6: 'health and daily work',
+  7: 'partnerships and marriage',
+  8: 'transformation and shared resources',
+  9: 'philosophy and travel',
+  10: 'career and public image',
+  11: 'friends and aspirations',
+  12: 'the unconscious and solitude',
+};
 
 /**
  * Planet influences on different categories
@@ -152,7 +172,17 @@ function interpretTransit(transit: Transit): string {
   const np = planetNames[transit.natalPlanet];
   const verb = aspectVerbs[transit.aspectType];
 
-  return `Transit ${tp} ${verb} your natal ${np}`;
+  let text = `Transit ${tp} ${verb} your natal ${np}`;
+
+  // Add house context when available
+  if (transit.transitHouse) {
+    const houseMeaning = HOUSE_MEANINGS[transit.transitHouse];
+    if (houseMeaning) {
+      text += ` in your ${ordinal(transit.transitHouse)} house of ${houseMeaning}`;
+    }
+  }
+
+  return text;
 }
 
 /**
@@ -589,8 +619,18 @@ export function generatePersonalDailyReport(
     headline = `Major energy: ${interpretTransit(strongestTransit)}`;
   }
 
+  // Aspect angle/orb lookup for timing scans
+  const ASPECT_ANGLES: Record<AspectType, { angle: number; maxOrb: number }> = {
+    conjunction: { angle: 0, maxOrb: 8 },
+    opposition: { angle: 180, maxOrb: 8 },
+    trine: { angle: 120, maxOrb: 6 },
+    square: { angle: 90, maxOrb: 6 },
+    sextile: { angle: 60, maxOrb: 4 },
+    quincunx: { angle: 150, maxOrb: 3 },
+  };
+
   // Key transits (top 5 by orb)
-  const keyTransits = transits.slice(0, 5).map(transit => {
+  const keyTransits = transits.slice(0, 5).map((transit, index) => {
     const affectedCategories = [
       ...PLANET_CATEGORY_INFLUENCE[transit.transitPlanet] || [],
       ...PLANET_CATEGORY_INFLUENCE[transit.natalPlanet] || []
@@ -604,11 +644,28 @@ export function generatePersonalDailyReport(
       impact = ASPECT_IMPACTS[transit.aspectType].nature;
     }
 
+    // Compute timing for top 3 transits
+    let timing: import('../types/userProfile').TransitTiming | undefined;
+    if (index < 3) {
+      const aspectInfo = ASPECT_ANGLES[transit.aspectType];
+      if (aspectInfo) {
+        const result = scanTransitTiming(
+          transit.natalPosition,
+          transit.transitPlanet,
+          aspectInfo.angle,
+          aspectInfo.maxOrb,
+          transit.orb,
+        );
+        if (result) timing = result;
+      }
+    }
+
     return {
       transit,
       interpretation: interpretTransit(transit),
       affectedCategories,
-      impact
+      impact,
+      timing,
     };
   });
 
@@ -636,6 +693,15 @@ export function generatePersonalDailyReport(
     retrogrades,
     generatedAt: new Date()
   };
+}
+
+/**
+ * Ordinal suffix for house numbers (1st, 2nd, 3rd, etc.)
+ */
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 /**

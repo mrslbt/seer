@@ -837,9 +837,12 @@ function scoreToVerdict(score: number): Verdict {
  */
 export function scoreDecision(
   question: string,
-  context: AstroContext
+  context: AstroContext,
+  overrideCategory?: QuestionCategory,
 ): ScoringResult {
-  const { category, confidence } = classifyQuestionWithConfidence(question);
+  const classified = classifyQuestionWithConfidence(question);
+  const category = overrideCategory ?? classified.category;
+  const confidence = overrideCategory ? 1.0 : classified.confidence;
   const isNegativeQuestion = hasNegativeIntent(question);
   const actionPolarity = detectActionPolarity(question);
   const factors: ScoringFactor[] = [];

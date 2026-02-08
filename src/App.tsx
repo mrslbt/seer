@@ -10,7 +10,7 @@ import type { InsightArticle } from './lib/insightArticle';
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
 import { scorePersonalDecision } from './lib/personalScoreDecision';
 import { getDailyWhisper } from './lib/cosmicWhisper';
-import { saveReading } from './lib/readingHistory';
+import { saveReading, analyzePatterns } from './lib/readingHistory';
 
 import { BirthDataForm } from './components/BirthDataForm';
 import { QuestionInput, validateQuestionInput } from './components/QuestionInput';
@@ -19,6 +19,8 @@ import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
+import { CategorySelector } from './components/CategorySelector';
+import { NatalChartView } from './components/NatalChartView';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
@@ -40,6 +42,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
 
   const {
     isInitialized: cosmosReady,
@@ -160,16 +164,17 @@ function App() {
     let category: QuestionCategory;
 
     if (dailyReport && userProfile) {
-      const personalScoring = scorePersonalDecision(submittedQuestion, dailyReport);
+      const personalScoring = scorePersonalDecision(submittedQuestion, dailyReport, selectedCategory ?? undefined);
       verdict = personalScoring.verdict;
       category = personalScoring.category;
     } else {
-      const scoring = scoreDecision(submittedQuestion, astroContext);
+      const scoring = scoreDecision(submittedQuestion, astroContext, selectedCategory ?? undefined);
       verdict = scoring.verdict;
       category = scoring.category;
     }
 
-    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion);
+    const readingPatterns = analyzePatterns();
+    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns);
     setOracleText(response);
     setOracleVerdict(verdict);
     setOracleCategory(category);
@@ -194,7 +199,7 @@ function App() {
     setTimeout(() => {
       playVerdictSound(verdict);
     }, 300);
-  }, [astroContext, submittedQuestion, dailyReport, userProfile]);
+  }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
   // Dismiss reading (go back to idle)
   const handleDismiss = useCallback(() => {
@@ -203,6 +208,7 @@ function App() {
     setOracleArticle(null);
     setSubmittedQuestion('');
     setQuestionText('');
+    setSelectedCategory(null);
   }, []);
 
   // Ask again (go back to awaiting question with eye open)
@@ -212,6 +218,7 @@ function App() {
     setOracleArticle(null);
     setSubmittedQuestion('');
     setQuestionText('');
+    setSelectedCategory(null);
     setAppState('awaiting_question');
   }, []);
 
@@ -280,6 +287,15 @@ function App() {
             aria-label="Reading History"
           >
             {'\u{1F4DC}'}
+          </button>
+        )}
+        {hasBirthData && userProfile && (
+          <button
+            className="header-btn"
+            onClick={() => { playClick(); setShowChart(true); }}
+            aria-label="Your Chart"
+          >
+            {'\u{1FA90}'}
           </button>
         )}
         {hasBirthData && (
@@ -377,6 +393,10 @@ function App() {
             {/* Question input - only when eye is open */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
+                <CategorySelector
+                  selected={selectedCategory}
+                  onSelect={setSelectedCategory}
+                />
                 <QuestionInput
                   value={questionText}
                   onChange={handleQuestionChange}
@@ -419,6 +439,14 @@ function App() {
       {/* Reading History overlay (Feature 3) */}
       {showHistory && (
         <ReadingHistory onClose={() => setShowHistory(false)} />
+      )}
+
+      {/* Natal Chart overlay (Feature 2) */}
+      {showChart && userProfile && (
+        <NatalChartView
+          natalChart={userProfile.natalChart}
+          onClose={() => setShowChart(false)}
+        />
       )}
 
       {/* Oracle reading overlay */}

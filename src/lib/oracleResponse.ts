@@ -12,6 +12,8 @@
 import type { Verdict, QuestionCategory } from '../types/astrology';
 import type { Planet, AspectType } from '../types/userProfile';
 import type { PersonalDailyReport } from './personalDailyReport';
+import { HOUSE_MEANINGS } from './personalDailyReport';
+import type { ReadingPatterns } from './readingHistory';
 
 // ---- Category mapping (question category → report category) ----
 const CATEGORY_MAP: Record<QuestionCategory, keyof PersonalDailyReport['categories']> = {
@@ -360,11 +362,75 @@ function buildTransitInsight(
   if (pool.length === 0) return null;
 
   const template = pool[Math.floor(Math.random() * pool.length)];
-  const line = template
+  let line = template
     .replace('{tp}', PLANET_NAME[tp] || capitalize(tp))
     .replace('{np}', PLANET_NAME[np] || capitalize(np));
 
+  // Append house context when available
+  if (transit.transitHouse && HOUSE_MEANINGS[transit.transitHouse]) {
+    line += ` This unfolds in your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}.`;
+  }
+
   return transit.isExact ? `An exact aspect today — ${line}` : line;
+}
+
+// ---- Session memory line (the oracle remembers) ----
+const CATEGORY_DISPLAY: Partial<Record<QuestionCategory, string>> = {
+  love: 'matters of the heart',
+  career: 'your professional path',
+  money: 'financial currents',
+  health: 'your body and vitality',
+  social: 'social bonds',
+  decisions: 'crossroads',
+  creativity: 'creative impulses',
+  spiritual: 'the inner world',
+  communication: 'words and signals',
+  conflict: 'conflict',
+  timing: 'timing',
+};
+
+function buildSessionMemory(
+  verdict: Verdict,
+  category: QuestionCategory,
+  patterns?: ReadingPatterns | null,
+): string | null {
+  if (!patterns) return null;
+
+  const parts: string[] = [];
+
+  // 1. Acknowledge repeat category (3+ times in 7 days)
+  const freq = patterns.categoryFrequency[category] ?? 0;
+  if (freq >= 3) {
+    const domainLabel = CATEGORY_DISPLAY[category] || category;
+    const repeatLines = [
+      `You have returned to ${domainLabel} ${freq} times this week \u2014 the pull is undeniable.`,
+      `The oracle notes your persistence \u2014 ${domainLabel} ${freq} times in seven days.`,
+      `${freq} questions about ${domainLabel} this week. The cosmos sees a pattern forming.`,
+    ];
+    parts.push(pick(repeatLines));
+  }
+
+  // 2. Verdict changed from last time in same category
+  const prevVerdict = patterns.previousVerdictForCategory[category];
+  if (prevVerdict && prevVerdict !== verdict) {
+    const isPositiveShift =
+      (prevVerdict === 'HARD_NO' || prevVerdict === 'SOFT_NO') &&
+      (verdict === 'HARD_YES' || verdict === 'SOFT_YES');
+    const isNegativeShift =
+      (prevVerdict === 'HARD_YES' || prevVerdict === 'SOFT_YES') &&
+      (verdict === 'HARD_NO' || verdict === 'SOFT_NO');
+
+    if (isPositiveShift) {
+      parts.push('The last time you asked, the stars said no. Today, the current has shifted.');
+    } else if (isNegativeShift) {
+      parts.push('Where the stars once favored you, resistance now builds. Heed the change.');
+    } else {
+      parts.push('The cosmic answer differs from your last visit \u2014 the sky has moved.');
+    }
+  }
+
+  if (parts.length === 0) return null;
+  return parts.join(' ');
 }
 
 // ---- Retrograde/moon extras ----
@@ -507,6 +573,12 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 /**
  * Generate an oracle response from a verdict and category.
  * When a daily report is available, weaves in actual transit data.
@@ -517,6 +589,7 @@ export function generateOracleResponse(
   category: QuestionCategory,
   report?: PersonalDailyReport | null,
   _question?: string,
+  patterns?: ReadingPatterns | null,
 ): string {
   // --- Fallback path: no report, use static templates ---
   if (!report) {
@@ -548,6 +621,9 @@ export function generateOracleResponse(
   // 4. Extras: retrograde/moon phase context (only if relevant)
   const extras = buildExtras(category, report);
 
+  // 5. Session memory: the oracle remembers
+  const sessionMemory = buildSessionMemory(verdict, category, patterns);
+
   // Assemble — target 3-5 sentences
   let response = opener;
   if (transitInsight) response += ' ' + transitInsight;
@@ -556,6 +632,11 @@ export function generateOracleResponse(
   // Only add extras if total length stays reasonable
   if (extras && response.length < 350) {
     response += ' ' + extras;
+  }
+
+  // Session memory as a coda — the oracle recognizes the pattern
+  if (sessionMemory && response.length < 420) {
+    response += ' ' + sessionMemory;
   }
 
   return response;

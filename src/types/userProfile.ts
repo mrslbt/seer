@@ -27,6 +27,20 @@ export interface PlanetPosition {
   isRetrograde: boolean;
 }
 
+export interface HouseCusp {
+  house: number;        // 1-12
+  longitude: number;    // cusp position 0-360
+  sign: ZodiacSign;     // sign the cusp falls in
+  degree: number;       // degree within sign
+}
+
+export interface HouseSystem {
+  system: 'P' | 'W';           // Placidus or Whole Sign fallback
+  cusps: HouseCusp[];           // 12 cusps
+  ascendantLongitude: number;   // from ascmc[0]
+  midheavenLongitude: number;   // from ascmc[1]
+}
+
 export interface NatalChart {
   sun: PlanetPosition;
   moon: PlanetPosition;
@@ -43,9 +57,14 @@ export interface NatalChart {
   midheaven?: PlanetPosition;
   northNode?: PlanetPosition;
   chiron?: PlanetPosition;
+  // House system (calculated from birth time & location)
+  houses?: HouseSystem;
 }
 
-export type Planet = keyof NatalChart;
+export type Planet =
+  | 'sun' | 'moon' | 'mercury' | 'venus' | 'mars'
+  | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto'
+  | 'ascendant' | 'midheaven' | 'northNode' | 'chiron';
 
 export interface Aspect {
   planet1: Planet;
@@ -72,6 +91,16 @@ export interface Transit {
   natalPosition: number;
   isExact: boolean; // orb < 1°
   interpretation?: string;
+  transitHouse?: number; // which natal house the transit planet is in (1-12)
+}
+
+export interface TransitTiming {
+  currentOrb: number;
+  isApplying: boolean;        // true = getting tighter, false = separating
+  exactDate?: Date;           // when orb hits 0 (if within scan window)
+  separationDate?: Date;      // when the transit leaves orb
+  daysUntilExact?: number;
+  daysUntilSeparation?: number;
 }
 
 export interface UserProfile {

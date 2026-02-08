@@ -12,8 +12,14 @@
 import type { Verdict, QuestionCategory } from '../types/astrology';
 import type { Planet } from '../types/userProfile';
 import type { PersonalDailyReport } from './personalDailyReport';
+import { HOUSE_MEANINGS } from './personalDailyReport';
 
-export type FollowUpType = 'tell_me_more' | 'when_change';
+export type FollowUpType = 'tell_me_more' | 'when_change' | 'contextual';
+
+export interface FollowUpQuestion {
+  text: string;
+  context: 'specificity' | 'timing' | 'person' | 'action';
+}
 
 // ---- Category mapping (same as oracleResponse.ts) ----
 const CATEGORY_MAP: Record<QuestionCategory, keyof PersonalDailyReport['categories']> = {
@@ -155,10 +161,15 @@ function generateDeeperInsight(
 
     // Name the aspect and planets
     const aspectName = transit.aspectType;
-    parts.push(
-      `The core of this reading: ${tp} forms a ${aspectName} with ${np}` +
-      (transit.isExact ? ' — an exact aspect today, intensifying its effect.' : ` (orb: ${transit.orb.toFixed(1)}°).`)
-    );
+    let coreLine = `The core of this reading: ${tp} forms a ${aspectName} with ${np}`;
+
+    // Add house context
+    if (transit.transitHouse && HOUSE_MEANINGS[transit.transitHouse]) {
+      coreLine += `, activating your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}`;
+    }
+
+    coreLine += transit.isExact ? ' — an exact aspect today, intensifying its effect.' : ` (orb: ${transit.orb.toFixed(1)}°).`;
+    parts.push(coreLine);
 
     // Explain aspect type in plain language
     const explanation = ASPECT_EXPLAINED[aspectName];
@@ -232,13 +243,30 @@ function generateTimingResponse(
   );
 
   if (relevantTransit) {
-    const { transit } = relevantTransit;
+    const { transit, timing } = relevantTransit;
     const tp = PLANET_NAME[transit.transitPlanet] || capitalize(transit.transitPlanet);
     const speed = PLANET_SPEED[transit.transitPlanet] || 'medium';
 
-    // Speed-based timing estimate
-    const timingLine = pick(SPEED_TIMING[speed]);
-    parts.push(`${tp} drives this reading. ${timingLine}`);
+    // Prefer real timing data when available
+    if (timing) {
+      if (timing.isApplying && timing.exactDate) {
+        parts.push(`${tp} drives this reading. This aspect becomes exact ${formatTransitDate(timing.exactDate)} — the peak of its influence.`);
+      } else if (timing.separationDate) {
+        parts.push(`${tp} drives this reading. This transit separates ${formatTransitDate(timing.separationDate)} — the intensity eases after that.`);
+      } else if (timing.isApplying) {
+        // Applying but no exact date found within scan window
+        const timingLine = pick(SPEED_TIMING[speed]);
+        parts.push(`${tp} drives this reading and is still building. ${timingLine}`);
+      } else {
+        // Separating but separation date beyond scan window
+        const timingLine = pick(SPEED_TIMING[speed]);
+        parts.push(`${tp} is already separating. ${timingLine}`);
+      }
+    } else {
+      // No timing data — fall back to speed-based estimate
+      const timingLine = pick(SPEED_TIMING[speed]);
+      parts.push(`${tp} drives this reading. ${timingLine}`);
+    }
 
     // If there's a second relevant transit, mention the layering
     const secondTransit = report.keyTransits.find(t =>
@@ -249,7 +277,11 @@ function generateTimingResponse(
     if (secondTransit) {
       const sp = PLANET_NAME[secondTransit.transit.transitPlanet] || capitalize(secondTransit.transit.transitPlanet);
       const secondSpeed = PLANET_SPEED[secondTransit.transit.transitPlanet] || 'medium';
-      if (secondSpeed === 'slow' || secondSpeed === 'glacial') {
+
+      // Use real timing for second transit too
+      if (secondTransit.timing?.separationDate) {
+        parts.push(`${sp} also plays a role and separates ${formatTransitDate(secondTransit.timing.separationDate)}.`);
+      } else if (secondSpeed === 'slow' || secondSpeed === 'glacial') {
         parts.push(`But ${sp} adds a deeper, slower layer — the underlying theme takes longer to resolve.`);
       } else {
         parts.push(`${sp} also plays a role and will shift soon.`);
@@ -366,4 +398,289 @@ function pick<T>(arr: T[]): T {
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/**
+ * Format a transit date in natural language.
+ * "this Thursday" for <7 days, "February 13th" for further.
+ */
+function formatTransitDate(date: Date): string {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
+
+  if (diffDays <= 0) return 'today';
+  if (diffDays === 1) return 'tomorrow';
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  if (diffDays <= 6) {
+    return `this ${dayNames[date.getDay()]}`;
+  }
+  if (diffDays <= 13) {
+    return `next ${dayNames[date.getDay()]}`;
+  }
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${monthNames[date.getMonth()]} ${ordinal(date.getDate())}`;
+}
+
+// ======================================================================
+// CONTEXTUAL FOLLOW-UP QUESTIONS (F3)
+// ======================================================================
+
+/**
+ * Follow-up question templates organized by category.
+ * Each generates transit-aware questions based on the dominant planet pair.
+ */
+const FOLLOW_UP_TEMPLATES: Record<string, Partial<Record<string, FollowUpQuestion[]>>> = {
+  love: {
+    venus: [
+      { text: 'Is this about a specific person?', context: 'person' },
+      { text: 'Should I reach out or wait?', context: 'action' },
+      { text: 'What does my heart actually want?', context: 'specificity' },
+    ],
+    moon: [
+      { text: 'Am I projecting old feelings here?', context: 'specificity' },
+      { text: 'Is this emotional pull real or nostalgia?', context: 'specificity' },
+    ],
+    mars: [
+      { text: 'Is the passion sustainable?', context: 'specificity' },
+      { text: 'Am I confusing intensity with love?', context: 'specificity' },
+    ],
+    _default: [
+      { text: 'Should I be more open or protective?', context: 'action' },
+      { text: 'When will I feel more certain?', context: 'timing' },
+    ],
+  },
+  career: {
+    saturn: [
+      { text: 'Is this the right time to push harder?', context: 'timing' },
+      { text: 'Should I stay patient or take action?', context: 'action' },
+    ],
+    jupiter: [
+      { text: 'Should I take the bigger risk?', context: 'action' },
+      { text: 'Is this opportunity what it seems?', context: 'specificity' },
+    ],
+    mars: [
+      { text: 'Am I fighting the right battle?', context: 'specificity' },
+      { text: 'Should I confront or strategize?', context: 'action' },
+    ],
+    _default: [
+      { text: 'What should I focus on this week?', context: 'action' },
+      { text: 'Is a change coming soon?', context: 'timing' },
+    ],
+  },
+  money: {
+    jupiter: [
+      { text: 'Should I invest or save?', context: 'action' },
+      { text: 'Is this abundance real or a mirage?', context: 'specificity' },
+    ],
+    venus: [
+      { text: 'Am I spending for the right reasons?', context: 'specificity' },
+    ],
+    saturn: [
+      { text: 'How long will this restriction last?', context: 'timing' },
+      { text: 'What do I need to cut back on?', context: 'action' },
+    ],
+    _default: [
+      { text: 'Should I make this financial move now?', context: 'timing' },
+      { text: 'What is my biggest blind spot with money?', context: 'specificity' },
+    ],
+  },
+  decisions: {
+    _default: [
+      { text: 'What am I not seeing?', context: 'specificity' },
+      { text: 'Should I trust my gut here?', context: 'action' },
+      { text: 'Will I regret waiting?', context: 'timing' },
+    ],
+  },
+  health: {
+    _default: [
+      { text: 'What does my body need right now?', context: 'action' },
+      { text: 'Should I push through or rest?', context: 'action' },
+    ],
+  },
+  social: {
+    _default: [
+      { text: 'Who should I spend time with?', context: 'person' },
+      { text: 'Should I reach out or pull back?', context: 'action' },
+    ],
+  },
+  creativity: {
+    _default: [
+      { text: 'What is blocking my creative flow?', context: 'specificity' },
+      { text: 'Should I start something new or finish what I have?', context: 'action' },
+    ],
+  },
+  spiritual: {
+    _default: [
+      { text: 'What lesson is the universe teaching me?', context: 'specificity' },
+      { text: 'Am I on the right path?', context: 'specificity' },
+    ],
+  },
+};
+
+/**
+ * Generate contextual follow-up questions based on the reading.
+ * Returns 2-3 questions plus "When Will This Change?" as a fixed option.
+ */
+export function generateFollowUpQuestions(
+  verdict: Verdict,
+  category: QuestionCategory,
+  report: PersonalDailyReport | null,
+): FollowUpQuestion[] {
+  const reportCategory = CATEGORY_MAP[category];
+  const questions: FollowUpQuestion[] = [];
+
+  // Find the dominant planet for transit-specific questions
+  let dominantPlanet: string | null = null;
+  if (report) {
+    const relevantTransit = report.keyTransits.find(t =>
+      t.affectedCategories.includes(category) ||
+      t.affectedCategories.includes(reportCategory as QuestionCategory)
+    );
+    if (relevantTransit) {
+      dominantPlanet = relevantTransit.transit.transitPlanet;
+    }
+  }
+
+  // Get category templates
+  const catTemplates = FOLLOW_UP_TEMPLATES[reportCategory] || FOLLOW_UP_TEMPLATES.decisions;
+  if (!catTemplates) return [];
+
+  // Try planet-specific templates first, then fall back to defaults
+  let pool: FollowUpQuestion[] = [];
+  if (dominantPlanet && catTemplates[dominantPlanet]) {
+    pool = [...catTemplates[dominantPlanet]!];
+  }
+  // Add defaults
+  if (catTemplates._default) {
+    pool = [...pool, ...catTemplates._default];
+  }
+
+  // Deduplicate by text
+  const seen = new Set<string>();
+  const unique = pool.filter(q => {
+    if (seen.has(q.text)) return false;
+    seen.add(q.text);
+    return true;
+  });
+
+  // Pick 2-3 from the pool
+  const shuffled = unique.sort(() => Math.random() - 0.5);
+  questions.push(...shuffled.slice(0, verdict === 'UNCLEAR' ? 2 : 3));
+
+  return questions;
+}
+
+/**
+ * Generate a contextual response to a follow-up question.
+ * Uses the transit data to give a deeper, specific answer.
+ */
+export function generateContextualFollowUpResponse(
+  questionText: string,
+  originalVerdict: Verdict,
+  category: QuestionCategory,
+  report: PersonalDailyReport | null,
+): string {
+  if (!report) {
+    return pick(DEEPER_INSIGHT_POOLS[originalVerdict] || DEEPER_INSIGHT_POOLS.NEUTRAL);
+  }
+
+  const reportCategory = CATEGORY_MAP[category];
+  const catScore = report.categories[reportCategory];
+  const parts: string[] = [];
+
+  // Find the dominant transit
+  const relevantTransit = report.keyTransits.find(t =>
+    t.affectedCategories.includes(category) ||
+    t.affectedCategories.includes(reportCategory as QuestionCategory)
+  );
+
+  // Determine the question's intent
+  const isTimingQ = questionText.toLowerCase().includes('when') ||
+    questionText.toLowerCase().includes('how long') ||
+    questionText.toLowerCase().includes('soon');
+  const isActionQ = questionText.toLowerCase().includes('should') ||
+    questionText.toLowerCase().includes('need');
+  const isPersonQ = questionText.toLowerCase().includes('person') ||
+    questionText.toLowerCase().includes('who') ||
+    questionText.toLowerCase().includes('reach out');
+
+  if (isTimingQ && relevantTransit?.timing) {
+    // Use real timing data
+    const { timing, transit } = relevantTransit;
+    const tp = PLANET_NAME[transit.transitPlanet] || capitalize(transit.transitPlanet);
+
+    if (timing.isApplying && timing.exactDate) {
+      parts.push(`${tp} reaches its peak intensity ${formatTransitDate(timing.exactDate)}.`);
+    }
+    if (timing.separationDate) {
+      parts.push(`The tension eases ${formatTransitDate(timing.separationDate)}.`);
+    }
+    if (!timing.exactDate && !timing.separationDate) {
+      const speed = PLANET_SPEED[transit.transitPlanet] || 'medium';
+      parts.push(pick(SPEED_TIMING[speed]));
+    }
+  } else if (isActionQ) {
+    // Action-oriented response based on verdict
+    if (originalVerdict === 'HARD_YES' || originalVerdict === 'SOFT_YES') {
+      const actions = catScore.goodFor.filter(g => g.length > 0);
+      if (actions.length > 0) {
+        parts.push(`The cosmos favor ${actions.slice(0, 2).join(' and ')}. Act on it.`);
+      } else {
+        parts.push('The current supports forward motion. Trust the impulse, but move deliberately.');
+      }
+    } else if (originalVerdict === 'HARD_NO' || originalVerdict === 'SOFT_NO') {
+      const cautions = catScore.badFor.filter(b => b.length > 0);
+      if (cautions.length > 0) {
+        parts.push(`Avoid ${cautions.slice(0, 2).join(' and ')} right now. The stars urge patience.`);
+      } else {
+        parts.push('Hold your position. The energy does not support action today.');
+      }
+    } else {
+      parts.push('The answer depends on your intention. The cosmos will match whatever energy you bring.');
+    }
+  } else if (isPersonQ && relevantTransit) {
+    // Person-oriented: use planet symbolism
+    const tp = relevantTransit.transit.transitPlanet;
+    if (tp === 'venus' || tp === 'moon') {
+      parts.push('The emotional current is strong. If someone specific comes to mind — they are relevant.');
+    } else if (tp === 'mercury') {
+      parts.push('Pay attention to who reaches out to you in the next few days. The connection matters.');
+    } else if (tp === 'saturn' || tp === 'pluto') {
+      parts.push('This may involve someone with authority or power in your life. Tread carefully.');
+    } else {
+      parts.push('The cosmos point to connection, but the person must reveal themselves through action.');
+    }
+  }
+
+  // Add transit context if we haven't already covered timing
+  if (relevantTransit && !isTimingQ) {
+    const { transit } = relevantTransit;
+    const tp = PLANET_NAME[transit.transitPlanet] || capitalize(transit.transitPlanet);
+    const np = PLANET_NAME[transit.natalPlanet] || capitalize(transit.natalPlanet);
+
+    if (transit.transitHouse && HOUSE_MEANINGS[transit.transitHouse]) {
+      parts.push(
+        `${tp}'s influence flows through your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}, shaping how this plays out with ${np}.`
+      );
+    }
+  }
+
+  // Add score context
+  parts.push(`Your ${reportCategory} energy scores ${catScore.score}/10 today.`);
+
+  if (parts.length === 0) {
+    return pick(DEEPER_INSIGHT_POOLS[originalVerdict] || DEEPER_INSIGHT_POOLS.NEUTRAL);
+  }
+
+  return parts.join(' ');
 }
