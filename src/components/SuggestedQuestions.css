@@ -2,11 +2,11 @@
 
 .suggestions-divider {
   text-align: center;
-  font-size: 0.625rem;
-  letter-spacing: 0.18em;
+  font-size: 0.5625rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #222;
-  margin: 20px 0 10px;
+  color: #2a2a2a;
+  margin: 24px 0 12px;
   animation: fadeIn 0.4s ease 0.15s both;
   user-select: none;
 }
@@ -22,20 +22,21 @@
 /* ── Chip ────────────────────────────────────────── */
 
 .suggestion-chip {
-  padding: 8px 16px;
-  font-family: var(--font);
-  font-size: 0.75rem;
+  padding: 8px 18px;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
   font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: #333;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(201, 168, 76, 0.08);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: color var(--transition),
-              border-color var(--transition),
-              background var(--transition),
-              transform var(--transition-fast);
+  transition: color 0.3s ease,
+              border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
@@ -51,13 +52,13 @@
 
 .suggestion-chip:hover {
   color: var(--accent);
-  border-color: var(--accent-dim);
-  background: rgba(201, 168, 76, 0.04);
+  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.03);
 }
 
 .suggestion-chip:active {
   transform: scale(0.96);
-  background: rgba(201, 168, 76, 0.08);
+  background: rgba(201, 168, 76, 0.06);
 }
 
 /* ── Keyframes ───────────────────────────────────── */
@@ -81,7 +82,7 @@
   }
 
   .suggestion-chip {
-    font-size: 0.6875rem;
-    padding: 7px 12px;
+    font-size: 0.75rem;
+    padding: 7px 14px;
   }
 }

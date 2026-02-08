@@ -361,13 +361,28 @@ function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier
 
     // ---- Saturn placement ----
     if (planet === 'saturn') {
-      modifiers.push({
-        planet: planet as Planet, sign,
-        categoryModifiers: {
-          [element === 'earth' ? 'career' : 'decisions']: -1
-        },
-        warnings: {}
-      });
+      if (sign === 'Capricorn' || sign === 'Aquarius') {
+        // Saturn in domicile — discipline as strength
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { career: 1, decisions: 1 },
+          warnings: {}
+        });
+      } else if (element === 'fire') {
+        // Saturn in fire — restriction clashes with spontaneity
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { creativity: -1 },
+          warnings: { creativity: 'Your Saturn in a fire sign can dampen creative impulses' }
+        });
+      } else if (element === 'water') {
+        // Saturn in water — emotional restraint
+        modifiers.push({
+          planet: planet as Planet, sign,
+          categoryModifiers: { love: -1 },
+          warnings: { love: 'Your Saturn in water can restrict emotional expression' }
+        });
+      }
     }
   }
 
@@ -418,8 +433,8 @@ function generateCategoryScore(
         impact = ASPECT_IMPACTS[transit.aspectType].score;
       }
 
-      // Tighter orbs have stronger effects
-      const orbMultiplier = transit.isExact ? 1.5 : (1 - transit.orb / 8);
+      // Tighter orbs have stronger effects (clamped to prevent negative)
+      const orbMultiplier = transit.isExact ? 1.5 : Math.max(0, 1 - transit.orb / 8);
       score += impact * orbMultiplier;
 
       const interpretation = interpretTransit(transit);

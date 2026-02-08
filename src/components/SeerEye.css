@@ -16,6 +16,54 @@
   justify-content: center;
 }
 
+/* Ambient glow behind eye — visible even when closed */
+.seer-eye::before {
+  content: '';
+  position: absolute;
+  width: 220%;
+  height: 220%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 50% 40% at 50% 50%,
+    rgba(201, 168, 76, 0.04) 0%,
+    rgba(201, 168, 76, 0.015) 30%,
+    transparent 70%
+  );
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+  opacity: 1;
+}
+
+/* Brighten ambient glow when eye opens */
+.seer-eye-container.seer-eye--open .seer-eye::before,
+.seer-eye-container.seer-eye--gazing .seer-eye::before {
+  opacity: 1.5;
+  background: radial-gradient(
+    ellipse 50% 40% at 50% 50%,
+    rgba(201, 168, 76, 0.06) 0%,
+    rgba(201, 168, 76, 0.025) 30%,
+    transparent 70%
+  );
+}
+
+.seer-eye-container.seer-eye--revealing .seer-eye::before {
+  background: radial-gradient(
+    ellipse 50% 40% at 50% 50%,
+    rgba(201, 168, 76, 0.1) 0%,
+    rgba(201, 168, 76, 0.04) 30%,
+    transparent 70%
+  );
+}
+
+/* Closed-eye hint — faint gold seam so the eye shape is visible */
+.seer-eye-container.seer-eye--closed .lash-line--top {
+  stroke: rgba(201, 168, 76, 0.12) !important;
+}
+
+.seer-eye-container.seer-eye--closed .lash-line--bottom {
+  stroke: rgba(201, 168, 76, 0.06) !important;
+}
+
 .eye-svg {
   width: 100%;
   height: 100%;
@@ -30,7 +78,21 @@
 .seer-eye--open .eye-sclera,
 .seer-eye--gazing .eye-sclera,
 .seer-eye--revealing .eye-sclera {
-  fill: #0a0a0a;
+  fill: url(#scleraGradient);
+}
+
+/* Sclera veins — fade in when eye opens */
+.sclera-veins {
+  transition: opacity 1.5s ease 0.5s;
+}
+
+.seer-eye--open .sclera-veins,
+.seer-eye--gazing .sclera-veins {
+  opacity: 0.6;
+}
+
+.seer-eye--revealing .sclera-veins {
+  opacity: 0.8;
 }
 
 /* ---- Eyelids ---- */
@@ -53,6 +115,54 @@
 }
 /* Opening: slower, softer reopen */
 .seer-eye--blink-opening .eyelid {
+  transition: d 0.14s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Lid crease — subtle fold above the eye */
+.lid-crease {
+  transition: d 1.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+              opacity 0.6s ease;
+  opacity: 0;
+}
+
+.seer-eye--open .lid-crease,
+.seer-eye--gazing .lid-crease,
+.seer-eye--revealing .lid-crease {
+  opacity: 1;
+}
+
+.seer-eye--opening .lid-crease {
+  transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.6s ease;
+  opacity: 1;
+}
+
+/* Waterline — wet inner edge */
+.waterline {
+  transition: d 1.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+              opacity 0.6s ease;
+  opacity: 0;
+}
+
+.seer-eye--open .waterline,
+.seer-eye--gazing .waterline,
+.seer-eye--revealing .waterline {
+  opacity: 1;
+}
+
+.seer-eye--opening .waterline {
+  transition: d 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+}
+
+/* Waterline follows blink timing */
+.seer-eye--blink-closing .waterline {
+  transition: d 0.07s ease-in;
+}
+.seer-eye--blink-shut .waterline {
+  transition: d 0.03s linear;
+}
+.seer-eye--blink-opening .waterline {
   transition: d 0.14s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -90,6 +200,16 @@
   transform-origin: 80px 80px;
 }
 
+/* Limbal ring — the dark border around iris, standard anatomy */
+.limbal-ring {
+  transition: stroke 0.6s ease, stroke-width 0.6s ease;
+}
+
+.seer-eye--revealing .limbal-ring {
+  stroke: rgba(30, 24, 12, 0.9);
+  stroke-width: 2;
+}
+
 /* Iris outer glow */
 .iris-outer-glow {
   transition: stroke 0.6s ease, stroke-width 0.6s ease;
@@ -113,6 +233,49 @@
   filter: brightness(1.2);
 }
 
+/* Iris collarette — anatomical ring between pupil zone and ciliary zone */
+.iris-collarette {
+  transition: stroke 0.6s ease;
+}
+
+.seer-eye--revealing .iris-collarette {
+  stroke: rgba(201, 168, 76, 0.12);
+}
+
+/* ---- Pupil constriction/dilation ---- */
+.eye-pupil {
+  transition: r 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Constricted — fast squeeze (light reflex) */
+.eye-pupil--constricted {
+  transition: r 0.15s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Focused — slightly tight, steady */
+.eye-pupil--focused {
+  transition: r 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dilated — slow bloom (surprise/insight) */
+.eye-pupil--dilated {
+  transition: r 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Normal — relaxed return */
+.eye-pupil--normal {
+  transition: r 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Depth ring and inner edge follow pupil */
+.pupil-depth-ring {
+  transition: r 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pupil-inner-edge {
+  transition: r 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* ---- Blink reactions on iris/glint ---- */
 /* During blink, iris dims and glint vanishes — light is occluded */
 .iris-group--blink {
@@ -126,6 +289,11 @@
 }
 
 .iris-group--blink .eye-glint-secondary {
+  opacity: 0;
+  transition: opacity 0.04s ease;
+}
+
+.iris-group--blink .eye-glint-tertiary {
   opacity: 0;
   transition: opacity 0.04s ease;
 }
@@ -160,6 +328,30 @@
   animation: glintFlare 0.8s ease-out;
 }
 
+/* Tertiary glint — subtle ambient shimmer */
+.eye-glint-tertiary {
+  transition: opacity 0.6s ease;
+}
+
+.seer-eye--open .eye-glint-tertiary,
+.seer-eye--revealing .eye-glint-tertiary {
+  animation: tertiaryShimmer 6s ease-in-out infinite;
+}
+
+/* Iris fibers — subtle pulse during gazing */
+.seer-eye--gazing .iris-fiber {
+  animation: fiberPulse 4s ease-in-out infinite;
+}
+
+.seer-eye--gazing .iris-fiber-inner {
+  animation: fiberPulse 4s ease-in-out infinite 0.5s;
+}
+
+/* Reveal — fibers briefly brighten */
+.seer-eye--revealing .iris-fiber {
+  animation: fiberFlash 1s ease-out;
+}
+
 /* ---- Keyframes ---- */
 
 /* Iris breathing - organic scale + subtle rotation */
@@ -181,9 +373,13 @@
     transform: scale(1);
     filter: brightness(1);
   }
-  20% {
-    transform: scale(1.08);
-    filter: brightness(1.4) drop-shadow(0 0 12px rgba(201, 168, 76, 0.4));
+  15% {
+    transform: scale(1.1);
+    filter: brightness(1.5) drop-shadow(0 0 16px rgba(201, 168, 76, 0.5));
+  }
+  30% {
+    transform: scale(1.05);
+    filter: brightness(1.3) drop-shadow(0 0 10px rgba(201, 168, 76, 0.3));
   }
   50% {
     transform: scale(1.02);
@@ -198,24 +394,28 @@
 /* Pupil searching - organic movement with dilation */
 @keyframes pupilSearch {
   0%, 100% {
-    r: 11;
+    r: 9;
     transform: translate(0px, 0px);
   }
-  15% {
-    r: 12;
+  12% {
+    r: 10;
     transform: translate(1.5px, -1px);
   }
-  35% {
-    r: 10;
+  28% {
+    r: 8;
     transform: translate(-1px, 0.5px);
   }
-  55% {
-    r: 13;
+  45% {
+    r: 11;
     transform: translate(0.5px, 1px);
   }
-  75% {
-    r: 11;
+  62% {
+    r: 9;
     transform: translate(-0.5px, -0.5px);
+  }
+  78% {
+    r: 10;
+    transform: translate(0.8px, 0.3px);
   }
 }
 
@@ -241,13 +441,59 @@
     opacity: 0.55;
     r: 3;
   }
-  30% {
+  20% {
     opacity: 1;
-    r: 4.5;
+    r: 5;
+  }
+  50% {
+    opacity: 0.8;
+    r: 4;
   }
   100% {
     opacity: 0.55;
     r: 3;
+  }
+}
+
+/* Tertiary glint ambient shimmer */
+@keyframes tertiaryShimmer {
+  0%, 100% {
+    opacity: 0.08;
+    transform: translate(0, 0);
+  }
+  30% {
+    opacity: 0.15;
+    transform: translate(0.3px, -0.2px);
+  }
+  60% {
+    opacity: 0.05;
+    transform: translate(-0.2px, 0.3px);
+  }
+}
+
+/* Iris fiber pulse during gazing */
+@keyframes fiberPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Iris fiber flash on reveal */
+@keyframes fiberFlash {
+  0% {
+    opacity: 1;
+    stroke: rgba(201, 168, 76, 0.08);
+  }
+  20% {
+    opacity: 1;
+    stroke: rgba(201, 168, 76, 0.25);
+  }
+  100% {
+    opacity: 1;
+    stroke: rgba(201, 168, 76, 0.08);
   }
 }
 

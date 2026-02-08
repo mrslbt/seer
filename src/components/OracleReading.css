@@ -13,6 +13,19 @@
   overflow-y: auto;
 }
 
+/* Subtle radial warmth behind the oracle's words */
+.oracle-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 40% 35% at 50% 45%,
+    rgba(201, 168, 76, 0.025) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
 .oracle-reading {
   text-align: center;
   max-width: 380px;
@@ -36,11 +49,11 @@
 /* Verdict label */
 .verdict-label {
   font-family: var(--font);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 500;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   opacity: 0;
   animation: verdictAppear 0.5s ease 0.3s forwards;
 }
@@ -62,9 +75,10 @@
   font-size: 1.5rem;
   font-weight: 400;
   font-style: italic;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
+  line-height: 1.6;
+  letter-spacing: 0.015em;
   position: relative;
+  color: rgba(255, 255, 255, 0.92);
   animation: textMaterialize 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -326,6 +340,119 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ---- Follow-Up Response ---- */
+.follow-up-response {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  animation: followUpAppear 0.6s ease;
+}
+
+.follow-up-label {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 12px;
+}
+
+.follow-up-text {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+
+@keyframes followUpAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Follow-Up Buttons ---- */
+.oracle-follow-ups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+  animation: actionsAppear 0.6s ease 2s both;
+}
+
+.follow-up-btn {
+  padding: 7px 16px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #333;
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.08);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.3s ease,
+              border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.follow-up-btn:hover {
+  color: var(--accent);
+  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.follow-up-btn:active {
+  transform: scale(0.96);
+}
+
+.follow-up-btn--share {
+  color: #2a2a2a;
+  border-color: #1a1a1a;
+}
+
+.follow-up-btn--share:hover {
+  color: #666;
+  border-color: #333;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ---- Share Toast ---- */
+.share-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 999px;
+  animation: toastAppear 0.3s ease;
+  z-index: 1001;
+}
+
+@keyframes toastAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 

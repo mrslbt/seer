@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { BirthData, AstroContext, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
 import { scoreDecision } from './lib/scoreDecision';
@@ -9,6 +9,8 @@ import type { InsightArticle } from './lib/insightArticle';
 
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
 import { scorePersonalDecision } from './lib/personalScoreDecision';
+import { getDailyWhisper } from './lib/cosmicWhisper';
+import { saveReading } from './lib/readingHistory';
 
 import { BirthDataForm } from './components/BirthDataForm';
 import { QuestionInput, validateQuestionInput } from './components/QuestionInput';
@@ -16,6 +18,7 @@ import { SeerEye } from './components/SeerEye';
 import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
+import { ReadingHistory } from './components/ReadingHistory';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
@@ -31,10 +34,12 @@ function App() {
   const [submittedQuestion, setSubmittedQuestion] = useState('');
   const [oracleText, setOracleText] = useState('');
   const [oracleVerdict, setOracleVerdict] = useState<Verdict>('NEUTRAL');
+  const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const {
     isInitialized: cosmosReady,
@@ -73,6 +78,34 @@ function App() {
       setUserFromOldBirthData(birthData);
     }
   }, [cosmosReady, birthData, userProfile, setUserFromOldBirthData]);
+
+  // ---- Cosmic Whisper (Feature 1) ----
+  const cosmicWhisper = useMemo(() => {
+    if (!dailyReport) return null;
+    return getDailyWhisper(dailyReport);
+  }, [dailyReport]);
+
+  // ---- Daily Cosmic Mood (Feature 2) ----
+  // Pass overall score to influence eye ambient glow
+  const cosmicMoodScore = dailyReport?.overallScore ?? 5;
+
+  // ---- Transit Alerts (Feature 4) ----
+  const hasTransitAlert = useMemo(() => {
+    if (!dailyReport) return false;
+    // Check if any transit is exact (within 1 degree)
+    return dailyReport.keyTransits.some(t => t.transit.isExact);
+  }, [dailyReport]);
+
+  // ---- Retrograde Countdown (Feature 7) ----
+  const activeRetrogrades = dailyReport?.retrogrades ?? [];
+
+  // ---- Moon Phase Ritual (Feature 8) ----
+  const isSpecialMoonPhase = useMemo(() => {
+    if (!dailyReport) return null;
+    const name = dailyReport.moonPhase.name;
+    if (name === 'New Moon' || name === 'Full Moon') return name;
+    return null;
+  }, [dailyReport]);
 
   // Handle birth data submission
   const handleBirthDataSubmit = useCallback(async (data: BirthData) => {
@@ -139,6 +172,7 @@ function App() {
     const response = generateOracleResponse(verdict, category);
     setOracleText(response);
     setOracleVerdict(verdict);
+    setOracleCategory(category);
 
     // Generate the insight article
     if (dailyReport) {
@@ -146,6 +180,16 @@ function App() {
     } else if (astroContext) {
       setOracleArticle(generateFallbackArticle(category, verdict, astroContext));
     }
+
+    // Save to reading history (Feature 3)
+    saveReading({
+      question: submittedQuestion,
+      verdict,
+      oracleText: response,
+      category,
+      moonPhase: dailyReport?.moonPhase.name,
+      overallScore: dailyReport?.overallScore,
+    });
 
     setTimeout(() => {
       playVerdictSound(verdict);
@@ -206,6 +250,12 @@ function App() {
     }
   };
 
+  // Cosmic mood CSS class for eye glow (Feature 2)
+  const cosmicMoodClass = cosmicMoodScore >= 8 ? 'mood-excellent'
+    : cosmicMoodScore >= 6 ? 'mood-good'
+    : cosmicMoodScore >= 4 ? 'mood-mixed'
+    : 'mood-challenging';
+
   return (
     <div className="app">
       {/* Header */}
@@ -214,8 +264,22 @@ function App() {
           {isMuted ? '\u{1F507}' : '\u{1F50A}'}
         </button>
         {hasBirthData && dailyReport && appState !== 'revealing' && (
-          <button className="header-btn" onClick={() => { playClick(); setShowDashboard(true); }} aria-label="Cosmic Dashboard">
+          <button
+            className={`header-btn ${hasTransitAlert ? 'header-btn--alert' : ''}`}
+            onClick={() => { playClick(); setShowDashboard(true); }}
+            aria-label="Cosmic Dashboard"
+          >
             {'\u2728'}
+            {hasTransitAlert && <span className="transit-alert-dot" />}
+          </button>
+        )}
+        {hasBirthData && (
+          <button
+            className="header-btn"
+            onClick={() => { playClick(); setShowHistory(true); }}
+            aria-label="Reading History"
+          >
+            {'\u{1F4DC}'}
           </button>
         )}
         {hasBirthData && (
@@ -261,14 +325,42 @@ function App() {
               </div>
             )}
 
-            {/* The Eye */}
-            <div className="eye-section">
+            {/* The Eye — with cosmic mood class */}
+            <div className={`eye-section ${cosmicMoodClass}`}>
               <SeerEye
                 state={getEyeState()}
                 onOpenComplete={handleEyeOpenComplete}
                 onGazeComplete={handleGazeComplete}
               />
             </div>
+
+            {/* Cosmic Whisper (Feature 1) — shown below the eye in idle state */}
+            {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
+              <p className="cosmic-whisper">{cosmicWhisper}</p>
+            )}
+
+            {/* Retrograde Alert (Feature 7) — shown in idle state */}
+            {appState === 'idle' && activeRetrogrades.length > 0 && !cosmosLoading && (
+              <div className="retrograde-alert">
+                {activeRetrogrades.map(r => (
+                  <span key={r.planet} className="retrograde-badge">
+                    {r.planet.charAt(0).toUpperCase() + r.planet.slice(1)} Rx
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Moon Phase Ritual (Feature 8) — shown on new/full moons */}
+            {appState === 'idle' && isSpecialMoonPhase && !cosmosLoading && (
+              <div className="moon-ritual-hint">
+                <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
+                <span className="moon-ritual-text">
+                  {isSpecialMoonPhase === 'New Moon'
+                    ? 'New Moon — Set intentions. Ask what to begin.'
+                    : 'Full Moon — Seek clarity. Ask what to release.'}
+                </span>
+              </div>
+            )}
 
             {/* Submitted question while gazing */}
             {(appState === 'gazing') && (
@@ -324,12 +416,20 @@ function App() {
         />
       )}
 
+      {/* Reading History overlay (Feature 3) */}
+      {showHistory && (
+        <ReadingHistory onClose={() => setShowHistory(false)} />
+      )}
+
       {/* Oracle reading overlay */}
       {appState === 'revealing' && oracleText && (
         <OracleReading
           oracleText={oracleText}
           verdict={oracleVerdict}
+          category={oracleCategory}
           article={oracleArticle}
+          dailyReport={dailyReport}
+          questionText={submittedQuestion}
           onAskAgain={handleAskAgain}
           onDismiss={handleDismiss}
         />

@@ -10,7 +10,7 @@
 
 .question-input-row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -18,24 +18,26 @@
   flex: 1;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
   color: var(--text);
-  padding: 12px 0;
-  font-family: var(--font);
-  font-size: 0.9375rem;
+  padding: 14px 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
   outline: none;
-  transition: border-color 0.2s;
-  letter-spacing: -0.01em;
+  transition: border-color 0.3s ease;
+  letter-spacing: 0.01em;
   border-radius: 0;
 }
 
 .question-input:focus {
-  border-color: var(--accent-dim);
+  border-color: rgba(201, 168, 76, 0.35);
 }
 
 .question-input::placeholder {
-  color: #444;
+  color: #333;
   font-style: italic;
+  font-family: var(--font-display);
 }
 
 .question-input.has-error {
@@ -48,26 +50,27 @@
 
 /* Ask button */
 .ask-btn {
-  padding: 8px 20px;
-  font-size: 0.75rem;
+  padding: 10px 24px;
+  font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
   background: transparent;
-  border: 1px solid var(--accent-dim);
+  border: 1px solid rgba(201, 168, 76, 0.2);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   white-space: nowrap;
 }
 
 .ask-btn:hover:not(:disabled) {
-  background: rgba(201, 168, 76, 0.08);
-  border-color: var(--accent);
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.4);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.04);
 }
 
 .ask-btn:disabled {
-  opacity: 0.2;
+  opacity: 0.15;
   cursor: default;
 }
 
@@ -77,8 +80,9 @@
 
 /* Error */
 .input-error {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: #A67458;
+  letter-spacing: 0.02em;
   animation: fadeIn 0.2s ease;
 }
 

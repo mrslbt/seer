@@ -45,12 +45,12 @@ function scoreToVerdict(score: number, polarity: ActionPolarity): Verdict {
     score = 11 - score; // Flip: 10 becomes 1, 1 becomes 10
   }
 
-  // STRICT thresholds - be conservative with YES
+  // BALANCED thresholds - symmetric around 5-6 neutral band
   if (score >= 8) return 'HARD_YES';   // Only 8-10 is confident YES
   if (score >= 7) return 'SOFT_YES';   // 7 is cautious yes
-  if (score === 6) return 'NEUTRAL';   // 6 is truly neutral
-  if (score >= 4) return 'SOFT_NO';    // 4-5 = lean NO (be cautious!)
-  return 'HARD_NO';                     // 1-3 = definite NO
+  if (score >= 5) return 'NEUTRAL';    // 5-6 is the neutral band (base score = 5)
+  if (score >= 3) return 'SOFT_NO';    // 3-4 = lean NO (be cautious!)
+  return 'HARD_NO';                     // 1-2 = definite NO
 }
 
 /**

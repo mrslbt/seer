@@ -1,0 +1,225 @@
+/* ── Reading History — The Oracle Remembers ─────── */
+
+.history-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.98);
+  z-index: 999;
+  overflow-y: auto;
+  animation: historyFadeIn 0.4s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #1a1a1a transparent;
+}
+
+.history-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 50% 30% at 50% 20%,
+    rgba(201, 168, 76, 0.02) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.history-container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* ── Header ────────────────────────────────────── */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.history-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #444;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.history-close:hover {
+  color: #999;
+}
+
+.history-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.history-title-sub {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.history-title-main {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+/* ── Empty State ───────────────────────────────── */
+.history-empty {
+  text-align: center;
+  padding: 64px 0;
+  animation: historySlideUp 0.5s ease 0.1s both;
+}
+
+.history-empty-text {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.history-empty-sub {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: #333;
+}
+
+/* ── Scroll area ───────────────────────────────── */
+.history-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Day Group ─────────────────────────────────── */
+.history-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-date-label {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #444;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #111;
+}
+
+/* ── Reading Card ──────────────────────────────── */
+.history-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  animation: historyCardAppear 0.4s ease both;
+}
+
+.history-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.history-time {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  color: #333;
+  letter-spacing: 0.05em;
+}
+
+.history-verdict-badge {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.verdict-icon {
+  font-size: 0.5rem;
+  opacity: 0.7;
+}
+
+.history-question {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: #888;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.history-oracle-text {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-style: italic;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* ── Keyframes ─────────────────────────────────── */
+@keyframes historyFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes historySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes historyCardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mobile ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .history-container {
+    padding: 20px 16px 40px;
+  }
+
+  .history-card {
+    padding: 12px;
+  }
+
+  .history-oracle-text {
+    font-size: 0.75rem;
+  }
+}

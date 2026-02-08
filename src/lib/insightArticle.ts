@@ -94,11 +94,16 @@ export function generateInsightArticle(
   });
 
   // Section 2: The reasoning (why the cosmos say what they say)
-  // Show natal warnings first, then top 3 transit reasons to avoid overwhelming the user
+  // Separate natal warnings, moon phase reasons, and transit reasons
   if (catScore.reasoning.length > 0) {
-    const natalReasons = catScore.reasoning.filter(r => !r.startsWith('Transit'));
     const transitReasons = catScore.reasoning.filter(r => r.startsWith('Transit'));
-    const visibleReasons = [...natalReasons, ...transitReasons.slice(0, 3)];
+    const moonReasons = catScore.reasoning.filter(r =>
+      !r.startsWith('Transit') && (r.includes('Moon') || r.includes('moon') || r.includes('Waning') || r.includes('Waxing'))
+    );
+    const natalReasons = catScore.reasoning.filter(r =>
+      !r.startsWith('Transit') && !moonReasons.includes(r)
+    );
+    const visibleReasons = [...natalReasons, ...moonReasons, ...transitReasons.slice(0, 3)];
     const overflow = transitReasons.length > 3 ? transitReasons.length - 3 : 0;
 
     let reasoningText = visibleReasons

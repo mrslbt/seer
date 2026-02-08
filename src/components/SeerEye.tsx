@@ -16,15 +16,37 @@ const GAZE_DURATION = 3500;
 // Occasional double-blinks (~20% chance) add organic texture.
 type BlinkPhase = 'none' | 'closing' | 'shut' | 'opening';
 
+// Pupil constriction states — driven by context
+type PupilState = 'normal' | 'constricted' | 'dilated' | 'focused';
+
 function randomBetween(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
+// Generate organic iris fiber angles (non-uniform for realism)
+const IRIS_FIBERS = Array.from({ length: 24 }, (_, i) => {
+  const base = i * 15;
+  const jitter = randomBetween(-3, 3);
+  const length = randomBetween(0.7, 1);
+  const opacity = randomBetween(0.04, 0.12);
+  return { angle: base + jitter, length, opacity };
+});
+
+// Secondary shorter fibers for density
+const IRIS_FIBERS_INNER = Array.from({ length: 16 }, (_, i) => {
+  const base = i * 22.5 + 11;
+  const jitter = randomBetween(-4, 4);
+  const opacity = randomBetween(0.03, 0.08);
+  return { angle: base + jitter, opacity };
+});
+
 export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps) {
   const [internalState, setInternalState] = useState(state);
   const [blinkPhase, setBlinkPhase] = useState<BlinkPhase>('none');
+  const [pupilState, setPupilState] = useState<PupilState>('normal');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blinkChainRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pupilTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -32,21 +54,71 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
     setInternalState(state);
 
     if (state === 'opening') {
+      // Pupil constricts on open (light reaction) then relaxes
+      setPupilState('constricted');
+      const relaxTimer = setTimeout(() => setPupilState('normal'), 800);
+      blinkChainRef.current.push(relaxTimer);
+
       timeoutRef.current = setTimeout(() => {
         onOpenComplete?.();
       }, OPEN_DURATION);
     }
 
     if (state === 'gazing') {
+      // Pupil focuses (slightly constricted) while gazing
+      setPupilState('focused');
       timeoutRef.current = setTimeout(() => {
         onGazeComplete?.();
       }, GAZE_DURATION);
+    }
+
+    if (state === 'revealing') {
+      // Pupil dilates on reveal (surprise/insight reaction)
+      setPupilState('dilated');
+      const normalizeTimer = setTimeout(() => setPupilState('normal'), 2000);
+      blinkChainRef.current.push(normalizeTimer);
+    }
+
+    if (state === 'closed') {
+      setPupilState('normal');
     }
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [state, onOpenComplete, onGazeComplete]);
+
+  // Random pupil micro-fluctuations when open (hippus)
+  useEffect(() => {
+    const canFluctuate = internalState === 'open' || internalState === 'revealing';
+    if (!canFluctuate) return;
+
+    function scheduleFluctuation() {
+      const delay = randomBetween(4000, 9000);
+      pupilTimerRef.current = setTimeout(() => {
+        // Brief constriction (~15% of the time)
+        if (Math.random() < 0.15) {
+          setPupilState('constricted');
+          const restoreTimer = setTimeout(() => {
+            setPupilState('normal');
+            scheduleFluctuation();
+          }, randomBetween(300, 600));
+          blinkChainRef.current.push(restoreTimer);
+        } else {
+          scheduleFluctuation();
+        }
+      }, delay);
+      blinkChainRef.current.push(pupilTimerRef.current);
+    }
+
+    const initDelay = randomBetween(3000, 6000);
+    const initTimer = setTimeout(scheduleFluctuation, initDelay);
+    blinkChainRef.current.push(initTimer);
+
+    return () => {
+      if (pupilTimerRef.current) clearTimeout(pupilTimerRef.current);
+    };
+  }, [internalState]);
 
   const clearBlinkChain = useCallback(() => {
     blinkChainRef.current.forEach(clearTimeout);
@@ -214,8 +286,19 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
     }
   };
 
+  // Pupil radius based on state
+  const getPupilRadius = (): number => {
+    switch (pupilState) {
+      case 'constricted': return 7;
+      case 'focused': return 9;
+      case 'dilated': return 14;
+      default: return 11;
+    }
+  };
+
   // Build CSS class for blink phase
   const blinkClass = blinkPhase !== 'none' ? `seer-eye--blink-${blinkPhase}` : '';
+  const pupilClass = `eye-pupil--${pupilState}`;
 
   return (
     <div className={`seer-eye-container seer-eye--${internalState} ${blinkClass}`}>
@@ -242,24 +325,45 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
               <rect x="0" y="0" width="160" height="80" />
             </clipPath>
 
-            {/* Iris gradient */}
+            {/* Iris gradient — more layered for depth */}
             <radialGradient id="irisGradient" cx="0.4" cy="0.38">
-              <stop offset="0%" stopColor="#C9A84C" />
-              <stop offset="35%" stopColor="#A08338" />
+              <stop offset="0%" stopColor="#D4B456" />
+              <stop offset="20%" stopColor="#C9A84C" />
+              <stop offset="40%" stopColor="#A08338" />
               <stop offset="65%" stopColor="#6B5824" />
+              <stop offset="85%" stopColor="#3D3215" />
               <stop offset="100%" stopColor="#2A2210" />
             </radialGradient>
 
-            {/* Iris detail pattern */}
+            {/* Iris detail pattern — collarette ring and crypts */}
             <radialGradient id="irisDetail" cx="0.5" cy="0.5">
               <stop offset="0%" stopColor="transparent" />
-              <stop offset="40%" stopColor="transparent" />
-              <stop offset="41%" stopColor="rgba(201, 168, 76, 0.15)" />
+              <stop offset="38%" stopColor="transparent" />
+              <stop offset="39%" stopColor="rgba(201, 168, 76, 0.2)" />
+              <stop offset="41%" stopColor="rgba(201, 168, 76, 0.08)" />
               <stop offset="42%" stopColor="transparent" />
+              <stop offset="58%" stopColor="transparent" />
+              <stop offset="59%" stopColor="rgba(201, 168, 76, 0.12)" />
+              <stop offset="60%" stopColor="transparent" />
               <stop offset="70%" stopColor="transparent" />
               <stop offset="71%" stopColor="rgba(201, 168, 76, 0.1)" />
               <stop offset="72%" stopColor="transparent" />
               <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+
+            {/* Sclera gradient — slight warmth near iris, darker at edges */}
+            <radialGradient id="scleraGradient" cx="0.5" cy="0.5">
+              <stop offset="0%" stopColor="#121210" />
+              <stop offset="40%" stopColor="#0c0c0b" />
+              <stop offset="75%" stopColor="#0a0a09" />
+              <stop offset="100%" stopColor="#060606" />
+            </radialGradient>
+
+            {/* Pupil gradient — not flat black, has depth */}
+            <radialGradient id="pupilGradient" cx="0.45" cy="0.42">
+              <stop offset="0%" stopColor="#050505" />
+              <stop offset="60%" stopColor="#020202" />
+              <stop offset="100%" stopColor="#000000" />
             </radialGradient>
 
             {/* Glow filter */}
@@ -283,17 +387,48 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+
+            {/* Soft glow for reveal glint */}
+            <filter id="glintGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="1.5" result="glow" />
+              <feMerge>
+                <feMergeNode in="glow" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
-          {/* Background - the dark "white" of the eye */}
+          {/* Background sclera — subtle gradient, not flat */}
           <ellipse
             cx="80" cy="80" rx="70" ry="58"
-            fill="#080808"
+            fill="url(#scleraGradient)"
             className="eye-sclera"
           />
 
+          {/* Sclera vein details — faint blood vessel hints */}
+          <g className="sclera-veins" opacity="0">
+            {/* Left side veins */}
+            <path d="M 22,72 Q 35,70 45,74 Q 50,76 54,78" fill="none" stroke="rgba(120,40,40,0.15)" strokeWidth="0.4" />
+            <path d="M 18,82 Q 30,80 42,81 Q 48,82 53,80" fill="none" stroke="rgba(120,40,40,0.12)" strokeWidth="0.3" />
+            <path d="M 25,90 Q 38,88 48,85" fill="none" stroke="rgba(120,40,40,0.1)" strokeWidth="0.3" />
+            {/* Right side veins */}
+            <path d="M 138,72 Q 125,70 115,74 Q 110,76 106,78" fill="none" stroke="rgba(120,40,40,0.15)" strokeWidth="0.4" />
+            <path d="M 142,82 Q 130,80 118,81 Q 112,82 107,80" fill="none" stroke="rgba(120,40,40,0.12)" strokeWidth="0.3" />
+            <path d="M 135,90 Q 122,88 112,85" fill="none" stroke="rgba(120,40,40,0.1)" strokeWidth="0.3" />
+          </g>
+
           {/* Iris group */}
           <g className={`iris-group ${isGazing ? 'iris-group--gazing' : ''} ${isRevealing ? 'iris-group--revealing' : ''} ${isBlinkActive ? 'iris-group--blink' : ''}`}>
+
+            {/* Limbal ring — dark border around iris (anatomical detail) */}
+            <circle
+              cx="80" cy="80" r="27"
+              fill="none"
+              stroke="rgba(20, 16, 8, 0.8)"
+              strokeWidth="1.5"
+              className="limbal-ring"
+            />
+
             {/* Outer iris glow */}
             <circle
               cx="80" cy="80" r="28"
@@ -310,44 +445,97 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
               className="iris-main"
             />
 
-            {/* Iris texture rings */}
+            {/* Iris texture rings (collarette + crypts) */}
             <circle
               cx="80" cy="80" r="26"
               fill="url(#irisDetail)"
               className="iris-texture"
             />
 
-            {/* Iris fiber lines */}
-            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => (
-              <line
-                key={angle}
-                x1={80 + Math.cos(angle * Math.PI / 180) * 12}
-                y1={80 + Math.sin(angle * Math.PI / 180) * 12}
-                x2={80 + Math.cos(angle * Math.PI / 180) * 25}
-                y2={80 + Math.sin(angle * Math.PI / 180) * 25}
-                stroke="rgba(201, 168, 76, 0.08)"
-                strokeWidth="0.5"
-              />
-            ))}
+            {/* Iris fiber lines — organic, non-uniform */}
+            {IRIS_FIBERS.map((fiber, i) => {
+              const rad = fiber.angle * Math.PI / 180;
+              const innerR = 12;
+              const outerR = 25 * fiber.length;
+              return (
+                <line
+                  key={`f-${i}`}
+                  x1={80 + Math.cos(rad) * innerR}
+                  y1={80 + Math.sin(rad) * innerR}
+                  x2={80 + Math.cos(rad) * outerR}
+                  y2={80 + Math.sin(rad) * outerR}
+                  stroke={`rgba(201, 168, 76, ${fiber.opacity})`}
+                  strokeWidth="0.5"
+                  className="iris-fiber"
+                />
+              );
+            })}
 
-            {/* Pupil */}
+            {/* Inner fibers — shorter, denser, closer to pupil */}
+            {IRIS_FIBERS_INNER.map((fiber, i) => {
+              const rad = fiber.angle * Math.PI / 180;
+              return (
+                <line
+                  key={`fi-${i}`}
+                  x1={80 + Math.cos(rad) * 8}
+                  y1={80 + Math.sin(rad) * 8}
+                  x2={80 + Math.cos(rad) * 15}
+                  y2={80 + Math.sin(rad) * 15}
+                  stroke={`rgba(201, 168, 76, ${fiber.opacity})`}
+                  strokeWidth="0.4"
+                  className="iris-fiber-inner"
+                />
+              );
+            })}
+
+            {/* Iris collarette — the visible ring between pupil zone and ciliary zone */}
             <circle
-              cx="80" cy="80" r="11"
-              fill="#000"
-              className={`eye-pupil ${isGazing ? 'eye-pupil--gazing' : ''}`}
+              cx="80" cy="80" r="17"
+              fill="none"
+              stroke="rgba(201, 168, 76, 0.06)"
+              strokeWidth="0.8"
+              className="iris-collarette"
             />
 
-            {/* Pupil depth ring */}
+            {/* Pupil — animated radius for constriction/dilation */}
             <circle
-              cx="80" cy="80" r="11"
+              cx="80" cy="80"
+              r={getPupilRadius()}
+              fill="url(#pupilGradient)"
+              className={`eye-pupil ${isGazing ? 'eye-pupil--gazing' : ''} ${pupilClass}`}
+            />
+
+            {/* Pupil depth ring — follows pupil size */}
+            <circle
+              cx="80" cy="80"
+              r={getPupilRadius()}
               fill="none"
-              stroke="rgba(42, 34, 16, 0.6)"
-              strokeWidth="1.5"
+              stroke="rgba(42, 34, 16, 0.5)"
+              strokeWidth="1.2"
+              className="pupil-depth-ring"
+            />
+
+            {/* Inner pupil edge — subtle brown ring inside pupil border */}
+            <circle
+              cx="80" cy="80"
+              r={getPupilRadius() - 0.8}
+              fill="none"
+              stroke="rgba(80, 60, 20, 0.2)"
+              strokeWidth="0.6"
+              className="pupil-inner-edge"
             />
 
             {/* Light reflections */}
-            <circle cx="87" cy="73" r="3" fill="rgba(255,255,255,0.55)" className="eye-glint-main" />
+            <circle
+              cx="87" cy="73" r="3"
+              fill="rgba(255,255,255,0.55)"
+              className="eye-glint-main"
+              filter={isRevealing ? 'url(#glintGlow)' : undefined}
+            />
             <circle cx="74" cy="86" r="1.5" fill="rgba(255,255,255,0.2)" className="eye-glint-secondary" />
+
+            {/* Tertiary micro-glint — very subtle, adds life */}
+            <circle cx="83" cy="85" r="0.8" fill="rgba(255,255,255,0.08)" className="eye-glint-tertiary" />
           </g>
 
           {/* Top eyelid */}
@@ -364,6 +552,18 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
             fill="#000"
           />
 
+          {/* Eyelid crease line — subtle fold above top lid */}
+          <path
+            className="lid-crease"
+            d={isOpen || isOpening
+              ? "M 8,80 Q 40,10 80,4 Q 120,10 152,80"
+              : "M 8,80 Q 40,76 80,75 Q 120,76 152,80"
+            }
+            fill="none"
+            stroke="rgba(201, 168, 76, 0.06)"
+            strokeWidth="0.5"
+          />
+
           {/* Eyelid edge lines (lash lines) */}
           <path
             className="lash-line lash-line--top"
@@ -378,6 +578,15 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
             fill="none"
             stroke="rgba(201, 168, 76, 0.15)"
             strokeWidth="0.5"
+          />
+
+          {/* Waterline — the wet edge inside the lower lid */}
+          <path
+            className="waterline"
+            d={getBottomLashPath()}
+            fill="none"
+            stroke="rgba(201, 168, 76, 0.04)"
+            strokeWidth="1.5"
           />
         </svg>
       </div>

@@ -12,6 +12,19 @@
   scrollbar-color: #1a1a1a transparent;
 }
 
+/* Subtle atmospheric warmth on dashboard */
+.dashboard-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 50% 30% at 50% 20%,
+    rgba(201, 168, 76, 0.02) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
 .dashboard-container {
   max-width: 420px;
   margin: 0 auto;
