@@ -101,10 +101,10 @@ const PLANET_CATEGORY_INFLUENCE: Record<Planet, QuestionCategory[]> = {
 const ASPECT_IMPACTS: Record<AspectType, { score: number; nature: 'positive' | 'negative' | 'neutral' }> = {
   conjunction: { score: 0, nature: 'neutral' }, // Can be positive or negative depending on planets
   trine: { score: 2, nature: 'positive' },
-  sextile: { score: 1, nature: 'positive' },
-  square: { score: -2, nature: 'negative' },       // Grinding friction — hardest aspect
-  opposition: { score: -1.5, nature: 'negative' },  // Clear polarity — tense but resolvable
-  quincunx: { score: -1, nature: 'negative' }
+  sextile: { score: 1.5, nature: 'positive' },   // Slightly buffed — opportunities should register
+  square: { score: -1.5, nature: 'negative' },    // Rebalanced: tension, not devastation
+  opposition: { score: -1, nature: 'negative' },  // Rebalanced: polarity, but manageable
+  quincunx: { score: -0.5, nature: 'negative' }   // Mild discomfort, not real penalty
 };
 
 /**
@@ -278,8 +278,8 @@ function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier
       if (sign === 'Pisces') {
         modifiers.push({
           planet: planet as Planet, sign,
-          categoryModifiers: { money: -2, love: 1 },
-          warnings: { money: 'Your Venus in Pisces makes you idealistic about money - be extra cautious with financial risks' }
+          categoryModifiers: { money: -1, love: 1 },
+          warnings: { money: 'Your Venus in Pisces has a dreamy relationship with money — stay grounded' }
         });
       } else if (sign === 'Taurus' || sign === 'Capricorn') {
         modifiers.push({
@@ -398,7 +398,7 @@ function generateCategoryScore(
   moonPhase: { phase: number; phaseName: string },
   natalModifiers?: NatalModifier[]
 ): CategoryScore {
-  let score = 5; // Start neutral
+  let score = 5.5; // Slightly warm baseline — life isn't usually terrible
   const reasoning: string[] = [];
   const goodFor: string[] = [];
   const badFor: string[] = [];
@@ -419,7 +419,10 @@ function generateCategoryScore(
     }
   }
 
-  // Find transits affecting this category
+  // Find transits affecting this category — with diminishing returns
+  let positiveHits = 0;
+  let negativeHits = 0;
+
   for (const transit of transits) {
     const transitInfluences = PLANET_CATEGORY_INFLUENCE[transit.transitPlanet] || [];
     const natalInfluences = PLANET_CATEGORY_INFLUENCE[transit.natalPlanet] || [];
@@ -434,8 +437,22 @@ function generateCategoryScore(
       }
 
       // Tighter orbs have stronger effects (clamped to prevent negative)
-      const orbMultiplier = transit.isExact ? 1.5 : Math.max(0, 1 - transit.orb / 8);
-      score += impact * orbMultiplier;
+      const orbMultiplier = transit.isExact ? 1.3 : Math.max(0, 1 - transit.orb / 8);
+
+      // Diminishing returns: each successive hit in the same direction has less impact
+      // 1st hit = 100%, 2nd = 70%, 3rd = 50%, 4th+ = 35%
+      let diminisher: number;
+      if (impact < 0) {
+        negativeHits++;
+        diminisher = negativeHits === 1 ? 1.0 : negativeHits === 2 ? 0.7 : negativeHits === 3 ? 0.5 : 0.35;
+      } else if (impact > 0) {
+        positiveHits++;
+        diminisher = positiveHits === 1 ? 1.0 : positiveHits === 2 ? 0.7 : positiveHits === 3 ? 0.5 : 0.35;
+      } else {
+        diminisher = 1.0;
+      }
+
+      score += impact * orbMultiplier * diminisher;
 
       const interpretation = interpretTransit(transit);
       reasoning.push(`${interpretation} (orb: ${transit.orb.toFixed(1)}°)`);

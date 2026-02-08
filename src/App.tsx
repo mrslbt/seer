@@ -169,7 +169,7 @@ function App() {
       category = scoring.category;
     }
 
-    const response = generateOracleResponse(verdict, category);
+    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion);
     setOracleText(response);
     setOracleVerdict(verdict);
     setOracleCategory(category);
