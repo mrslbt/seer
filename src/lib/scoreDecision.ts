@@ -838,11 +838,27 @@ function scoreToVerdict(score: number): Verdict {
 export function scoreDecision(
   question: string,
   context: AstroContext,
-  overrideCategory?: QuestionCategory,
+  hintCategory?: QuestionCategory,
 ): ScoringResult {
   const classified = classifyQuestionWithConfidence(question);
-  const category = overrideCategory ?? classified.category;
-  const confidence = overrideCategory ? 1.0 : classified.confidence;
+
+  // Smart category resolution: hint guides ambiguous questions,
+  // but confident keyword matches always win
+  let category: QuestionCategory;
+  let confidence: number;
+
+  if (hintCategory) {
+    if (classified.confidence >= 0.8 && classified.category !== hintCategory) {
+      category = classified.category;
+      confidence = classified.confidence;
+    } else {
+      category = hintCategory;
+      confidence = Math.max(classified.confidence, 0.8);
+    }
+  } else {
+    category = classified.category;
+    confidence = classified.confidence;
+  }
   const isNegativeQuestion = hasNegativeIntent(question);
   const actionPolarity = detectActionPolarity(question);
   const factors: ScoringFactor[] = [];

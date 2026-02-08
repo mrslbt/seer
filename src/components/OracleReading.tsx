@@ -32,7 +32,7 @@ export function OracleReading({
   const [showArticle, setShowArticle] = useState(false);
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
-  const [followUpRound, setFollowUpRound] = useState(0); // 0 = initial, 1 = first follow-up, 2 = max
+  const [followUpRound, setFollowUpRound] = useState(0);
   const [contextualQuestions, setContextualQuestions] = useState<FollowUpQuestion[]>([]);
   const [shareToast, setShareToast] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,13 +79,12 @@ export function OracleReading({
     setFollowUpType('contextual');
     setFollowUpRound(prev => prev + 1);
 
-    // Generate new questions for next round (if under max)
     if (followUpRound < 1) {
       const nextQuestions = generateFollowUpQuestions(verdict, category, dailyReport)
-        .filter(q => q.text !== question.text); // Don't repeat
+        .filter(q => q.text !== question.text);
       setContextualQuestions(nextQuestions.slice(0, 2));
     } else {
-      setContextualQuestions([]); // Max rounds reached
+      setContextualQuestions([]);
     }
   }, [verdict, category, dailyReport, followUpRound]);
 
@@ -102,34 +101,29 @@ export function OracleReading({
     canvas.width = w;
     canvas.height = h;
 
-    // Background
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, w, h);
 
-    // Subtle gold radial
     const grad = ctx.createRadialGradient(w / 2, h / 2 - 20, 0, w / 2, h / 2, 250);
     grad.addColorStop(0, 'rgba(201, 168, 76, 0.06)');
     grad.addColorStop(1, 'transparent');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    // Top label: "THE SEER"
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(201, 168, 76, 0.4)';
     ctx.font = '500 10px Inter, system-ui, sans-serif';
     ctx.letterSpacing = '4px';
     ctx.fillText('THE SEER', w / 2, 40);
 
-    // Verdict label
-    const verdictLabels: Record<Verdict, string> = {
+    const verdictLabelsCanvas: Record<Verdict, string> = {
       HARD_YES: 'YES', SOFT_YES: 'LEANING YES', NEUTRAL: 'UNCERTAIN',
       SOFT_NO: 'LEANING NO', HARD_NO: 'NO', UNCLEAR: 'UNCLEAR',
     };
     ctx.fillStyle = color;
     ctx.font = '500 11px Inter, system-ui, sans-serif';
-    ctx.fillText(verdictLabels[verdict], w / 2, 70);
+    ctx.fillText(verdictLabelsCanvas[verdict], w / 2, 70);
 
-    // Oracle text — word wrap
     ctx.fillStyle = color;
     ctx.font = 'italic 22px "Instrument Serif", Georgia, serif';
     const words = oracleText.split(' ');
@@ -153,12 +147,10 @@ export function OracleReading({
       ctx.fillText(lines[i], w / 2, startY + i * lineHeight);
     }
 
-    // Bottom credit
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.font = '9px Inter, system-ui, sans-serif';
     ctx.fillText('hiseer.vercel.app', w / 2, h - 24);
 
-    // Export
     try {
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, 'image/png')
@@ -167,7 +159,6 @@ export function OracleReading({
         const file = new File([blob], 'seer-reading.png', { type: 'image/png' });
         await navigator.share({ files: [file] });
       } else if (blob) {
-        // Fallback: copy to clipboard
         await navigator.clipboard.write([
           new ClipboardItem({ 'image/png': blob })
         ]);
@@ -179,11 +170,11 @@ export function OracleReading({
     }
   }, [oracleText, verdict, color]);
 
+  // ---- Article view ----
   if (showArticle && article) {
     return (
       <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label={article.title}>
         <div className="oracle-reading oracle-reading--article" onClick={(e) => e.stopPropagation()}>
-          {/* Article header */}
           <div className="article-header">
             <h2 className="article-title" style={{ color }}>{article.title}</h2>
             <div className="article-score">
@@ -192,8 +183,6 @@ export function OracleReading({
               <span className="score-label">{getScoreLabel(article.score)}</span>
             </div>
           </div>
-
-          {/* Article sections */}
           <div className="article-body">
             {article.sections.map((section, i) => (
               <div key={i} className="article-section">
@@ -202,8 +191,6 @@ export function OracleReading({
               </div>
             ))}
           </div>
-
-          {/* Back button */}
           <div className="oracle-actions">
             <button className="oracle-btn oracle-btn--secondary" onClick={() => setShowArticle(false)}>
               Back
@@ -217,6 +204,7 @@ export function OracleReading({
     );
   }
 
+  // ---- Reading view ----
   const verdictLabels: Record<Verdict, string> = {
     HARD_YES: 'Yes',
     SOFT_YES: 'Leaning Yes',
@@ -226,21 +214,34 @@ export function OracleReading({
     UNCLEAR: 'Unclear',
   };
 
+  const hasFollowUps = followUpRound < 2 && (
+    contextualQuestions.length > 0 || followUpType !== 'when_change'
+  );
+
   return (
     <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading">
       <div className="oracle-reading" onClick={(e) => e.stopPropagation()}>
+
         {/* Verdict label */}
         <div className="verdict-label" style={{ color }}>
           {verdictLabels[verdict]}
         </div>
 
+        {/* Oracle prose */}
         <div className="oracle-text" style={{ color }}>
           <span className="oracle-quote oracle-quote--open">{'\u201C'}</span>
           {oracleText}
           <span className="oracle-quote oracle-quote--close">{'\u201D'}</span>
         </div>
 
-        {/* Follow-up response */}
+        {/* Inline "why?" link — subtle, not a primary action */}
+        {article && !followUpText && (
+          <button className="oracle-why-link" onClick={() => setShowArticle(true)}>
+            Why does the oracle say this?
+          </button>
+        )}
+
+        {/* Follow-up response area */}
         {followUpText && (
           <div className="follow-up-response" style={{ color }}>
             <div className="follow-up-label">
@@ -250,53 +251,52 @@ export function OracleReading({
           </div>
         )}
 
-        {/* Primary actions */}
-        <div className="oracle-actions">
-          {article && (
-            <button className="oracle-btn oracle-btn--why" onClick={() => setShowArticle(true)}>
-              Why?
-            </button>
-          )}
-          <button className="oracle-btn oracle-btn--again" onClick={onAskAgain}>
-            Ask Again
-          </button>
-        </div>
-
-        {/* Follow-up actions — contextual questions + fixed options */}
-        {followUpRound < 2 && (
+        {/* ── Follow-up section: vertical stack of questions ── */}
+        {hasFollowUps && (
           <div className="oracle-follow-ups">
-            {/* Contextual questions (transit-aware) */}
+            {/* Contextual transit-aware questions */}
             {contextualQuestions.map((q, i) => (
               <button
                 key={i}
-                className="follow-up-btn follow-up-btn--contextual"
+                className="follow-up-question"
                 onClick={() => handleContextualQuestion(q)}
               >
-                {q.text}
+                <span className="follow-up-question-icon">{'\u203A'}</span>
+                <span className="follow-up-question-text">{q.text}</span>
               </button>
             ))}
 
-            {/* Fixed: When Will This Change? (always available) */}
+            {/* "When Will This Change?" as a question row */}
             {followUpType !== 'when_change' && (
               <button
-                className="follow-up-btn"
+                className="follow-up-question follow-up-question--timing"
                 onClick={() => handleFollowUp('when_change')}
               >
-                When Will This Change?
-              </button>
-            )}
-
-            {/* Share button (first round only) */}
-            {followUpRound === 0 && (
-              <button
-                className="follow-up-btn follow-up-btn--share"
-                onClick={handleShare}
-              >
-                Share
+                <span className="follow-up-question-icon">{'\u29D7'}</span>
+                <span className="follow-up-question-text">When will this change?</span>
               </button>
             )}
           </div>
         )}
+
+        {/* ── Bottom bar: Ask Again + Share icon ── */}
+        <div className="oracle-bottom-bar">
+          <button className="oracle-ask-again" onClick={onAskAgain}>
+            Ask Again
+          </button>
+
+          <button
+            className="oracle-share-icon"
+            onClick={handleShare}
+            aria-label="Share reading"
+          >
+            {/* Simple share arrow */}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 10V2M8 2L5 5M8 2L11 5" />
+              <path d="M3 9V13H13V9" />
+            </svg>
+          </button>
+        </div>
 
         {/* Share toast */}
         {shareToast && (

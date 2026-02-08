@@ -1,13 +1,41 @@
 /* ── Category Selector ─────────────────────────── */
+/* Horizontal scrollable strip with edge-fade masks  */
+
+.category-selector-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto 16px;
+  animation: fadeIn 0.4s ease 0.1s both;
+  /* Edge fade masks — hint that you can scroll */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
 
 .category-selector {
   display: flex;
-  gap: 4px;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 360px;
-  margin: 0 auto 12px;
-  animation: fadeIn 0.4s ease 0.1s both;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 20px;
+}
+
+.category-selector::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Glyph Button ─────────────────────────────── */
@@ -15,56 +43,59 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 10px;
-  min-width: 44px;
+  gap: 3px;
+  padding: 8px 12px;
+  min-width: 52px;
+  flex-shrink: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-full, 999px);
+  border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.3s ease,
-              background 0.3s ease,
-              transform 0.15s ease;
+  transition: border-color 0.25s ease,
+              background 0.25s ease,
+              transform 0.12s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 .glyph-icon {
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1;
-  opacity: 0.35;
-  transition: opacity 0.3s ease, color 0.3s ease;
+  opacity: 0.3;
+  transition: opacity 0.25s ease, color 0.25s ease, transform 0.25s ease;
   color: var(--accent, #C9A84C);
 }
 
 .glyph-label {
   font-family: var(--font);
   font-size: 0.5625rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #555;
-  transition: color 0.3s ease;
+  color: rgba(255, 255, 255, 0.25);
+  transition: color 0.25s ease;
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* ── Hover ─────────────────────────────────────── */
 .selector-glyph:hover .glyph-icon {
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .selector-glyph:hover .glyph-label {
-  color: #777;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ── Active (selected) ─────────────────────────── */
 .selector-glyph--active {
-  border-color: rgba(201, 168, 76, 0.25);
-  background: rgba(201, 168, 76, 0.04);
+  border-color: rgba(201, 168, 76, 0.2);
+  background: rgba(201, 168, 76, 0.05);
 }
 
 .selector-glyph--active .glyph-icon {
   opacity: 1;
   color: var(--accent, #C9A84C);
+  transform: scale(1.1);
 }
 
 .selector-glyph--active .glyph-label {
@@ -73,25 +104,21 @@
 
 /* ── Press ─────────────────────────────────────── */
 .selector-glyph:active {
-  transform: scale(0.92);
+  transform: scale(0.93);
 }
 
 /* ── Mobile ────────────────────────────────────── */
 @media (max-width: 480px) {
-  .category-selector {
-    gap: 2px;
+  .category-selector-wrap {
+    max-width: 100%;
   }
 
   .selector-glyph {
-    padding: 5px 8px;
-    min-width: 40px;
+    padding: 7px 10px;
+    min-width: 48px;
   }
 
   .glyph-icon {
-    font-size: 0.9375rem;
-  }
-
-  .glyph-label {
-    font-size: 0.5rem;
+    font-size: 1rem;
   }
 }

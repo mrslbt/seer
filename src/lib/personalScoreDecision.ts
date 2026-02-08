@@ -75,11 +75,31 @@ function flipVerdict(verdict: Verdict): Verdict {
 export function scorePersonalDecision(
   question: string,
   report: PersonalDailyReport,
-  overrideCategory?: QuestionCategory,
+  hintCategory?: QuestionCategory,
 ): ScoringResult {
   const classified = classifyQuestionWithConfidence(question);
-  const questionCategory = overrideCategory ?? classified.category;
-  const confidence = overrideCategory ? 1.0 : classified.confidence;
+
+  // Smart category resolution:
+  // - If the classifier is confident (matched keywords), trust it over the hint
+  // - If the classifier is uncertain (no keyword matches), use the hint
+  // - This prevents "money glyph + health question" from scoring as money
+  let questionCategory: QuestionCategory;
+  let confidence: number;
+
+  if (hintCategory) {
+    if (classified.confidence >= 0.8 && classified.category !== hintCategory) {
+      // Classifier is confident AND disagrees with hint → trust classifier
+      questionCategory = classified.category;
+      confidence = classified.confidence;
+    } else {
+      // Either classifier agrees, or classifier is uncertain → use hint
+      questionCategory = hintCategory;
+      confidence = Math.max(classified.confidence, 0.8);
+    }
+  } else {
+    questionCategory = classified.category;
+    confidence = classified.confidence;
+  }
   const isNegativeQuestion = hasNegativeIntent(question);
   const actionPolarity = detectActionPolarity(question);
   const factors: ScoringFactor[] = [];

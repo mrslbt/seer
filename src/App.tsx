@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { BirthData, AstroContext, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
-import { scoreDecision } from './lib/scoreDecision';
+import { scoreDecision, classifyQuestionWithConfidence } from './lib/scoreDecision';
 import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
 import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
@@ -19,13 +19,13 @@ import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
-import { CategorySelector } from './components/CategorySelector';
+import { CategoryConfirmation } from './components/CategoryConfirmation';
 import { NatalChartView } from './components/NatalChartView';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
 
-type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
+type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'confirming_category' | 'gazing' | 'revealing';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle');
@@ -44,6 +44,7 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+  const [detectedCategory, setDetectedCategory] = useState<QuestionCategory | null>(null);
 
   const {
     isInitialized: cosmosReady,
@@ -140,7 +141,7 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
-  // Submit question
+  // Submit question — detect category, then confirm
   const handleSubmitQuestion = useCallback(() => {
     const validation = validateQuestionInput(questionText);
     if (!validation.valid) {
@@ -150,9 +151,34 @@ function App() {
 
     setQuestionError(null);
     playClick();
-    setSubmittedQuestion(questionText.trim());
-    setAppState('gazing');
+
+    const trimmed = questionText.trim();
+    setSubmittedQuestion(trimmed);
+
+    // Auto-detect category from question text
+    const { category } = classifyQuestionWithConfidence(trimmed);
+    setDetectedCategory(category);
+    setSelectedCategory(category);
+
+    setAppState('confirming_category');
   }, [questionText]);
+
+  // Confirm category and proceed to gazing
+  const handleConfirmCategory = useCallback(() => {
+    setAppState('gazing');
+  }, []);
+
+  // User corrected the detected category
+  const handleCategoryCorrection = useCallback((cat: QuestionCategory) => {
+    setSelectedCategory(cat);
+    setDetectedCategory(cat);
+  }, []);
+
+  // User wants to edit their question
+  const handleEditQuestion = useCallback(() => {
+    setAppState('awaiting_question');
+    setDetectedCategory(null);
+  }, []);
 
   // Eye finished gazing - generate reading
   const handleGazeComplete = useCallback(() => {
@@ -209,6 +235,7 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
+    setDetectedCategory(null);
   }, []);
 
   // Ask again (go back to awaiting question with eye open)
@@ -219,15 +246,18 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
+    setDetectedCategory(null);
     setAppState('awaiting_question');
   }, []);
 
-  // Select a pre-made suggestion
+  // Select a pre-made suggestion (skip confirmation — category is implicit)
   const handleSuggestedSelect = useCallback((question: string) => {
     playClick();
     setQuestionText(question);
     setQuestionError(null);
     setSubmittedQuestion(question);
+    const { category } = classifyQuestionWithConfidence(question);
+    setSelectedCategory(category);
     setAppState('gazing');
   }, []);
 
@@ -251,6 +281,7 @@ function App() {
       case 'idle': return 'closed';
       case 'summoning': return 'opening';
       case 'awaiting_question': return 'open';
+      case 'confirming_category': return 'open';
       case 'gazing': return 'gazing';
       case 'revealing': return 'open';
       default: return 'closed';
@@ -334,7 +365,7 @@ function App() {
         {hasBirthData && (
           <>
             {/* Branding */}
-            {(appState === 'idle' || appState === 'awaiting_question') && (
+            {(appState === 'idle' || appState === 'awaiting_question' || appState === 'confirming_category') && (
               <div className="seer-brand">
                 <span className="brand-the">The</span>
                 <span className="brand-seer">Seer</span>
@@ -379,7 +410,7 @@ function App() {
             )}
 
             {/* Submitted question while gazing */}
-            {(appState === 'gazing') && (
+            {appState === 'gazing' && (
               <p className="current-question">"{submittedQuestion}"</p>
             )}
 
@@ -393,10 +424,6 @@ function App() {
             {/* Question input - only when eye is open */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
-                <CategorySelector
-                  selected={selectedCategory}
-                  onSelect={setSelectedCategory}
-                />
                 <QuestionInput
                   value={questionText}
                   onChange={handleQuestionChange}
@@ -405,6 +432,19 @@ function App() {
                   error={questionError}
                 />
                 <SuggestedQuestions onSelect={handleSuggestedSelect} />
+              </div>
+            )}
+
+            {/* Category confirmation — "the oracle senses…" */}
+            {appState === 'confirming_category' && detectedCategory && (
+              <div className="input-container">
+                <CategoryConfirmation
+                  question={submittedQuestion}
+                  detectedCategory={detectedCategory}
+                  onConfirm={handleConfirmCategory}
+                  onCorrect={handleCategoryCorrection}
+                  onEdit={handleEditQuestion}
+                />
               </div>
             )}
           </>

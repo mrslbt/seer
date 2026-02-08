@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════
+   Category Confirmation — "The oracle senses…"
+
+   Post-question moment where the detected category
+   is revealed before gazing begins. Mystical, not
+   form-like. Auto-proceeds in 2 seconds.
+   ═══════════════════════════════════════════════════ */
+
+.category-confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  animation: confirmAppear 0.4s ease;
+}
+
+/* ── The submitted question (tap to edit) ────────── */
+.confirmed-question {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-style: italic;
+  text-align: center;
+  max-width: 300px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.3s ease;
+}
+
+.confirmed-question:hover {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Sensed category area ────────────────────────── */
+.sensed-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: sensedAppear 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both;
+}
+
+.sensed-label {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.04em;
+}
+
+/* ── The tappable tag (glyph + name) ─────────────── */
+.sensed-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 999px;
+  background: rgba(201, 168, 76, 0.03);
+  cursor: pointer;
+  transition: border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
+}
+
+.sensed-tag:hover {
+  border-color: rgba(201, 168, 76, 0.4);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+.sensed-tag:active {
+  transform: scale(0.97);
+}
+
+.sensed-glyph {
+  font-size: 1.125rem;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.sensed-name {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+/* ── "tap to change" hint ────────────────────────── */
+.sensed-hint {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ── Picker wrapper (when correcting) ────────────── */
+.sensed-picker-wrap {
+  margin-top: 4px;
+  animation: pickerSlideIn 0.3s ease;
+}
+
+/* ── "Gaze" proceed button ───────────────────────── */
+.proceed-btn {
+  padding: 10px 48px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.4);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 0.3s ease,
+              border-color 0.3s ease;
+  animation: sensedAppear 0.4s ease 0.4s both;
+}
+
+.proceed-btn:hover {
+  color: rgba(201, 168, 76, 0.7);
+  border-color: rgba(201, 168, 76, 0.25);
+}
+
+.proceed-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Auto-proceed progress bar ───────────────────── */
+.auto-proceed-bar {
+  width: 60px;
+  height: 1px;
+  background: rgba(201, 168, 76, 0.06);
+  border-radius: 1px;
+  overflow: hidden;
+  animation: sensedAppear 0.3s ease 0.5s both;
+}
+
+.auto-proceed-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  opacity: 0.3;
+  transform-origin: left;
+  animation: proceedFill 2s linear forwards;
+}
+
+/* ═══════════════════════════════════════════════════
+   Keyframes
+   ═══════════════════════════════════════════════════ */
+
+@keyframes confirmAppear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sensedAppear {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes pickerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes proceedFill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ── Mobile ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .confirmed-question {
+    font-size: 0.875rem;
+    max-width: 260px;
+  }
+
+  .sensed-tag {
+    padding: 8px 20px;
+  }
+
+  .proceed-btn {
+    padding: 8px 36px;
+  }
+}
