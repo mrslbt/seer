@@ -1,0 +1,128 @@
+/* Profile Manager */
+
+.profile-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  text-align: left;
+}
+
+.profile-item:hover {
+  border-color: rgba(201, 168, 76, 0.15);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.profile-item--active {
+  border-color: rgba(201, 168, 76, 0.2);
+  color: var(--accent);
+}
+
+.profile-item--active:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+.profile-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.profile-dot--active {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
+}
+
+.profile-name {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.profile-item-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-sign {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  opacity: 0.4;
+}
+
+.profile-delete {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.profile-delete:hover {
+  color: rgba(255, 100, 100, 0.6);
+  background: rgba(255, 100, 100, 0.08);
+}
+
+/* Add Profile button */
+.profile-add-btn {
+  padding: 12px 20px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.5);
+  background: transparent;
+  border: 1px dashed rgba(201, 168, 76, 0.15);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-add-btn:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+  color: var(--accent);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.profile-add-btn:active {
+  transform: scale(0.98);
+}

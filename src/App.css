@@ -368,6 +368,31 @@
   }
 }
 
+/* ---- Profile Indicator ---- */
+.profile-indicator {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: rgba(201, 168, 76, 0.4);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: 20px;
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.profile-indicator:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+  color: rgba(201, 168, 76, 0.6);
+}
+
+.profile-indicator:active {
+  transform: scale(0.97);
+}
+
 /* ---- Cosmic Hint (idle screen category energy) ---- */
 .cosmic-hint {
   font-family: var(--font);

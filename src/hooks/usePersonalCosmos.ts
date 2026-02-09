@@ -5,7 +5,7 @@
  * - Initializes Swiss Ephemeris
  * - Calculates natal chart from birth data
  * - Generates daily personal reports
- * - Provides personalized question scoring
+ * - Supports multiple saved profiles with switching
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,7 +13,10 @@ import type { BirthData as OldBirthData } from '../types/astrology';
 import {
   BirthData,
   UserProfile,
-  USER_PROFILE_STORAGE_KEY
+  USER_PROFILE_STORAGE_KEY,
+  PROFILES_STORAGE_KEY,
+  ACTIVE_PROFILE_STORAGE_KEY,
+  MAX_PROFILES,
 } from '../types/userProfile';
 import {
   initEphemeris,
@@ -32,9 +35,12 @@ interface UsePersonalCosmosReturn {
   error: string | null;
   userProfile: UserProfile | null;
   dailyReport: PersonalDailyReport | null;
+  allProfiles: UserProfile[];
 
   // Actions
-  setUserFromOldBirthData: (oldData: OldBirthData) => Promise<void>;
+  setUserFromOldBirthData: (oldData: OldBirthData, name?: string) => Promise<void>;
+  switchProfile: (profileId: string) => void;
+  deleteProfile: (profileId: string) => void;
   refreshDailyReport: () => void;
   clearProfile: () => void;
 }
@@ -109,13 +115,13 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
 /**
  * Convert old BirthData format to new format
  */
-function convertOldBirthData(old: OldBirthData): BirthData {
+function convertOldBirthData(old: OldBirthData, name?: string): BirthData {
   const tzOffset = typeof old.timezone === 'string'
     ? (TIMEZONE_OFFSETS[old.timezone] ?? 0)
     : (old.timezone as unknown as number) ?? 0;
 
   return {
-    name: 'Cosmic Traveler',
+    name: name || 'Cosmic Traveler',
     birthDate: old.date,
     birthTime: old.time,
     birthLocation: {
@@ -128,10 +134,71 @@ function convertOldBirthData(old: OldBirthData): BirthData {
   };
 }
 
+/**
+ * Restore Date objects from JSON-parsed profile
+ */
+function restoreProfileDates(profile: UserProfile): UserProfile {
+  profile.birthData.birthDate = new Date(profile.birthData.birthDate);
+  profile.createdAt = new Date(profile.createdAt);
+  profile.updatedAt = new Date(profile.updatedAt);
+  return profile;
+}
+
+/**
+ * Save profiles array to localStorage
+ */
+function saveProfiles(profiles: UserProfile[]): void {
+  localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles));
+}
+
+/**
+ * Save active profile ID to localStorage
+ */
+function saveActiveProfileId(id: string): void {
+  localStorage.setItem(ACTIVE_PROFILE_STORAGE_KEY, id);
+}
+
+/**
+ * Load profiles from localStorage, with migration from old single-profile format
+ */
+function loadProfiles(): { profiles: UserProfile[]; activeId: string | null } {
+  // Try new multi-profile format first
+  const savedProfiles = localStorage.getItem(PROFILES_STORAGE_KEY);
+  if (savedProfiles) {
+    try {
+      const profiles = (JSON.parse(savedProfiles) as UserProfile[]).map(restoreProfileDates);
+      const activeId = localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY);
+      return { profiles, activeId };
+    } catch { /* fall through to migration */ }
+  }
+
+  // Migration: try old single-profile format
+  const oldProfile = localStorage.getItem(USER_PROFILE_STORAGE_KEY);
+  if (oldProfile) {
+    try {
+      const profile = restoreProfileDates(JSON.parse(oldProfile) as UserProfile);
+      // Ensure profile has a name
+      if (!profile.birthData.name) {
+        profile.birthData.name = 'Cosmic Traveler';
+      }
+      // Save in new format
+      saveProfiles([profile]);
+      saveActiveProfileId(profile.id);
+      // Clean up old keys
+      localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+      localStorage.removeItem('seer_birthdata');
+      return { profiles: [profile], activeId: profile.id };
+    } catch { /* fall through */ }
+  }
+
+  return { profiles: [], activeId: null };
+}
+
 export function usePersonalCosmos(): UsePersonalCosmosReturn {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dailyReport, setDailyReport] = useState<PersonalDailyReport | null>(null);
 
@@ -148,32 +215,37 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
         await initEphemeris();
         setIsInitialized(true);
 
-        // Try to load saved profile
-        const saved = localStorage.getItem(USER_PROFILE_STORAGE_KEY);
-        if (saved) {
-          const profile = JSON.parse(saved) as UserProfile;
-          // Restore dates
-          profile.birthData.birthDate = new Date(profile.birthData.birthDate);
-          profile.createdAt = new Date(profile.createdAt);
-          profile.updatedAt = new Date(profile.updatedAt);
+        // Load saved profiles (with migration)
+        const { profiles, activeId } = loadProfiles();
 
-          // Migration: recalculate natal chart if houses are missing
-          if (!profile.natalChart.houses) {
-            try {
-              const freshChart = calculateNatalChart(profile.birthData);
-              profile.natalChart = freshChart;
-              profile.updatedAt = new Date();
-              localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
-              console.log('Migrated profile: added house data');
-            } catch (err) {
-              console.warn('House migration failed, continuing without houses:', err);
+        if (profiles.length > 0) {
+          // Migration: recalculate natal charts if houses are missing
+          let needsSave = false;
+          for (const profile of profiles) {
+            if (!profile.natalChart.houses) {
+              try {
+                const freshChart = calculateNatalChart(profile.birthData);
+                profile.natalChart = freshChart;
+                profile.updatedAt = new Date();
+                needsSave = true;
+              } catch (err) {
+                console.warn('House migration failed for', profile.birthData.name, err);
+              }
             }
           }
+          if (needsSave) {
+            saveProfiles(profiles);
+          }
 
-          setUserProfile(profile);
+          setAllProfiles(profiles);
+
+          // Find active profile
+          const active = profiles.find(p => p.id === activeId) || profiles[0];
+          setUserProfile(active);
+          saveActiveProfileId(active.id);
 
           // Generate today's report
-          const report = generatePersonalDailyReport(profile);
+          const report = generatePersonalDailyReport(active);
           setDailyReport(report);
         }
       } catch (err) {
@@ -186,14 +258,13 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
 
     init();
 
-    // Cleanup on unmount
     return () => {
       closeEphemeris();
     };
   }, []);
 
-  // Convert old birth data and create profile
-  const setUserFromOldBirthData = useCallback(async (oldData: OldBirthData) => {
+  // Convert old birth data, create profile, and add to profiles array
+  const setUserFromOldBirthData = useCallback(async (oldData: OldBirthData, name?: string) => {
     if (!isInitialized) {
       setError('Cosmic calculations not ready');
       return;
@@ -204,7 +275,7 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
       setError(null);
 
       // Convert to new format
-      const birthData = convertOldBirthData(oldData);
+      const birthData = convertOldBirthData(oldData, name);
 
       // Calculate natal chart
       const natalChart = calculateNatalChart(birthData);
@@ -218,8 +289,15 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
         updatedAt: new Date()
       };
 
-      // Save to localStorage
-      localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      // Add to profiles array (enforce max limit)
+      setAllProfiles(prev => {
+        const updated = [...prev, profile].slice(-MAX_PROFILES);
+        saveProfiles(updated);
+        return updated;
+      });
+
+      // Set as active
+      saveActiveProfileId(profile.id);
       setUserProfile(profile);
 
       // Generate daily report
@@ -234,7 +312,58 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
     }
   }, [isInitialized]);
 
-  // Refresh daily report (e.g., at midnight or on demand)
+  // Switch to a different profile
+  const switchProfile = useCallback((profileId: string) => {
+    const profile = allProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+
+    saveActiveProfileId(profileId);
+    setUserProfile(profile);
+
+    // Clear whisper cache for fresh generation
+    localStorage.removeItem(`seer_daily_whisper_${profileId}`);
+
+    // Generate daily report for new profile
+    try {
+      const report = generatePersonalDailyReport(profile);
+      setDailyReport(report);
+    } catch (err) {
+      console.error('Failed to generate daily report:', err);
+    }
+  }, [allProfiles]);
+
+  // Delete a profile
+  const deleteProfile = useCallback((profileId: string) => {
+    setAllProfiles(prev => {
+      const updated = prev.filter(p => p.id !== profileId);
+      saveProfiles(updated);
+
+      // If we deleted the active profile, switch to first remaining
+      if (userProfile?.id === profileId) {
+        if (updated.length > 0) {
+          const next = updated[0];
+          saveActiveProfileId(next.id);
+          setUserProfile(next);
+          try {
+            const report = generatePersonalDailyReport(next);
+            setDailyReport(report);
+          } catch { /* ignore */ }
+        } else {
+          // No profiles left — return to onboarding
+          localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
+          setUserProfile(null);
+          setDailyReport(null);
+        }
+      }
+
+      // Clean up whisper cache for deleted profile
+      localStorage.removeItem(`seer_daily_whisper_${profileId}`);
+
+      return updated;
+    });
+  }, [userProfile]);
+
+  // Refresh daily report
   const refreshDailyReport = useCallback(() => {
     if (!userProfile) return;
 
@@ -246,9 +375,11 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
     }
   }, [userProfile]);
 
-  // Clear profile
+  // Clear all profiles
   const clearProfile = useCallback(() => {
-    localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+    localStorage.removeItem(PROFILES_STORAGE_KEY);
+    localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
+    setAllProfiles([]);
     setUserProfile(null);
     setDailyReport(null);
   }, []);
@@ -259,7 +390,10 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
     error,
     userProfile,
     dailyReport,
+    allProfiles,
     setUserFromOldBirthData,
+    switchProfile,
+    deleteProfile,
     refreshDailyReport,
     clearProfile
   };

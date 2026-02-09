@@ -122,5 +122,8 @@ export function getZodiacFromLongitude(longitude: number): { sign: ZodiacSign; d
   return { sign: signs[signIndex], degree };
 }
 
-// Local storage key for user profile
-export const USER_PROFILE_STORAGE_KEY = 'cosmic8ball_user_profile';
+// Local storage keys
+export const USER_PROFILE_STORAGE_KEY = 'cosmic8ball_user_profile'; // Legacy single-profile key
+export const PROFILES_STORAGE_KEY = 'seer_profiles';
+export const ACTIVE_PROFILE_STORAGE_KEY = 'seer_active_profile_id';
+export const MAX_PROFILES = 10;

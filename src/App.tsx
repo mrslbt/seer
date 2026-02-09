@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import type { BirthData, AstroContext, Verdict, QuestionCategory } from './types/astrology';
+import { useState, useCallback, useMemo } from 'react';
+import type { BirthData, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
 import { scoreDecision, classifyQuestionWithConfidence } from './lib/scoreDecision';
 import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
@@ -20,16 +20,16 @@ import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
 import { NatalChartView } from './components/NatalChartView';
+import { ProfileManager } from './components/ProfileManager';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
 
 type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
+type SettingsView = 'hidden' | 'profiles' | 'add';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle');
-  const [birthData, setBirthData] = useState<BirthData | null>(null);
-  const [astroContext, setAstroContext] = useState<AstroContext | null>(null);
   const [questionText, setQuestionText] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [submittedQuestion, setSubmittedQuestion] = useState('');
@@ -38,58 +38,51 @@ function App() {
   const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [settingsView, setSettingsView] = useState<SettingsView>('hidden');
   const [showDashboard, setShowDashboard] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
 
   const {
-    isInitialized: cosmosReady,
     isLoading: cosmosLoading,
     error: cosmosError,
     dailyReport,
     setUserFromOldBirthData,
     refreshDailyReport,
-    userProfile
+    userProfile,
+    allProfiles,
+    switchProfile,
+    deleteProfile
   } = usePersonalCosmos();
 
-  const hasBirthData = birthData !== null;
+  // Derive hasBirthData and astroContext from userProfile
+  const hasBirthData = userProfile !== null;
+
+  const astroContext = useMemo(() => {
+    if (!userProfile) return null;
+    const oldBirthData: BirthData = {
+      date: userProfile.birthData.birthDate,
+      time: userProfile.birthData.birthTime,
+      city: userProfile.birthData.birthLocation.city,
+      country: userProfile.birthData.birthLocation.country,
+      latitude: userProfile.birthData.birthLocation.latitude,
+      longitude: userProfile.birthData.birthLocation.longitude,
+      timezone: '',
+    };
+    return generateAstroContext(oldBirthData, new Date());
+  }, [userProfile]);
 
   // Auto-refresh dashboard data every 30 minutes while visible
   useDashboardRefresh(showDashboard, refreshDailyReport);
 
-  // Load saved birth data
-  useEffect(() => {
-    const saved = localStorage.getItem('seer_birthdata');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        parsed.date = new Date(parsed.date);
-        setBirthData(parsed);
-        const context = generateAstroContext(parsed, new Date());
-        setAstroContext(context);
-      } catch {
-        localStorage.removeItem('seer_birthdata');
-      }
-    }
-  }, []);
-
-  // Sync birth data to personalized cosmos
-  useEffect(() => {
-    if (cosmosReady && birthData && !userProfile) {
-      setUserFromOldBirthData(birthData);
-    }
-  }, [cosmosReady, birthData, userProfile, setUserFromOldBirthData]);
-
   // ---- Cosmic Whisper (Feature 1) ----
   const cosmicWhisper = useMemo(() => {
     if (!dailyReport) return null;
-    return getDailyWhisper(dailyReport);
-  }, [dailyReport]);
+    return getDailyWhisper(dailyReport, userProfile?.id);
+  }, [dailyReport, userProfile?.id]);
 
   // ---- Daily Cosmic Mood (Feature 2) ----
-  // Pass overall score to influence eye ambient glow
   const cosmicMoodScore = dailyReport?.overallScore ?? 5;
 
   // ---- Cosmic Hint for idle screen ----
@@ -113,7 +106,6 @@ function App() {
   // ---- Transit Alerts (Feature 4) ----
   const hasTransitAlert = useMemo(() => {
     if (!dailyReport) return false;
-    // Check if any transit is exact (within 1 degree)
     return dailyReport.keyTransits.some(t => t.transit.isExact);
   }, [dailyReport]);
 
@@ -128,21 +120,12 @@ function App() {
     return null;
   }, [dailyReport]);
 
-  // Handle birth data submission
-  const handleBirthDataSubmit = useCallback(async (data: BirthData) => {
+  // Handle birth data submission (from form — onboarding or add profile)
+  const handleBirthDataSubmit = useCallback(async (data: BirthData, name: string) => {
     playClick();
-    setBirthData(data);
-    localStorage.setItem('seer_birthdata', JSON.stringify(data));
-
-    const context = generateAstroContext(data, new Date());
-    setAstroContext(context);
-
-    if (cosmosReady) {
-      await setUserFromOldBirthData(data);
-    }
-
-    setShowSettings(false);
-  }, [cosmosReady, setUserFromOldBirthData]);
+    await setUserFromOldBirthData(data, name);
+    setSettingsView('hidden');
+  }, [setUserFromOldBirthData]);
 
   // Summon the seer
   const handleSummon = useCallback(() => {
@@ -171,7 +154,6 @@ function App() {
     const trimmed = questionText.trim();
     setSubmittedQuestion(trimmed);
 
-    // Classify silently — no user-facing confirmation
     const { category } = classifyQuestionWithConfidence(trimmed);
     setSelectedCategory(category);
 
@@ -203,14 +185,12 @@ function App() {
     setOracleVerdict(verdict);
     setOracleCategory(category);
 
-    // Generate the insight article
     if (dailyReport) {
       setOracleArticle(generateInsightArticle(category, dailyReport));
     } else if (astroContext) {
       setOracleArticle(generateFallbackArticle(category, verdict, astroContext));
     }
 
-    // Save to reading history (Feature 3)
     saveReading({
       question: submittedQuestion,
       verdict,
@@ -225,7 +205,7 @@ function App() {
     }, 300);
   }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
-  // Dismiss reading (go back to idle)
+  // Dismiss reading
   const handleDismiss = useCallback(() => {
     setAppState('idle');
     setOracleText('');
@@ -235,7 +215,7 @@ function App() {
     setSelectedCategory(null);
   }, []);
 
-  // Ask again (go back to awaiting question with eye open)
+  // Ask again
   const handleAskAgain = useCallback(() => {
     playClick();
     setOracleText('');
@@ -246,7 +226,7 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
-  // Select a pre-made suggestion (skip confirmation — category is implicit)
+  // Select a suggested question
   const handleSuggestedSelect = useCallback((question: string) => {
     playClick();
     setQuestionText(question);
@@ -271,6 +251,20 @@ function App() {
     if (!newMuted) playClick();
   }, [isMuted]);
 
+  // Profile switch handler
+  const handleProfileSwitch = useCallback((profileId: string) => {
+    switchProfile(profileId);
+    // Reset app state if in the middle of something
+    if (appState !== 'idle') {
+      setAppState('idle');
+      setOracleText('');
+      setOracleArticle(null);
+      setSubmittedQuestion('');
+      setQuestionText('');
+      setSelectedCategory(null);
+    }
+  }, [switchProfile, appState]);
+
   // Determine eye state
   const getEyeState = (): 'closed' | 'opening' | 'open' | 'gazing' | 'revealing' => {
     switch (appState) {
@@ -283,7 +277,7 @@ function App() {
     }
   };
 
-  // Cosmic mood CSS class for eye glow (Feature 2)
+  // Cosmic mood CSS class for eye glow
   const cosmicMoodClass = cosmicMoodScore >= 8 ? 'mood-excellent'
     : cosmicMoodScore >= 6 ? 'mood-good'
     : cosmicMoodScore >= 4 ? 'mood-mixed'
@@ -325,7 +319,7 @@ function App() {
           </button>
         )}
         {hasBirthData && (
-          <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
+          <button className="header-btn" onClick={() => { playClick(); setSettingsView('profiles'); }} aria-label="Profiles">
             {'\u2699\uFE0F'}
           </button>
         )}
@@ -334,7 +328,7 @@ function App() {
       {/* Main content */}
       <main className="app-main">
         {/* First visit - show birth form inline */}
-        {!hasBirthData && !showSettings && (
+        {!hasBirthData && !cosmosLoading && (
           <div className="onboarding">
             <div className="onboarding-title">
               <span className="title-the">The</span>
@@ -347,11 +341,11 @@ function App() {
         )}
 
         {/* Loading indicator while cosmos engine initializes */}
-        {hasBirthData && cosmosLoading && appState === 'idle' && (
+        {!hasBirthData && cosmosLoading && (
           <p className="cosmos-status">Aligning the cosmos...</p>
         )}
 
-        {/* Cosmos error - non-blocking, show subtle warning */}
+        {/* Cosmos error */}
         {hasBirthData && cosmosError && !cosmosLoading && (
           <p className="cosmos-status cosmos-status--warn">Readings may be less precise today</p>
         )}
@@ -367,6 +361,16 @@ function App() {
               </div>
             )}
 
+            {/* Profile indicator — shown when multiple profiles exist */}
+            {appState === 'idle' && allProfiles.length > 1 && userProfile && (
+              <button
+                className="profile-indicator"
+                onClick={() => { playClick(); setSettingsView('profiles'); }}
+              >
+                {userProfile.birthData.name}
+              </button>
+            )}
+
             {/* The Eye — with cosmic mood class */}
             <div className={`eye-section ${cosmicMoodClass}`}>
               <SeerEye
@@ -376,7 +380,7 @@ function App() {
               />
             </div>
 
-            {/* Cosmic Whisper (Feature 1) — shown below the eye in idle state */}
+            {/* Cosmic Whisper (Feature 1) */}
             {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
               <p className="cosmic-whisper">{cosmicWhisper}</p>
             )}
@@ -386,7 +390,7 @@ function App() {
               <p className="cosmic-hint">{cosmicHint}</p>
             )}
 
-            {/* Retrograde Alert (Feature 7) — shown in idle state */}
+            {/* Retrograde Alert (Feature 7) */}
             {appState === 'idle' && activeRetrogrades.length > 0 && !cosmosLoading && (
               <div className="retrograde-alert">
                 {activeRetrogrades.map(r => (
@@ -397,7 +401,7 @@ function App() {
               </div>
             )}
 
-            {/* Moon Phase Ritual (Feature 8) — shown on new/full moons */}
+            {/* Moon Phase Ritual (Feature 8) */}
             {appState === 'idle' && isSpecialMoonPhase && !cosmosLoading && (
               <div className="moon-ritual-hint">
                 <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
@@ -414,14 +418,14 @@ function App() {
               <p className="current-question">"{submittedQuestion}"</p>
             )}
 
-            {/* Summon button - only in idle state */}
+            {/* Summon button */}
             {appState === 'idle' && (
               <button className="summon-btn" onClick={handleSummon}>
                 Summon
               </button>
             )}
 
-            {/* Question input - only when eye is open */}
+            {/* Question input */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
                 <QuestionInput
@@ -434,23 +438,33 @@ function App() {
                 <SuggestedQuestions onSelect={handleSuggestedSelect} />
               </div>
             )}
-
           </>
         )}
       </main>
 
-      {/* Settings modal */}
-      {showSettings && hasBirthData && (
-        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+      {/* Settings / Profile Manager modal */}
+      {settingsView !== 'hidden' && (
+        <div className="modal-overlay" onClick={() => setSettingsView('hidden')}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Birth Details</h2>
-              <button className="close-btn" onClick={() => setShowSettings(false)}>x</button>
+              <h2>{settingsView === 'profiles' ? 'Profiles' : 'New Profile'}</h2>
+              <button className="close-btn" onClick={() => setSettingsView('hidden')}>x</button>
             </div>
-            <BirthDataForm
-              onSubmit={handleBirthDataSubmit}
-              initialData={birthData}
-            />
+
+            {settingsView === 'profiles' && (
+              <ProfileManager
+                profiles={allProfiles}
+                activeProfileId={userProfile?.id ?? null}
+                onSwitch={handleProfileSwitch}
+                onAddNew={() => setSettingsView('add')}
+                onDelete={deleteProfile}
+                onClose={() => setSettingsView('hidden')}
+              />
+            )}
+
+            {settingsView === 'add' && (
+              <BirthDataForm onSubmit={handleBirthDataSubmit} />
+            )}
           </div>
         </div>
       )}
@@ -464,12 +478,12 @@ function App() {
         />
       )}
 
-      {/* Reading History overlay (Feature 3) */}
+      {/* Reading History overlay */}
       {showHistory && (
         <ReadingHistory onClose={() => setShowHistory(false)} />
       )}
 
-      {/* Natal Chart overlay (Feature 2) */}
+      {/* Natal Chart overlay */}
       {showChart && userProfile && (
         <NatalChartView
           natalChart={userProfile.natalChart}

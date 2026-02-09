@@ -4,8 +4,9 @@ import { searchCities, type CityData, formatCity } from '../lib/cities';
 import './BirthDataForm.css';
 
 interface BirthDataFormProps {
-  onSubmit: (birthData: BirthData) => void;
+  onSubmit: (birthData: BirthData, name: string) => void;
   initialData?: BirthData | null;
+  initialName?: string;
 }
 
 // Format a Date to YYYY-MM-DD using local timezone (not UTC)
@@ -16,7 +17,8 @@ function formatLocalDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
+export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataFormProps) {
+  const [name, setName] = useState(initialName || '');
   const [dateStr, setDateStr] = useState(
     initialData?.date ? formatLocalDate(initialData.date) : ''
   );
@@ -55,6 +57,12 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
       setError('');
     }
   }, [initialData]);
+
+  useEffect(() => {
+    if (initialName !== undefined) {
+      setName(initialName);
+    }
+  }, [initialName]);
 
   useEffect(() => {
     if (cityQuery.length >= 2 && !selectedCity) {
@@ -107,9 +115,9 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
         timezone: selectedCity.timezone,
       };
 
-      onSubmit(birthData);
+      onSubmit(birthData, name.trim() || 'Cosmic Traveler');
     },
-    [dateStr, timeStr, selectedCity, onSubmit]
+    [dateStr, timeStr, selectedCity, name, onSubmit]
   );
 
   return (
@@ -118,6 +126,18 @@ export function BirthDataForm({ onSubmit, initialData }: BirthDataFormProps) {
         <p className="form-intro-text">
           The Seer requires your celestial coordinates
         </p>
+      </div>
+
+      <div className="form-field">
+        <label className="field-label">Name</label>
+        <input
+          type="text"
+          className="field-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name, a friend's name..."
+          autoComplete="off"
+        />
       </div>
 
       <div className="form-field">

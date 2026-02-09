@@ -158,12 +158,15 @@ interface CachedWhisper {
   whisper: string;
 }
 
-export function getDailyWhisper(report: PersonalDailyReport): string {
+export function getDailyWhisper(report: PersonalDailyReport, profileId?: string): string {
   const today = new Date().toDateString();
+  const cacheKey = profileId
+    ? `${WHISPER_CACHE_KEY}_${profileId}`
+    : WHISPER_CACHE_KEY;
 
   // Check cache
   try {
-    const cached = localStorage.getItem(WHISPER_CACHE_KEY);
+    const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed: CachedWhisper = JSON.parse(cached);
       if (parsed.date === today) {
@@ -177,7 +180,7 @@ export function getDailyWhisper(report: PersonalDailyReport): string {
 
   // Cache it
   try {
-    localStorage.setItem(WHISPER_CACHE_KEY, JSON.stringify({ date: today, whisper }));
+    localStorage.setItem(cacheKey, JSON.stringify({ date: today, whisper }));
   } catch { /* ignore */ }
 
   return whisper;
