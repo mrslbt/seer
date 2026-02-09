@@ -1,24 +1,22 @@
 /* ============================================
- * Today's Bond — Daily oracle pulse
+ * Today's Bond — Daily Energy Section
  *
- * A breathing apparition. No card, no border.
- * Content emerges from void, pulses, and rests.
+ * Left-aligned. Matches .compat-section pattern.
+ * Every element labelled. No decoration without meaning.
  * ============================================ */
 
 /* ---- Container ---- */
 
 .todays-bond {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 2.5rem 1.5rem 2rem;
-  margin-top: 12px;
+  text-align: left;
+  padding-top: 20px;
+  margin-bottom: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(6px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .todays-bond--visible {
@@ -26,289 +24,201 @@
   transform: translateY(0);
 }
 
-/* ---- Atmospheric backdrop (radial mood glow) ---- */
+/* ---- Section label (matches compat-section-label) ---- */
 
-.todays-bond__atmosphere {
-  position: absolute;
-  inset: -40px;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(
-      ellipse 50% 45% at 50% 35%,
-      var(--bond-mood-glow, rgba(201, 168, 76, 0.08)) 0%,
-      transparent 70%
-    );
-  animation: bondAtmospherePulse 8s ease-in-out infinite;
-}
-
-@keyframes bondAtmospherePulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50%      { opacity: 1;   transform: scale(1.04); }
-}
-
-/* ---- Header label ---- */
-
-.todays-bond__header {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font, system-ui, sans-serif);
+.todays-bond__label {
+  font-family: var(--font);
   font-size: 0.625rem;
-  letter-spacing: 0.2em;
+  font-weight: 500;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--text-muted, #888);
-  margin-bottom: 1.5rem;
-  opacity: 0;
-  animation: bondFadeIn 0.8s ease 0.3s forwards;
+  color: rgba(255, 255, 255, 0.25);
+  margin: 0 0 18px;
 }
 
-/* ---- Sigil (score + pulse ring) ---- */
+/* ---- Pulse score — number + bar ---- */
 
-.todays-bond__sigil {
-  position: relative;
-  z-index: 1;
-  width: 96px;
-  height: 96px;
+.todays-bond__pulse-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
+  gap: 14px;
+  margin-bottom: 20px;
   opacity: 0;
-  animation: bondSigilAppear 1.4s ease 0.5s forwards;
+  animation: bondFadeSlide 0.6s ease 0.2s forwards;
 }
 
-.todays-bond__ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  animation: bondRingBreathe 6s ease-in-out infinite;
+.todays-bond__pulse-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.todays-bond__ring-arc {
-  transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 0 4px var(--bond-mood-glow-strong, rgba(201, 168, 76, 0.3)));
-}
-
-.todays-bond__score {
-  position: relative;
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+.todays-bond__pulse-number {
+  font-family: var(--font-display);
   font-size: 1.5rem;
   font-style: italic;
   line-height: 1;
-  color: var(--bond-mood-color, var(--accent, #C9A84C));
-  animation: bondGlyphBreathe 4s ease-in-out infinite;
+  color: var(--bond-mood-color, var(--accent));
 }
 
-@keyframes bondSigilAppear {
-  0%   { opacity: 0; transform: scale(0.8); }
-  60%  { opacity: 1; transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes bondRingBreathe {
-  0%, 100% { transform: rotate(0deg)   scale(1); opacity: 0.7; }
-  50%      { transform: rotate(3deg)   scale(1.03); opacity: 1; }
-}
-
-@keyframes bondGlyphBreathe {
-  0%, 100% { transform: scale(1);    opacity: 0.85; }
-  50%      { transform: scale(1.08); opacity: 1; }
-}
-
-/* ---- Mood container (label + mood word) ---- */
-
-.todays-bond__mood-container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 1.5rem;
-  opacity: 0;
-  animation: bondMoodMaterialize 1.6s ease 0.9s forwards;
-}
-
-.todays-bond__mood-label {
-  font-family: var(--font, system-ui, sans-serif);
-  font-size: 0.5625rem;
-  letter-spacing: 0.18em;
+.todays-bond__pulse-desc {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.3);
 }
 
-.todays-bond__mood {
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
-  font-style: italic;
-  font-size: 2rem;
-  line-height: 1.1;
-  color: var(--bond-mood-color, var(--accent, #C9A84C));
+/* Thin energy bar — visual confirmation of the number */
+.todays-bond__pulse-track {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1px;
+  overflow: hidden;
 }
 
-@keyframes bondMoodMaterialize {
-  0% {
-    opacity: 0;
-    text-shadow:
-      0 0 30px var(--bond-mood-glow-strong, rgba(201, 168, 76, 0.4)),
-      0 0 60px var(--bond-mood-glow, rgba(201, 168, 76, 0.15));
-  }
-  40% {
-    opacity: 1;
-    text-shadow:
-      0 0 16px var(--bond-mood-glow-strong, rgba(201, 168, 76, 0.3)),
-      0 0 32px var(--bond-mood-glow, rgba(201, 168, 76, 0.1));
-  }
-  100% {
-    opacity: 1;
-    text-shadow:
-      0 0 8px var(--bond-mood-glow, rgba(201, 168, 76, 0.08));
-  }
+.todays-bond__pulse-fill {
+  height: 100%;
+  background: var(--bond-mood-color, var(--accent));
+  border-radius: 1px;
+  opacity: 0.5;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---- Transit lines ---- */
+/* ---- Mood — contextual sentence ---- */
 
-.todays-bond__transits {
-  position: relative;
-  z-index: 1;
-  max-width: 320px;
-  margin-bottom: 1.25rem;
+.todays-bond__mood-row {
+  margin-bottom: 22px;
   opacity: 0;
-  animation: bondTextReveal 1.2s ease 1.4s forwards;
+  animation: bondFadeSlide 0.6s ease 0.4s forwards;
+}
+
+.todays-bond__mood-prefix {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: 6px;
+}
+
+.todays-bond__mood-word {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--bond-mood-color, var(--accent));
+}
+
+.todays-bond__mood-meaning {
+  display: block;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Sub-sections (transits, advice) ---- */
+
+.todays-bond__section {
+  margin-bottom: 18px;
+  opacity: 0;
+  animation: bondFadeSlide 0.6s ease 0.6s forwards;
+}
+
+.todays-bond__section + .todays-bond__section {
+  animation-delay: 0.8s;
+}
+
+.todays-bond__section-label {
+  display: block;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
 }
 
 .todays-bond__transit-line {
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-style: italic;
-  font-size: 1rem;
-  line-height: 1.55;
-  color: var(--text, #fff);
-  margin: 0 0 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 6px;
 }
 
 .todays-bond__transit-line:last-child {
   margin-bottom: 0;
 }
 
-@keyframes bondTextReveal {
-  0% {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translateY(4px);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-}
-
-/* ---- Ritual / oracle advice ---- */
-
-.todays-bond__ritual {
-  position: relative;
-  z-index: 1;
-  max-width: 280px;
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
+.todays-bond__advice {
+  font-family: var(--font-display);
   font-style: italic;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--text-secondary, #aaa);
-  margin-bottom: 1.25rem;
-  opacity: 0;
-  animation: bondWhisperAppear 1.4s ease 1.8s forwards;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
 }
 
-@keyframes bondWhisperAppear {
-  0% {
-    opacity: 0;
-    filter: blur(6px);
-  }
-  60% {
-    opacity: 0.7;
-    filter: blur(1px);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
-/* ---- Moon phase ---- */
+/* ---- Moon phase — quiet footer ---- */
 
 .todays-bond__moon {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font, system-ui, sans-serif);
-  font-size: 0.625rem;
+  font-family: var(--font);
+  font-size: 0.5625rem;
   letter-spacing: 0.12em;
   text-transform: lowercase;
-  color: var(--text-muted, #888);
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: 20px;
   opacity: 0;
-  animation: bondFadeIn 0.8s ease 2.2s forwards;
+  animation: bondFadeIn 0.6s ease 1s forwards;
 }
 
 .todays-bond__moon-icon {
   margin-right: 0.3em;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
 }
 
-/* ---- Shared keyframes ---- */
+/* ---- Keyframes ---- */
+
+@keyframes bondFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @keyframes bondFadeIn {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-/* ---- Separator from content above ---- */
-
-.todays-bond::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.08),
-    transparent
-  );
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ---- Responsive ---- */
 
 @media (max-width: 480px) {
   .todays-bond {
-    padding: 2rem 1.25rem 1.5rem;
+    padding-top: 16px;
+    margin-bottom: 24px;
   }
 
-  .todays-bond__sigil {
-    width: 80px;
-    height: 80px;
-  }
-
-  .todays-bond__score {
+  .todays-bond__pulse-number {
     font-size: 1.25rem;
   }
 
-  .todays-bond__mood {
-    font-size: 1.625rem;
+  .todays-bond__mood-word {
+    font-size: 1rem;
   }
 
-  .todays-bond__transits {
-    max-width: 280px;
-  }
-
-  .todays-bond__transit-line {
-    font-size: 0.9375rem;
-  }
-
-  .todays-bond__ritual {
-    max-width: 250px;
-    font-size: 0.875rem;
+  .todays-bond__transit-line,
+  .todays-bond__advice {
+    font-size: 0.8125rem;
   }
 }
 
@@ -316,26 +226,20 @@
 
 @media (prefers-reduced-motion: reduce) {
   .todays-bond {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
     transform: none;
   }
 
-  .todays-bond__atmosphere,
-  .todays-bond__ring,
-  .todays-bond__score {
+  .todays-bond__pulse-row,
+  .todays-bond__mood-row,
+  .todays-bond__section,
+  .todays-bond__moon {
     animation: none !important;
     opacity: 1;
+    transform: none;
   }
 
-  .todays-bond__header,
-  .todays-bond__sigil,
-  .todays-bond__mood-container,
-  .todays-bond__transits,
-  .todays-bond__moon,
-  .todays-bond__ritual {
-    animation: none !important;
-    opacity: 1;
-    filter: none;
-    transform: none;
+  .todays-bond__pulse-fill {
+    transition: none;
   }
 }

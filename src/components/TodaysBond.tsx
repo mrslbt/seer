@@ -1,9 +1,9 @@
 /**
  * Today's Bond — Daily oracle pulse for a synastry pair.
  *
- * A breathing apparition that materializes from the void each day,
- * showing the energetic weather between two people right now.
- * No card, no container — just light and typography emerging from darkness.
+ * Left-aligned section that matches the reading flow above.
+ * Every element is self-labelled — no ambiguity, no learning curve.
+ * The void breathes through subtle animation, not decoration.
  */
 
 import { useEffect, useState } from 'react';
@@ -41,7 +41,7 @@ interface TodaysBondProps {
 }
 
 // ============================================
-// MOOD VISUAL CONFIG
+// MOOD → COLOR MAPPING
 // ============================================
 
 interface MoodVisual {
@@ -63,6 +63,20 @@ const MOOD_VISUALS: Record<BondMood, MoodVisual> = {
   dissolving: { hue: 240, saturation: 30, lightness: 55 },
 };
 
+// Mood → plain-English descriptor so users understand what the word means
+const MOOD_DESCRIPTORS: Record<BondMood, string> = {
+  electric:   'high energy, charged',
+  tender:     'soft, open-hearted',
+  volatile:   'intense, unpredictable',
+  still:      'calm, waiting',
+  magnetic:   'pulling together',
+  fated:      'heavy with destiny',
+  restless:   'uneasy, seeking',
+  raw:        'exposed, unfiltered',
+  expanding:  'growing, opening up',
+  dissolving: 'boundaries softening',
+};
+
 // ============================================
 // COMPONENT
 // ============================================
@@ -80,12 +94,13 @@ export default function TodaysBond({ data }: TodaysBondProps) {
   // Mood color as CSS custom properties
   const moodColor = `hsl(${visual.hue}, ${visual.saturation}%, ${visual.lightness}%)`;
   const moodGlow = `hsla(${visual.hue}, ${visual.saturation}%, ${visual.lightness}%, 0.15)`;
-  const moodGlowStrong = `hsla(${visual.hue}, ${visual.saturation}%, ${visual.lightness}%, 0.3)`;
 
-  // Pulse ring: SVG circle stroke-dasharray
-  const radius = 44;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - data.pulseScore / 100);
+  // Pulse intensity label
+  const pulseLabel =
+    data.pulseScore >= 75 ? 'intense' :
+    data.pulseScore >= 50 ? 'active' :
+    data.pulseScore >= 25 ? 'gentle' :
+    'quiet';
 
   return (
     <div
@@ -93,67 +108,49 @@ export default function TodaysBond({ data }: TodaysBondProps) {
       style={{
         '--bond-mood-color': moodColor,
         '--bond-mood-glow': moodGlow,
-        '--bond-mood-glow-strong': moodGlowStrong,
-        '--bond-mood-hue': visual.hue,
       } as React.CSSProperties}
     >
-      {/* Atmospheric backdrop */}
-      <div className="todays-bond__atmosphere" />
+      {/* Section label — matches compat-section-label pattern */}
+      <h3 className="todays-bond__label">Today's Energy</h3>
 
-      {/* Header label */}
-      <div className="todays-bond__header">
-        how you feel today
-      </div>
-
-      {/* Ring with score inside */}
-      <div className="todays-bond__sigil">
-        <svg
-          className="todays-bond__ring"
-          viewBox="0 0 100 100"
-          aria-hidden="true"
-        >
-          {/* Track */}
-          <circle
-            cx="50" cy="50" r={radius}
-            fill="none"
-            stroke="rgba(255,255,255,0.04)"
-            strokeWidth="1"
+      {/* Pulse score — thin bar + number, immediately readable */}
+      <div className="todays-bond__pulse-row">
+        <div className="todays-bond__pulse-info">
+          <span className="todays-bond__pulse-number">{data.pulseScore}</span>
+          <span className="todays-bond__pulse-desc">{pulseLabel}</span>
+        </div>
+        <div className="todays-bond__pulse-track">
+          <div
+            className="todays-bond__pulse-fill"
+            style={{ width: `${Math.max(4, data.pulseScore)}%` }}
           />
-          {/* Pulse arc */}
-          <circle
-            cx="50" cy="50" r={radius}
-            fill="none"
-            stroke="var(--bond-mood-color)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={dashOffset}
-            transform="rotate(-90 50 50)"
-            className="todays-bond__ring-arc"
-          />
-        </svg>
-        <span className="todays-bond__score">{data.pulseScore}</span>
+        </div>
       </div>
 
-      {/* Mood word with context */}
-      <div className="todays-bond__mood-container">
-        <span className="todays-bond__mood-label">the energy today</span>
-        <span className="todays-bond__mood">{data.mood}</span>
+      {/* Mood — contextual sentence, not a naked word */}
+      <div className="todays-bond__mood-row">
+        <span className="todays-bond__mood-prefix">The mood between you:</span>
+        <span className="todays-bond__mood-word">{data.mood}</span>
+        <span className="todays-bond__mood-meaning">{MOOD_DESCRIPTORS[data.mood]}</span>
       </div>
 
-      {/* Transit lines */}
-      <div className="todays-bond__transits">
-        {data.transitLines.map((line, i) => (
-          <p key={i} className="todays-bond__transit-line">{line}</p>
-        ))}
+      {/* Transit insights — what's actually happening astronomically */}
+      {data.transitLines.length > 0 && (
+        <div className="todays-bond__section">
+          <span className="todays-bond__section-label">What's happening</span>
+          {data.transitLines.map((line, i) => (
+            <p key={i} className="todays-bond__transit-line">{line}</p>
+          ))}
+        </div>
+      )}
+
+      {/* Ritual / advice — clearly labelled */}
+      <div className="todays-bond__section">
+        <span className="todays-bond__section-label">Today's advice</span>
+        <p className="todays-bond__advice">{data.ritual}</p>
       </div>
 
-      {/* Ritual / advice */}
-      <div className="todays-bond__ritual">
-        {data.ritual}
-      </div>
-
-      {/* Moon phase */}
+      {/* Moon phase — quiet footnote */}
       <div className="todays-bond__moon">
         <span className="todays-bond__moon-icon">
           {getMoonIcon(data.moonIllumination)}
