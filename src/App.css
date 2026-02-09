@@ -157,19 +157,16 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   Oracle Card — dark glass vessel for the Seer
+   Seer Card — shared dark glass vessel
    ═══════════════════════════════════════════════════ */
 
-.oracle-card {
+.seer-card {
   position: relative;
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  padding: 40px 28px 36px;
+  padding: 32px 24px 28px;
   background:
     linear-gradient(
       168deg,
@@ -183,13 +180,8 @@
   overflow: hidden;
 }
 
-/* Processing state — hold card height while eye gazes */
-.oracle-card--processing {
-  min-height: 480px;
-}
-
-/* Top edge highlight — like light catching a glass edge */
-.oracle-card::before {
+/* Top edge highlight */
+.seer-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -205,10 +197,11 @@
     transparent
   );
   pointer-events: none;
+  z-index: 1;
 }
 
 /* Subtle corner accents */
-.oracle-card::after {
+.seer-card::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -217,6 +210,52 @@
     radial-gradient(ellipse 120px 120px at 0% 0%, rgba(201, 168, 76, 0.025) 0%, transparent 70%),
     radial-gradient(ellipse 120px 120px at 100% 100%, rgba(201, 168, 76, 0.015) 0%, transparent 70%);
   pointer-events: none;
+}
+
+/* Scrollable variant — for tabs with long content */
+.seer-card--scrollable {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.1) transparent;
+}
+
+.seer-card--scrollable::-webkit-scrollbar {
+  width: 3px;
+}
+
+.seer-card--scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seer-card--scrollable::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.12);
+  border-radius: 3px;
+}
+
+/* Tab content variant — wider, top-aligned for Cosmos/Chart/Bonds */
+.seer-card--tab {
+  max-width: 420px;
+  padding: 28px 20px 32px;
+  align-items: stretch;
+  animation: fadeIn 0.4s ease;
+}
+
+/* ═══════════════════════════════════════════════════
+   Oracle Card — extends seer-card for the eye page
+   ═══════════════════════════════════════════════════ */
+
+.oracle-card {
+  max-width: 380px;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 40px 28px 36px;
+}
+
+/* Processing state — hold card height while eye gazes */
+.oracle-card--processing {
+  min-height: 480px;
 }
 
 /* Inner atmospheric glow — warm center where the eye lives */
@@ -691,11 +730,18 @@
     font-size: 2.5rem;
   }
 
+  .seer-card {
+    border-radius: 20px;
+    max-width: 100%;
+  }
+
   .oracle-card {
     padding: 32px 20px 28px;
     gap: 24px;
-    border-radius: 20px;
-    max-width: 100%;
+  }
+
+  .seer-card--tab {
+    padding: 24px 16px 28px;
   }
 
   .oracle-card--processing {
