@@ -164,9 +164,11 @@
   position: relative;
   width: 100%;
   max-width: 380px;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 28px;
   padding: 40px 28px 36px;
   background:
