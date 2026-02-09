@@ -10,6 +10,8 @@
 
 .compat-view {
   width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
   padding: 0 0 48px;
   display: flex;
   flex-direction: column;

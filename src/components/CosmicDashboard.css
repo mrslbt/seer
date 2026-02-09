@@ -3,6 +3,8 @@
 /* ---- Inline mode (tab content) ---- */
 .dashboard-inline {
   width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
   animation: dashboardFadeIn 0.4s ease;
 }
 

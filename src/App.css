@@ -212,35 +212,6 @@
   pointer-events: none;
 }
 
-/* Scrollable variant — for tabs with long content */
-.seer-card--scrollable {
-  max-height: calc(100vh - 160px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(201, 168, 76, 0.1) transparent;
-}
-
-.seer-card--scrollable::-webkit-scrollbar {
-  width: 3px;
-}
-
-.seer-card--scrollable::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.seer-card--scrollable::-webkit-scrollbar-thumb {
-  background: rgba(201, 168, 76, 0.12);
-  border-radius: 3px;
-}
-
-/* Tab content variant — wider, top-aligned for Cosmos/Chart/Bonds */
-.seer-card--tab {
-  max-width: 420px;
-  padding: 28px 20px 32px;
-  align-items: stretch;
-  animation: fadeIn 0.4s ease;
-}
-
 /* ═══════════════════════════════════════════════════
    Oracle Card — extends seer-card for the eye page
    ═══════════════════════════════════════════════════ */
@@ -738,10 +709,6 @@
   .oracle-card {
     padding: 32px 20px 28px;
     gap: 24px;
-  }
-
-  .seer-card--tab {
-    padding: 24px 16px 28px;
   }
 
   .oracle-card--processing {

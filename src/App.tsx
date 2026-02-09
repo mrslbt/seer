@@ -583,52 +583,41 @@ function App() {
         )}
 
         {/* === COSMOS TAB === */}
-        {hasBirthData && activeTab === 'cosmos' && (
-          <div className="seer-card seer-card--scrollable seer-card--tab">
-            {activeHint && (
-              <p className="contextual-hint">{activeHint}</p>
-            )}
-            {dailyReport ? (
-              <CosmicDashboard
-                report={dailyReport}
-                onRefresh={refreshDailyReport}
-                mode="inline"
-              />
-            ) : (
-              <p className="cosmos-status">Loading cosmic data...</p>
-            )}
-          </div>
+        {hasBirthData && activeTab === 'cosmos' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
+        {hasBirthData && activeTab === 'cosmos' && dailyReport && (
+          <CosmicDashboard
+            report={dailyReport}
+            onRefresh={refreshDailyReport}
+            mode="inline"
+          />
+        )}
+        {hasBirthData && activeTab === 'cosmos' && !dailyReport && (
+          <p className="cosmos-status">Loading cosmic data...</p>
         )}
 
         {/* === CHART TAB === */}
-        {hasBirthData && activeTab === 'chart' && (
-          <div className="seer-card seer-card--scrollable seer-card--tab">
-            {activeHint && (
-              <p className="contextual-hint">{activeHint}</p>
-            )}
-            {userProfile && (
-              <NatalChartView
-                natalChart={userProfile.natalChart}
-                mode="inline"
-              />
-            )}
-          </div>
+        {hasBirthData && activeTab === 'chart' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
+        {hasBirthData && activeTab === 'chart' && userProfile && (
+          <NatalChartView
+            natalChart={userProfile.natalChart}
+            mode="inline"
+          />
         )}
 
         {/* === BONDS TAB === */}
-        {hasBirthData && activeTab === 'bonds' && (
-          <div className="seer-card seer-card--scrollable seer-card--tab">
-            {activeHint && (
-              <p className="contextual-hint">{activeHint}</p>
-            )}
-            {userProfile && (
-              <CompatibilityView
-                activeProfile={userProfile}
-                allProfiles={allProfiles}
-                onAddProfile={() => setSettingsView('add')}
-              />
-            )}
-          </div>
+        {hasBirthData && activeTab === 'bonds' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
+        {hasBirthData && activeTab === 'bonds' && userProfile && (
+          <CompatibilityView
+            activeProfile={userProfile}
+            allProfiles={allProfiles}
+            onAddProfile={() => setSettingsView('add')}
+          />
         )}
       </main>
 
