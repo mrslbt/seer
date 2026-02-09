@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { BirthData, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
 import { scoreDecision, classifyQuestionWithConfidence } from './lib/scoreDecision';
@@ -24,6 +24,8 @@ import { NatalChartView } from './components/NatalChartView';
 import { ProfileManager } from './components/ProfileManager';
 import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
 import { CompatibilityView } from './components/CompatibilityView';
+import { SeerIntro } from './components/SeerIntro';
+import { FirstGlimpse } from './components/FirstGlimpse';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
@@ -46,6 +48,13 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
+
+  // Onboarding state
+  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('seer_intro_seen'));
+  const [showFirstGlimpse, setShowFirstGlimpse] = useState(false);
+  const [activeHint, setActiveHint] = useState<string | null>(null);
+  const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevHadBirthData = useRef(false);
 
   const {
     isLoading: cosmosLoading,
@@ -79,6 +88,54 @@ function App() {
 
   // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
+
+  // Trigger FirstGlimpse when user submits birth data for the first time
+  useEffect(() => {
+    if (hasBirthData && !prevHadBirthData.current && !localStorage.getItem('seer_first_glimpse_seen')) {
+      setShowFirstGlimpse(true);
+    }
+    prevHadBirthData.current = hasBirthData;
+  }, [hasBirthData]);
+
+  // Handle intro completion
+  const handleIntroComplete = useCallback(() => {
+    localStorage.setItem('seer_intro_seen', '1');
+    setShowIntro(false);
+  }, []);
+
+  // Handle first glimpse completion
+  const handleFirstGlimpseEnter = useCallback(() => {
+    localStorage.setItem('seer_first_glimpse_seen', '1');
+    setShowFirstGlimpse(false);
+  }, []);
+
+  // Show contextual hint for first tab visits
+  const showHintOnce = useCallback((key: string, text: string) => {
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+    setActiveHint(text);
+    if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
+    hintTimeoutRef.current = setTimeout(() => setActiveHint(null), 4000);
+  }, []);
+
+  // Trigger hints on tab/state changes
+  useEffect(() => {
+    if (!hasBirthData) return;
+    if (appState === 'awaiting_question') {
+      showHintOnce('seer_hint_summon', 'Speak your question. The Seer will answer.');
+    }
+  }, [appState, hasBirthData, showHintOnce]);
+
+  useEffect(() => {
+    if (!hasBirthData) return;
+    if (activeTab === 'cosmos') {
+      showHintOnce('seer_hint_cosmos', 'Your daily cosmic weather');
+    } else if (activeTab === 'chart') {
+      showHintOnce('seer_hint_chart', 'Your birth sky, mapped');
+    } else if (activeTab === 'bonds') {
+      showHintOnce('seer_hint_bonds', 'Compare your chart with another soul');
+    }
+  }, [activeTab, hasBirthData, showHintOnce]);
 
   // ---- Greeting (above the eye) ----
   const seerAcknowledgment = useMemo(() => {
@@ -257,6 +314,20 @@ function App() {
     }, 300);
   }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
+  // Header brand click — return to oracle tab
+  const handleBrandClick = useCallback(() => {
+    playClick();
+    setActiveTab('oracle');
+    if (appState !== 'idle') {
+      setAppState('idle');
+      setOracleText('');
+      setOracleArticle(null);
+      setSubmittedQuestion('');
+      setQuestionText('');
+      setSelectedCategory(null);
+    }
+  }, [appState]);
+
   // Dismiss reading
   const handleDismiss = useCallback(() => {
     setAppState('idle');
@@ -346,7 +417,7 @@ function App() {
       {/* Header — brand left, settings right */}
       <header className="app-header">
         {hasBirthData ? (
-          <div className="header-brand">The Seer</div>
+          <button className="header-brand" onClick={handleBrandClick}>The Seer</button>
         ) : (
           <div />
         )}
@@ -366,8 +437,11 @@ function App() {
 
       {/* Main content */}
       <main className={`app-main ${hasBirthData && (activeTab === 'cosmos' || activeTab === 'chart' || activeTab === 'bonds') ? 'app-main--scrollable' : ''}`}>
-        {/* First visit - show birth form inline */}
-        {!hasBirthData && !cosmosLoading && (
+        {/* First visit - intro screens then birth form */}
+        {!hasBirthData && !cosmosLoading && showIntro && (
+          <SeerIntro onComplete={handleIntroComplete} />
+        )}
+        {!hasBirthData && !cosmosLoading && !showIntro && (
           <div className="onboarding">
             <div className="onboarding-title">
               <span className="title-the">The</span>
@@ -461,6 +535,11 @@ function App() {
               </button>
             )}
 
+            {/* Contextual hint */}
+            {activeHint && activeTab === 'oracle' && (
+              <p className="contextual-hint">{activeHint}</p>
+            )}
+
             {/* Question input */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
@@ -478,6 +557,9 @@ function App() {
         )}
 
         {/* === COSMOS TAB === */}
+        {hasBirthData && activeTab === 'cosmos' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
         {hasBirthData && activeTab === 'cosmos' && dailyReport && (
           <CosmicDashboard
             report={dailyReport}
@@ -490,6 +572,9 @@ function App() {
         )}
 
         {/* === CHART TAB === */}
+        {hasBirthData && activeTab === 'chart' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
         {hasBirthData && activeTab === 'chart' && userProfile && (
           <NatalChartView
             natalChart={userProfile.natalChart}
@@ -498,6 +583,9 @@ function App() {
         )}
 
         {/* === BONDS TAB === */}
+        {hasBirthData && activeTab === 'bonds' && activeHint && (
+          <p className="contextual-hint">{activeHint}</p>
+        )}
         {hasBirthData && activeTab === 'bonds' && userProfile && (
           <CompatibilityView
             activeProfile={userProfile}
@@ -591,6 +679,16 @@ function App() {
       {/* Reading History overlay */}
       {showHistory && (
         <ReadingHistory onClose={() => setShowHistory(false)} profileId={userProfile?.id} />
+      )}
+
+      {/* First Glimpse overlay — personality reveal after first profile */}
+      {showFirstGlimpse && userProfile && (
+        <FirstGlimpse
+          sunSign={userProfile.natalChart.sun.sign}
+          moonSign={userProfile.natalChart.moon.sign}
+          risingSign={userProfile.natalChart.ascendant?.sign}
+          onEnter={handleFirstGlimpseEnter}
+        />
       )}
 
       {/* Oracle reading overlay */}

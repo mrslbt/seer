@@ -43,6 +43,34 @@
   width: 100%;
   animation: oracleReveal 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
+  position: relative;
+}
+
+/* ── Dismiss button ──────────────────────────── */
+.oracle-dismiss {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  opacity: 0;
+  animation: actionsAppear 0.4s ease 2.5s forwards;
+}
+
+.oracle-dismiss:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.oracle-dismiss:active {
+  transform: scale(0.9);
 }
 
 /* ── Verdict label ─────────────────────────────── */
@@ -75,7 +103,7 @@
   font-size: 2.8rem;
   line-height: 0;
   vertical-align: -0.15em;
-  opacity: 0.25;
+  opacity: 0.35;
   color: var(--accent);
   display: inline;
   animation: quoteGlow 4s ease-in-out infinite;
@@ -92,7 +120,7 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-style: italic;
-  color: rgba(201, 168, 76, 0.35);
+  color: rgba(201, 168, 76, 0.5);
   background: none;
   border: none;
   cursor: pointer;
@@ -501,11 +529,11 @@
 
 @keyframes quoteGlow {
   0%, 100% {
-    opacity: 0.2;
+    opacity: 0.3;
     text-shadow: none;
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.45;
     text-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
   }
 }

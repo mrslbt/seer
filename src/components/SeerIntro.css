@@ -1,0 +1,231 @@
+/* ===============================================================
+   Seer Intro — First-Run Atmospheric Screens
+
+   Pure black void. Gold text materializes from blur.
+   Three screens: tap to advance through the ceremony.
+   =============================================================== */
+
+/* ── Overlay container ─────────────────────────── */
+
+.seer-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Atmospheric vignette — matches app's radial warmth */
+.seer-intro::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 45% 40% at 50% 45%,
+      rgba(201, 168, 76, 0.018) 0%,
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+/* ── Screen (each full-viewport layer) ─────────── */
+
+.seer-intro__screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  gap: 40px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.5s;
+}
+
+.seer-intro__screen--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.seer-intro__screen--exiting {
+  opacity: 0;
+  visibility: visible;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.4s;
+}
+
+/* ── Eye wrapper (screen 1) ────────────────────── */
+
+.seer-intro__eye-wrap {
+  opacity: 0;
+  animation: introEyeAppear 2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+@keyframes introEyeAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Text — gold, Instrument Serif, blur reveal ── */
+
+.seer-intro__text {
+  font-family: var(--font-display);
+  font-size: 1.3125rem;
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(201, 168, 76, 0.7);
+  letter-spacing: 0.025em;
+  line-height: 1.7;
+  text-align: center;
+  max-width: 300px;
+  opacity: 0;
+  animation: introTextReveal 1.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
+}
+
+/* Stagger variant — screen 2 uses individual lines */
+.seer-intro__text-line {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.3125rem;
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(201, 168, 76, 0.7);
+  letter-spacing: 0.025em;
+  line-height: 2;
+  text-align: center;
+  opacity: 0;
+  animation: introLineReveal 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.seer-intro__text-line:nth-child(1) {
+  animation-delay: 0.3s;
+}
+
+.seer-intro__text-line:nth-child(2) {
+  animation-delay: 0.8s;
+}
+
+.seer-intro__text-line:nth-child(3) {
+  animation-delay: 1.3s;
+}
+
+/* ── Hint — bottom tap indicator ─────────────── */
+
+.seer-intro__hint {
+  position: absolute;
+  bottom: max(32px, env(safe-area-inset-bottom, 32px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  animation: introHintPulse 4s ease-in-out 2.5s infinite;
+}
+
+/* ===============================================================
+   Keyframes
+   =============================================================== */
+
+/* Text blur-to-sharp reveal — matches .seer-acknowledgment */
+@keyframes introTextReveal {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(4px);
+  }
+  40% {
+    opacity: 0.4;
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Individual line reveal — staggered blur entrance */
+@keyframes introLineReveal {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(6px);
+  }
+  50% {
+    opacity: 0.5;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Hint breathes in and out, very subtle */
+@keyframes introHintPulse {
+  0%, 100% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.15;
+  }
+  85% {
+    opacity: 0.2;
+  }
+}
+
+/* ── Mobile ────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .seer-intro__screen {
+    padding: 40px 28px;
+    gap: 32px;
+  }
+
+  .seer-intro__text {
+    font-size: 1.125rem;
+    max-width: 260px;
+  }
+
+  .seer-intro__text-line {
+    font-size: 1.125rem;
+    line-height: 1.9;
+  }
+}
+
+@media (max-width: 380px) {
+  .seer-intro__text {
+    font-size: 1rem;
+  }
+
+  .seer-intro__text-line {
+    font-size: 1rem;
+  }
+}
