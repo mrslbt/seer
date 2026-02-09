@@ -368,6 +368,18 @@
   }
 }
 
+/* ---- Cosmic Hint (idle screen category energy) ---- */
+.cosmic-hint {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.3);
+  text-align: center;
+  animation: whisperAppear 1.2s ease;
+}
+
 /* ---- Retrograde Alert (Feature 7) ---- */
 .retrograde-alert {
   display: flex;

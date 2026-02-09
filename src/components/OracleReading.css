@@ -217,6 +217,17 @@
   font-size: 0.875rem;
 }
 
+/* ── Follow-ups exhausted ──────────────────────── */
+.follow-up-exhausted {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.2);
+  text-align: center;
+  letter-spacing: 0.04em;
+  margin: 4px 0;
+  animation: fadeIn 0.4s ease;
+}
+
 /* ── Bottom bar ────────────────────────────────── */
 .oracle-bottom-bar {
   display: flex;

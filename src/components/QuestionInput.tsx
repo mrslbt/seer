@@ -1,6 +1,17 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { validateQuestion } from '../lib/questionValidator';
 import './QuestionInput.css';
+
+const PLACEHOLDER_EXAMPLES = [
+  'Should I take the risk?',
+  'Will this work out?',
+  'Is now the right time?',
+  'Should I trust them?',
+  'Will I find what I need?',
+  'Should I let go?',
+  'Is this the right path?',
+  'Should I make the move?',
+];
 
 interface QuestionInputProps {
   value: string;
@@ -12,6 +23,18 @@ interface QuestionInputProps {
 
 export function QuestionInput({ value, onChange, onSubmit, disabled, error }: QuestionInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [placeholderIndex, setPlaceholderIndex] = useState(
+    () => Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.length)
+  );
+
+  // Rotate placeholder every 4 seconds when input is empty
+  useEffect(() => {
+    if (value) return; // Don't rotate while typing
+    const interval = setInterval(() => {
+      setPlaceholderIndex(prev => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [value]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
@@ -42,7 +65,7 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder="Ask the Seer..."
+          placeholder={PLACEHOLDER_EXAMPLES[placeholderIndex]}
           disabled={disabled}
           autoComplete="off"
           spellCheck="false"

@@ -279,6 +279,11 @@ export function OracleReading({
           </div>
         )}
 
+        {/* Follow-ups exhausted message */}
+        {!hasFollowUps && followUpRound > 0 && (
+          <p className="follow-up-exhausted">The oracle has spoken. Ask again for a new reading.</p>
+        )}
+
         {/* ── Bottom bar: Ask Again + Share icon ── */}
         <div className="oracle-bottom-bar">
           <button className="oracle-ask-again" onClick={onAskAgain}>

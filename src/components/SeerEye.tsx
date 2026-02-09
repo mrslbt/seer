@@ -9,6 +9,7 @@ interface SeerEyeProps {
 
 const OPEN_DURATION = 1500;
 const GAZE_DURATION = 3500;
+const MIN_GAZE_BEFORE_SKIP = 1500; // Must gaze at least 1.5s before tap-to-skip
 
 // --- Blink physiology ---
 // Real human blinks: close ~75-90ms, stay shut ~50-70ms, reopen ~120-170ms
@@ -44,14 +45,28 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
   const [internalState, setInternalState] = useState(state);
   const [blinkPhase, setBlinkPhase] = useState<BlinkPhase>('none');
   const [pupilState, setPupilState] = useState<PupilState>('normal');
+  const [canSkipGaze, setCanSkipGaze] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blinkChainRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const pupilTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gazeCompletedRef = useRef(false);
+
+  // Handle tap-to-skip gazing
+  const handleSkipGaze = useCallback(() => {
+    if (!canSkipGaze || gazeCompletedRef.current) return;
+    gazeCompletedRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    onGazeComplete?.();
+  }, [canSkipGaze, onGazeComplete]);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
 
     setInternalState(state);
+    setCanSkipGaze(false);
+    gazeCompletedRef.current = false;
 
     if (state === 'opening') {
       // Pupil constricts on open (light reaction) then relaxes
@@ -67,8 +82,17 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
     if (state === 'gazing') {
       // Pupil focuses (slightly constricted) while gazing
       setPupilState('focused');
+
+      // Allow skip after minimum gaze time
+      skipTimerRef.current = setTimeout(() => {
+        setCanSkipGaze(true);
+      }, MIN_GAZE_BEFORE_SKIP);
+
       timeoutRef.current = setTimeout(() => {
-        onGazeComplete?.();
+        if (!gazeCompletedRef.current) {
+          gazeCompletedRef.current = true;
+          onGazeComplete?.();
+        }
       }, GAZE_DURATION);
     }
 
@@ -85,6 +109,7 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
     };
   }, [state, onOpenComplete, onGazeComplete]);
 
@@ -301,7 +326,11 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
   const pupilClass = `eye-pupil--${pupilState}`;
 
   return (
-    <div className={`seer-eye-container seer-eye--${internalState} ${blinkClass}`}>
+    <div
+      className={`seer-eye-container seer-eye--${internalState} ${blinkClass}`}
+      onClick={internalState === 'gazing' ? handleSkipGaze : undefined}
+      style={internalState === 'gazing' && canSkipGaze ? { cursor: 'pointer' } : undefined}
+    >
       <div className="seer-eye">
         <svg
           viewBox="0 0 160 160"
@@ -593,9 +622,13 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
 
       {internalState === 'gazing' && (
         <div className="gaze-status">
-          <span className="gaze-dots">
-            <span>.</span><span>.</span><span>.</span>
-          </span>
+          {canSkipGaze ? (
+            <span className="gaze-skip-hint">tap to reveal</span>
+          ) : (
+            <span className="gaze-dots">
+              <span>.</span><span>.</span><span>.</span>
+            </span>
+          )}
         </div>
       )}
     </div>

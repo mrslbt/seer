@@ -38,6 +38,7 @@
   color: #666;
   font-style: italic;
   font-family: var(--font-display);
+  transition: opacity 0.3s ease;
 }
 
 .question-input.has-error {

@@ -54,10 +54,8 @@ const CATEGORY_KEYWORDS: Record<QuestionCategory, string[]> = {
     'difficult', 'challenge', 'enemy', 'rival', 'compete', 'competition'
   ],
   timing: [
-    'when', 'today', 'tomorrow', 'now', 'soon', 'wait', 'time', 'timing',
-    'right time', 'good time', 'start', 'begin', 'launch', 'initiate',
-    'move', 'travel', 'trip', 'vacation', 'sign', 'contract', 'decision',
-    'choose', 'decide', 'ready', 'prepared'
+    'when', 'wait', 'timing', 'right time', 'good time',
+    'travel', 'trip', 'vacation', 'sign', 'contract'
   ],
   health: [
     'workout', 'work out', 'exercise', 'gym', 'run', 'running', 'jog', 'jogging',
@@ -71,8 +69,8 @@ const CATEGORY_KEYWORDS: Record<QuestionCategory, string[]> = {
     'meet', 'meeting', 'network', 'networking', 'group', 'community'
   ],
   decisions: [
-    'decide', 'decision', 'choose', 'choice', 'option', 'should i', 'should we',
-    'right choice', 'best choice', 'pick', 'select'
+    'choice', 'option', 'right choice', 'best choice', 'pick', 'select',
+    'dilemma', 'torn between', 'or should'
   ],
   creativity: [
     'creative', 'create', 'art', 'artistic', 'write', 'writing', 'paint', 'music',
@@ -265,7 +263,7 @@ export function classifyQuestionWithConfidence(question: string): { category: Qu
   }
 
   // Find category with highest score
-  let maxCategory: QuestionCategory = 'timing'; // Default
+  let maxCategory: QuestionCategory = 'decisions'; // Default — most neutral fallback
   let maxScore = 0;
   let totalMatches = 0;
 

@@ -521,6 +521,21 @@
   50% { opacity: 0.8; }
 }
 
+.gaze-skip-hint {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.15);
+  animation: skipHintFade 0.6s ease both;
+}
+
+@keyframes skipHintFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .seer-eye {

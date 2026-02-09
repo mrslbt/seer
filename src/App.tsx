@@ -19,13 +19,12 @@ import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
-import { CategoryConfirmation } from './components/CategoryConfirmation';
 import { NatalChartView } from './components/NatalChartView';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
 
-type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'confirming_category' | 'gazing' | 'revealing';
+type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle');
@@ -44,7 +43,6 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
-  const [detectedCategory, setDetectedCategory] = useState<QuestionCategory | null>(null);
 
   const {
     isInitialized: cosmosReady,
@@ -94,6 +92,24 @@ function App() {
   // Pass overall score to influence eye ambient glow
   const cosmicMoodScore = dailyReport?.overallScore ?? 5;
 
+  // ---- Cosmic Hint for idle screen ----
+  const cosmicHint = useMemo(() => {
+    if (!dailyReport) return null;
+    const cats = dailyReport.categories;
+    const entries = Object.entries(cats) as [string, { score: number }][];
+    const best = entries.reduce((a, b) => b[1].score > a[1].score ? b : a);
+    const worst = entries.reduce((a, b) => b[1].score < a[1].score ? b : a);
+    if (best[1].score >= 7) {
+      const label = best[0].charAt(0).toUpperCase() + best[0].slice(1);
+      return `${label} is strong today (${best[1].score}/10)`;
+    }
+    if (worst[1].score <= 3) {
+      const label = worst[0].charAt(0).toUpperCase() + worst[0].slice(1);
+      return `${label} needs patience today (${worst[1].score}/10)`;
+    }
+    return null;
+  }, [dailyReport]);
+
   // ---- Transit Alerts (Feature 4) ----
   const hasTransitAlert = useMemo(() => {
     if (!dailyReport) return false;
@@ -141,7 +157,7 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
-  // Submit question — detect category, then confirm
+  // Submit question — classify silently and go straight to gazing
   const handleSubmitQuestion = useCallback(() => {
     const validation = validateQuestionInput(questionText);
     if (!validation.valid) {
@@ -155,30 +171,12 @@ function App() {
     const trimmed = questionText.trim();
     setSubmittedQuestion(trimmed);
 
-    // Auto-detect category from question text
+    // Classify silently — no user-facing confirmation
     const { category } = classifyQuestionWithConfidence(trimmed);
-    setDetectedCategory(category);
     setSelectedCategory(category);
 
-    setAppState('confirming_category');
-  }, [questionText]);
-
-  // Confirm category and proceed to gazing
-  const handleConfirmCategory = useCallback(() => {
     setAppState('gazing');
-  }, []);
-
-  // User corrected the detected category
-  const handleCategoryCorrection = useCallback((cat: QuestionCategory) => {
-    setSelectedCategory(cat);
-    setDetectedCategory(cat);
-  }, []);
-
-  // User wants to edit their question
-  const handleEditQuestion = useCallback(() => {
-    setAppState('awaiting_question');
-    setDetectedCategory(null);
-  }, []);
+  }, [questionText]);
 
   // Eye finished gazing - generate reading
   const handleGazeComplete = useCallback(() => {
@@ -235,7 +233,6 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
-    setDetectedCategory(null);
   }, []);
 
   // Ask again (go back to awaiting question with eye open)
@@ -246,7 +243,6 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
-    setDetectedCategory(null);
     setAppState('awaiting_question');
   }, []);
 
@@ -281,7 +277,6 @@ function App() {
       case 'idle': return 'closed';
       case 'summoning': return 'opening';
       case 'awaiting_question': return 'open';
-      case 'confirming_category': return 'open';
       case 'gazing': return 'gazing';
       case 'revealing': return 'open';
       default: return 'closed';
@@ -365,7 +360,7 @@ function App() {
         {hasBirthData && (
           <>
             {/* Branding */}
-            {(appState === 'idle' || appState === 'awaiting_question' || appState === 'confirming_category') && (
+            {(appState === 'idle' || appState === 'awaiting_question') && (
               <div className="seer-brand">
                 <span className="brand-the">The</span>
                 <span className="brand-seer">Seer</span>
@@ -384,6 +379,11 @@ function App() {
             {/* Cosmic Whisper (Feature 1) — shown below the eye in idle state */}
             {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
               <p className="cosmic-whisper">{cosmicWhisper}</p>
+            )}
+
+            {/* Cosmic Hint — top category energy on idle screen */}
+            {appState === 'idle' && cosmicHint && !cosmosLoading && !cosmicWhisper && (
+              <p className="cosmic-hint">{cosmicHint}</p>
             )}
 
             {/* Retrograde Alert (Feature 7) — shown in idle state */}
@@ -435,18 +435,6 @@ function App() {
               </div>
             )}
 
-            {/* Category confirmation — "the oracle senses…" */}
-            {appState === 'confirming_category' && detectedCategory && (
-              <div className="input-container">
-                <CategoryConfirmation
-                  question={submittedQuestion}
-                  detectedCategory={detectedCategory}
-                  onConfirm={handleConfirmCategory}
-                  onCorrect={handleCategoryCorrection}
-                  onEdit={handleEditQuestion}
-                />
-              </div>
-            )}
           </>
         )}
       </main>
