@@ -45,23 +45,22 @@ interface TodaysBondProps {
 // ============================================
 
 interface MoodVisual {
-  glyph: string;
   hue: number;
   saturation: number;
   lightness: number;
 }
 
 const MOOD_VISUALS: Record<BondMood, MoodVisual> = {
-  electric:   { glyph: '\u03DF',   hue: 45,  saturation: 75, lightness: 58 },  // ϟ lightning
-  tender:     { glyph: '\u25CB',   hue: 30,  saturation: 50, lightness: 55 },  // ○ open circle
-  volatile:   { glyph: '\u25B3',   hue: 0,   saturation: 45, lightness: 50 },  // △ flame
-  still:      { glyph: '\u2014',   hue: 220, saturation: 20, lightness: 60 },  // — dash
-  magnetic:   { glyph: '\u2726',   hue: 280, saturation: 40, lightness: 55 },  // ✦ star
-  fated:      { glyph: '\u2609',   hue: 45,  saturation: 80, lightness: 60 },  // ☉ sun
-  restless:   { glyph: '\u224B',   hue: 15,  saturation: 50, lightness: 52 },  // ≋ waves
-  raw:        { glyph: '\u2020',   hue: 350, saturation: 40, lightness: 48 },  // † dagger
-  expanding:  { glyph: '\u2316',   hue: 160, saturation: 35, lightness: 52 },  // ⌖ target
-  dissolving: { glyph: '\u25D0',   hue: 240, saturation: 30, lightness: 55 },  // ◐ eclipse
+  electric:   { hue: 45,  saturation: 75, lightness: 58 },
+  tender:     { hue: 30,  saturation: 50, lightness: 55 },
+  volatile:   { hue: 0,   saturation: 45, lightness: 50 },
+  still:      { hue: 220, saturation: 20, lightness: 60 },
+  magnetic:   { hue: 280, saturation: 40, lightness: 55 },
+  fated:      { hue: 45,  saturation: 80, lightness: 60 },
+  restless:   { hue: 15,  saturation: 50, lightness: 52 },
+  raw:        { hue: 350, saturation: 40, lightness: 48 },
+  expanding:  { hue: 160, saturation: 35, lightness: 52 },
+  dissolving: { hue: 240, saturation: 30, lightness: 55 },
 };
 
 // ============================================
@@ -103,10 +102,10 @@ export default function TodaysBond({ data }: TodaysBondProps) {
 
       {/* Header label */}
       <div className="todays-bond__header">
-        today&rsquo;s bond
+        how you feel today
       </div>
 
-      {/* Sigil: glyph + pulse ring */}
+      {/* Ring with score inside */}
       <div className="todays-bond__sigil">
         <svg
           className="todays-bond__ring"
@@ -133,15 +132,13 @@ export default function TodaysBond({ data }: TodaysBondProps) {
             className="todays-bond__ring-arc"
           />
         </svg>
-        <span className="todays-bond__glyph">{visual.glyph}</span>
+        <span className="todays-bond__score">{data.pulseScore}</span>
       </div>
 
-      {/* Mood word */}
-      <div className="todays-bond__mood">{data.mood}</div>
-
-      {/* Pulse score */}
-      <div className="todays-bond__pulse">
-        pulse {data.pulseScore}
+      {/* Mood word with context */}
+      <div className="todays-bond__mood-container">
+        <span className="todays-bond__mood-label">the energy today</span>
+        <span className="todays-bond__mood">{data.mood}</span>
       </div>
 
       {/* Transit lines */}
@@ -151,22 +148,17 @@ export default function TodaysBond({ data }: TodaysBondProps) {
         ))}
       </div>
 
-      {/* Moon phase */}
-      <div className="todays-bond__moon">
-        <span className="todays-bond__moon-icon">
-          {getMoonIcon(data.moonIllumination)}
-        </span>
-        {data.moonPhase} &middot; {data.moonIllumination}%
-      </div>
-
       {/* Ritual / advice */}
       <div className="todays-bond__ritual">
         {data.ritual}
       </div>
 
-      {/* Names (grounding) */}
-      <div className="todays-bond__names">
-        {data.person1Name} &amp; {data.person2Name}
+      {/* Moon phase */}
+      <div className="todays-bond__moon">
+        <span className="todays-bond__moon-icon">
+          {getMoonIcon(data.moonIllumination)}
+        </span>
+        {data.moonPhase}
       </div>
     </div>
   );

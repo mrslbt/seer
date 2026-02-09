@@ -306,9 +306,6 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
       {/* ---- Phase: Reading revealed (below eye) ---- */}
       {phase === 'reading' && report && reading && (
         <div className="compat-reading-container" ref={readingRef}>
-          {/* Today's Bond — daily oracle pulse */}
-          {todaysBond && <TodaysBond data={todaysBond} />}
-
           {/* Tier badge */}
           <div className="compat-tier" style={{ color: getTierColor(report.tier) }}>
             {getTierLabel(report.tier)}
@@ -317,7 +314,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Score */}
           <div className="compat-score" style={{ color: getTierColor(report.tier) }}>
             <span className="compat-score-num">{report.score}</span>
-            <span className="compat-score-max">/100</span>
+            <span className="compat-score-label">Cosmic Resonance</span>
           </div>
 
           {/* Oracle verdict */}
@@ -331,25 +328,6 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
               <p key={i} className="compat-reading-paragraph">{p}</p>
             ))}
           </div>
-
-          {/* Theme pills */}
-          {(() => {
-            const topThemes = report.themes.filter(t => t.score > 2).slice(0, 5);
-            return topThemes.length > 0 ? (
-              <div className="compat-themes">
-                {topThemes.map((t) => (
-                  <span
-                    key={t.theme}
-                    className="compat-theme-pill"
-                    style={{ borderColor: `${getTierColor(report.tier)}33`, color: getTierColor(report.tier) }}
-                  >
-                    {t.label}
-                    <span className="compat-theme-score">{t.score.toFixed(1)}</span>
-                  </span>
-                ))}
-              </div>
-            ) : null;
-          })()}
 
           {/* Strengths */}
           {report.strengths.length > 0 && (
@@ -371,11 +349,35 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
             </div>
           )}
 
+          {/* Theme pills */}
+          {(() => {
+            const topThemes = report.themes.filter(t => t.score > 2).slice(0, 5);
+            return topThemes.length > 0 ? (
+              <div className="compat-themes">
+                {topThemes.map((t) => (
+                  <span
+                    key={t.theme}
+                    className="compat-theme-pill"
+                    style={{ borderColor: `${getTierColor(report.tier)}33`, color: getTierColor(report.tier) }}
+                  >
+                    {t.label}
+                    <span className="compat-theme-score">
+                      {t.score >= 7 ? 'strong' : t.score >= 4 ? 'present' : 'subtle'}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            ) : null;
+          })()}
+
           {/* Element harmony */}
           <div className="compat-element">
             <h3 className="compat-section-label">Elemental Harmony</h3>
             <p className="compat-element-text">{report.elementHarmony.description}</p>
           </div>
+
+          {/* Today's Bond — daily layer, separated from permanent reading */}
+          {todaysBond && <TodaysBond data={todaysBond} />}
 
           {/* Actions */}
           <div className="compat-actions">

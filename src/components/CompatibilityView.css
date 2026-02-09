@@ -276,10 +276,15 @@
   font-weight: 400;
 }
 
-.compat-score-max {
+.compat-score-label {
+  display: block;
   font-family: var(--font);
-  font-size: 0.8125rem;
-  opacity: 0.3;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-top: 4px;
 }
 
 .compat-verdict {
@@ -325,7 +330,7 @@
   justify-content: center;
   margin-bottom: 32px;
   opacity: 0;
-  animation: compatSlideUp 0.5s ease 1.3s forwards;
+  animation: compatSlideUp 0.5s ease 1.6s forwards;
 }
 
 .compat-theme-pill {
@@ -344,7 +349,12 @@
 
 .compat-theme-score {
   font-size: 0.5625rem;
-  opacity: 0.5;
+  opacity: 0.45;
+  font-style: italic;
+}
+
+.compat-theme-score::before {
+  content: '\00B7  ';
 }
 
 /* Sections: strengths & challenges */
@@ -355,11 +365,11 @@
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   opacity: 0;
-  animation: compatSlideUp 0.5s ease 1.5s forwards;
+  animation: compatSlideUp 0.5s ease 1.2s forwards;
 }
 
-.compat-section:nth-child(7) {
-  animation-delay: 1.7s;
+.compat-section + .compat-section {
+  animation-delay: 1.4s;
 }
 
 .compat-section-label {
@@ -413,7 +423,7 @@
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   opacity: 0;
-  animation: compatSlideUp 0.5s ease 1.9s forwards;
+  animation: compatSlideUp 0.5s ease 1.8s forwards;
 }
 
 .compat-element-text {
