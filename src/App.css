@@ -40,20 +40,20 @@
   pointer-events: auto;
 }
 
-/* Header brand — top-left, whisper-quiet, single display font */
+/* Header brand — top-left, quiet but legible */
 .header-brand {
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-style: italic;
   color: var(--accent);
   letter-spacing: 0.03em;
-  opacity: 0.25;
+  opacity: 0.45;
   transition: opacity 0.6s ease;
   animation: brandDrift 0.8s ease;
 }
 
 .header-brand:hover {
-  opacity: 0.45;
+  opacity: 0.65;
 }
 
 @keyframes brandDrift {
@@ -62,7 +62,7 @@
     transform: translateX(-4px);
   }
   to {
-    opacity: 0.25;
+    opacity: 0.45;
     transform: translateX(0);
   }
 }
@@ -191,9 +191,11 @@
 
 /* Cosmos status */
 .cosmos-status {
-  font-size: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-style: italic;
   color: var(--accent-dim);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.02em;
   text-align: center;
   animation: fadeIn 0.4s ease;
 }
