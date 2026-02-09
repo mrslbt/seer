@@ -67,24 +67,6 @@
     visibility 0.4s;
 }
 
-/* ── Eye wrapper (screen 1) ────────────────────── */
-
-.seer-intro__eye-wrap {
-  opacity: 0;
-  animation: introEyeAppear 2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-}
-
-@keyframes introEyeAppear {
-  0% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 /* ── Text — gold, Instrument Serif, blur reveal ── */
 
 .seer-intro__text {
@@ -203,7 +185,6 @@
 
 /* ── Reduced motion ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .seer-intro__eye-wrap,
   .seer-intro__text,
   .seer-intro__text-line {
     animation: none !important;

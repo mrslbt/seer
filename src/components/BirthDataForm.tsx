@@ -136,7 +136,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
           className="field-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your name, a friend's name..."
+          placeholder="Your name"
           autoComplete="off"
         />
       </div>

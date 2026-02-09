@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { SeerEye } from './SeerEye';
+import { useState, useCallback, useEffect } from 'react';
 import './SeerIntro.css';
 
 interface SeerIntroProps {
@@ -12,7 +11,7 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
   const [activeScreen, setActiveScreen] = useState(0);
   const [exitingScreen, setExitingScreen] = useState<number | null>(null);
 
-  const handleTap = useCallback(() => {
+  const advance = useCallback(() => {
     if (activeScreen >= SCREEN_COUNT - 1) {
       onComplete();
       return;
@@ -26,6 +25,18 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
     setTimeout(() => setExitingScreen(null), 500);
   }, [activeScreen, onComplete]);
 
+  // Listen for Enter / Space key to advance
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        advance();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [advance]);
+
   const getScreenClass = (index: number) => {
     if (index === activeScreen) return 'seer-intro__screen seer-intro__screen--active';
     if (index === exitingScreen) return 'seer-intro__screen seer-intro__screen--exiting';
@@ -33,12 +44,9 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
   };
 
   return (
-    <div className="seer-intro" onClick={handleTap}>
-      {/* Screen 1: Eye + "The stars have been waiting" */}
+    <div className="seer-intro" onClick={advance}>
+      {/* Screen 1: "The stars have been waiting" */}
       <div className={getScreenClass(0)}>
-        <div className="seer-intro__eye-wrap">
-          <SeerEye state="closed" />
-        </div>
         <p className="seer-intro__text">The stars have been waiting</p>
       </div>
 
