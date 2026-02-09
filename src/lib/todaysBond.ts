@@ -178,28 +178,36 @@ function determineMood(tp: TransitProfile, report: SynastryReport, moonPhaseValu
 
 /** Calculate the daily bond pulse (0-100) */
 function calculatePulse(tp: TransitProfile, report: SynastryReport): number {
-  // Start from a base related to the static compatibility
-  let pulse = report.score * 0.4; // 0-40 base
+  // Start from a base related to the static compatibility (0-30 range)
+  let pulse = report.score * 0.3;
 
-  // Harmonious transits push up
-  pulse += tp.harmoniousCount * 5;
+  // Cap transit contributions so they can't dominate
+  // Harmonious transits: diminishing returns after 3
+  const harmBonus = Math.min(tp.harmoniousCount, 4) * 3;
+  pulse += harmBonus;
 
-  // Exact aspects are powerful
-  pulse += tp.exactCount * 4;
+  // Exact aspects are notable but capped
+  pulse += Math.min(tp.exactCount, 3) * 3;
 
-  // Challenging transits don't necessarily lower — they add intensity
-  pulse += tp.challengingCount * 2;
+  // Challenging transits add mild intensity, not raw score
+  pulse += Math.min(tp.challengingCount, 3) * 1;
 
-  // Venus + Mars together = high pulse
-  if (tp.hasVenusTransit && tp.hasMarsTransit) pulse += 10;
+  // Venus + Mars together = magnetic spike
+  if (tp.hasVenusTransit && tp.hasMarsTransit) pulse += 6;
 
   // Venus retrograde dampens
   if (tp.venusRetrograde) pulse -= 8;
 
   // Moon transits add a little buzz
-  if (tp.hasMoonTransit) pulse += 3;
+  if (tp.hasMoonTransit) pulse += 2;
 
-  return Math.max(5, Math.min(99, Math.round(pulse)));
+  // Add some daily variation based on date seed (±5)
+  const today = new Date();
+  const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const dailyVariation = ((daySeed * 7 + 13) % 11) - 5; // -5 to +5
+  pulse += dailyVariation;
+
+  return Math.max(12, Math.min(95, Math.round(pulse)));
 }
 
 // ============================================
@@ -466,7 +474,7 @@ export function calculateTodaysBond(
 
   // Fallback: no ephemeris — derive mood purely from synastry report
   const mood = deriveMoodFromSynastry(report);
-  const pulseScore = Math.max(10, Math.min(90, Math.round(report.score * 0.6 + 20)));
+  const pulseScore = Math.max(15, Math.min(85, Math.round(report.score * 0.5 + 15)));
   const transitLines = getFallbackTransitLines(dayRulerPlanet, mood);
 
   return {
