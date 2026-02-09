@@ -80,6 +80,30 @@
   opacity: 0.4;
 }
 
+.profile-edit {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(201, 168, 76, 0.35);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.profile-edit:hover {
+  color: rgba(201, 168, 76, 0.7);
+  background: rgba(201, 168, 76, 0.08);
+}
+
+.profile-edit:active {
+  transform: scale(0.9);
+}
+
 .profile-delete {
   width: 24px;
   height: 24px;

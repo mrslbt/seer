@@ -18,6 +18,7 @@ function formatLocalDate(date: Date): string {
 }
 
 export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataFormProps) {
+  const isEditing = !!initialData;
   const [name, setName] = useState(initialName || '');
   const [dateStr, setDateStr] = useState(
     initialData?.date ? formatLocalDate(initialData.date) : ''
@@ -124,7 +125,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
     <form onSubmit={handleSubmit} className="birth-form">
       <div className="form-intro">
         <p className="form-intro-text">
-          The Seer requires your celestial coordinates
+          {isEditing ? 'Realign your celestial coordinates' : 'The Seer requires your celestial coordinates'}
         </p>
       </div>
 
@@ -199,7 +200,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       {error && <div className="form-error">{error}</div>}
 
       <button type="submit" className="submit-btn">
-        Enter
+        {isEditing ? 'Save' : 'Enter'}
       </button>
     </form>
   );

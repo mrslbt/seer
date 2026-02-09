@@ -9,11 +9,12 @@ interface ProfileManagerProps {
   onSwitch: (profileId: string) => void;
   onAddNew: () => void;
   onDelete: (profileId: string) => void;
+  onEdit: (profileId: string) => void;
   onClose: () => void;
 }
 
 export function ProfileManager({
-  profiles, activeProfileId, onSwitch, onAddNew, onDelete, onClose
+  profiles, activeProfileId, onSwitch, onAddNew, onDelete, onEdit, onClose
 }: ProfileManagerProps) {
 
   const handleSwitch = useCallback((profileId: string) => {
@@ -28,6 +29,12 @@ export function ProfileManager({
     playClick();
     onDelete(profileId);
   }, [onDelete]);
+
+  const handleEdit = useCallback((e: React.MouseEvent, profileId: string) => {
+    e.stopPropagation();
+    playClick();
+    onEdit(profileId);
+  }, [onEdit]);
 
   const handleAdd = useCallback(() => {
     playClick();
@@ -53,6 +60,17 @@ export function ProfileManager({
               </div>
               <div className="profile-item-right">
                 <span className="profile-sign">{sunSign}</span>
+                {isActive && (
+                  <button
+                    className="profile-edit"
+                    onClick={(e) => handleEdit(e, profile.id)}
+                    aria-label={`Edit ${profile.birthData.name}`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                  </button>
+                )}
                 {!isActive && (
                   <button
                     className="profile-delete"

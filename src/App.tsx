@@ -13,6 +13,7 @@ import { getDailyWhisper } from './lib/cosmicWhisper';
 import { saveReading, analyzePatterns } from './lib/readingHistory';
 
 import { BirthDataForm } from './components/BirthDataForm';
+import { getCity } from './lib/cities';
 import { QuestionInput, validateQuestionInput } from './components/QuestionInput';
 import { SeerEye } from './components/SeerEye';
 import { OracleReading } from './components/OracleReading';
@@ -27,7 +28,7 @@ import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 import './App.css';
 
 type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
-type SettingsView = 'hidden' | 'settings' | 'add';
+type SettingsView = 'hidden' | 'settings' | 'add' | 'edit';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle');
@@ -43,12 +44,14 @@ function App() {
   const [settingsView, setSettingsView] = useState<SettingsView>('hidden');
   const [showHistory, setShowHistory] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+  const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
 
   const {
     isLoading: cosmosLoading,
     error: cosmosError,
     dailyReport,
     setUserFromOldBirthData,
+    updateProfile,
     refreshDailyReport,
     userProfile,
     allProfiles,
@@ -170,6 +173,41 @@ function App() {
     await setUserFromOldBirthData(data, name);
     setSettingsView('hidden');
   }, [setUserFromOldBirthData]);
+
+  // Get the profile being edited (as old BirthData format for the form)
+  const editingProfile = useMemo(() => {
+    if (!editingProfileId) return null;
+    const profile = allProfiles.find(p => p.id === editingProfileId);
+    if (!profile) return null;
+    const bd = profile.birthData;
+    // Look up IANA timezone from cities database
+    const cityData = getCity(bd.birthLocation.city, bd.birthLocation.country);
+    const oldData: BirthData = {
+      date: bd.birthDate,
+      time: bd.birthTime,
+      city: bd.birthLocation.city,
+      country: bd.birthLocation.country,
+      latitude: bd.birthLocation.latitude,
+      longitude: bd.birthLocation.longitude,
+      timezone: cityData?.timezone ?? '',
+    };
+    return { oldData, name: bd.name };
+  }, [editingProfileId, allProfiles]);
+
+  // Handle edit profile request
+  const handleEditProfile = useCallback((profileId: string) => {
+    setEditingProfileId(profileId);
+    setSettingsView('edit');
+  }, []);
+
+  // Handle edit profile submission
+  const handleEditProfileSubmit = useCallback(async (data: BirthData, name: string) => {
+    if (!editingProfileId) return;
+    playClick();
+    await updateProfile(editingProfileId, data, name);
+    setEditingProfileId(null);
+    setSettingsView('settings');
+  }, [editingProfileId, updateProfile]);
 
   // Summon the seer
   const handleSummon = useCallback(() => {
@@ -339,10 +377,7 @@ function App() {
       {/* Header — brand left, settings right */}
       <header className="app-header">
         {hasBirthData ? (
-          <div className="header-brand">
-            <span className="header-brand-the">The</span>
-            <span className="header-brand-seer">Seer</span>
-          </div>
+          <div className="header-brand">The Seer</div>
         ) : (
           <div />
         )}
@@ -460,9 +495,6 @@ function App() {
             {/* Question input */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
-                {userProfile?.birthData.name && (
-                  <p className="reading-for">Reading for {userProfile.birthData.name}</p>
-                )}
                 <QuestionInput
                   value={questionText}
                   onChange={handleQuestionChange}
@@ -508,11 +540,11 @@ function App() {
 
       {/* Settings modal — consolidated */}
       {settingsView !== 'hidden' && (
-        <div className="modal-overlay" onClick={() => setSettingsView('hidden')}>
+        <div className="modal-overlay" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{settingsView === 'settings' ? 'Settings' : 'New Profile'}</h2>
-              <button className="close-btn" onClick={() => setSettingsView('hidden')}>
+              <h2>{settingsView === 'settings' ? 'Settings' : settingsView === 'edit' ? 'Edit Profile' : 'New Profile'}</h2>
+              <button className="close-btn" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -556,6 +588,7 @@ function App() {
                     onSwitch={handleProfileSwitch}
                     onAddNew={() => setSettingsView('add')}
                     onDelete={deleteProfile}
+                    onEdit={handleEditProfile}
                     onClose={() => setSettingsView('hidden')}
                   />
                 </div>
@@ -564,6 +597,14 @@ function App() {
 
             {settingsView === 'add' && (
               <BirthDataForm onSubmit={handleBirthDataSubmit} />
+            )}
+
+            {settingsView === 'edit' && editingProfile && (
+              <BirthDataForm
+                onSubmit={handleEditProfileSubmit}
+                initialData={editingProfile.oldData}
+                initialName={editingProfile.name}
+              />
             )}
           </div>
         </div>

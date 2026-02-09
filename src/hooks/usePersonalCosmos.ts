@@ -39,6 +39,7 @@ interface UsePersonalCosmosReturn {
 
   // Actions
   setUserFromOldBirthData: (oldData: OldBirthData, name?: string) => Promise<void>;
+  updateProfile: (profileId: string, oldData: OldBirthData, name: string) => Promise<void>;
   switchProfile: (profileId: string) => void;
   deleteProfile: (profileId: string) => void;
   refreshDailyReport: () => void;
@@ -312,6 +313,62 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
     }
   }, [isInitialized]);
 
+  // Update an existing profile's birth data and name
+  const updateProfile = useCallback(async (profileId: string, oldData: OldBirthData, name: string) => {
+    if (!isInitialized) {
+      setError('Cosmic calculations not ready');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Convert to new format
+      const birthData = convertOldBirthData(oldData, name);
+
+      // Recalculate natal chart
+      const natalChart = calculateNatalChart(birthData);
+
+      // Update in profiles array
+      setAllProfiles(prev => {
+        const updated = prev.map(p => {
+          if (p.id !== profileId) return p;
+          return {
+            ...p,
+            birthData,
+            natalChart,
+            updatedAt: new Date(),
+          };
+        });
+        saveProfiles(updated);
+
+        // If this is the active profile, update it + regenerate report
+        if (userProfile?.id === profileId) {
+          const updatedProfile = updated.find(p => p.id === profileId)!;
+          setUserProfile(updatedProfile);
+
+          // Clear whisper cache for fresh generation
+          localStorage.removeItem(`seer_daily_whisper_${profileId}`);
+
+          try {
+            const report = generatePersonalDailyReport(updatedProfile);
+            setDailyReport(report);
+          } catch (err) {
+            console.error('Failed to regenerate daily report:', err);
+          }
+        }
+
+        return updated;
+      });
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      setError('Failed to update your cosmic profile');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isInitialized, userProfile]);
+
   // Switch to a different profile
   const switchProfile = useCallback((profileId: string) => {
     const profile = allProfiles.find(p => p.id === profileId);
@@ -392,6 +449,7 @@ export function usePersonalCosmos(): UsePersonalCosmosReturn {
     dailyReport,
     allProfiles,
     setUserFromOldBirthData,
+    updateProfile,
     switchProfile,
     deleteProfile,
     refreshDailyReport,
