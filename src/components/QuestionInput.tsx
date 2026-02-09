@@ -59,7 +59,8 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
       <div className="question-input-row">
         <input
           ref={inputRef}
-          type="text"
+          type="search"
+          name="seer-question"
           className={`question-input ${error ? 'has-error' : ''}`}
           value={value}
           onChange={handleInputChange}
@@ -68,8 +69,11 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
           placeholder={PLACEHOLDER_EXAMPLES[placeholderIndex]}
           disabled={disabled}
           autoComplete="off"
+          autoCorrect="off"
           spellCheck="false"
           enterKeyHint="go"
+          data-form-type="other"
+          data-lpignore="true"
         />
         <button
           className="ask-btn"

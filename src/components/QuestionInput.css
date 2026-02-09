@@ -28,6 +28,17 @@
   transition: border-color 0.3s ease;
   letter-spacing: 0.01em;
   border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Remove Safari search input decorations */
+.question-input::-webkit-search-decoration,
+.question-input::-webkit-search-cancel-button,
+.question-input::-webkit-search-results-button,
+.question-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
 }
 
 .question-input:focus {

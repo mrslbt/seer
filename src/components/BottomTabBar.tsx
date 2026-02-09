@@ -19,11 +19,11 @@ export function BottomTabBar({ activeTab, onTabChange, hasTransitAlert }: Bottom
 
   return (
     <nav className="bottom-tab-bar">
-      {/* Oracle */}
+      {/* Seer */}
       <button
         className={`tab-btn ${activeTab === 'oracle' ? 'tab-btn--active' : ''}`}
         onClick={() => handleTab('oracle')}
-        aria-label="Oracle"
+        aria-label="Seer"
       >
         <span className="tab-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -31,7 +31,7 @@ export function BottomTabBar({ activeTab, onTabChange, hasTransitAlert }: Bottom
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </span>
-        <span className="tab-label">Oracle</span>
+        <span className="tab-label">Seer</span>
       </button>
 
       {/* Cosmos */}
