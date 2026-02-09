@@ -13,14 +13,15 @@ import './ReadingHistory.css';
 
 interface ReadingHistoryProps {
   onClose: () => void;
+  profileId?: string;
 }
 
-export function ReadingHistory({ onClose }: ReadingHistoryProps) {
+export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
   const [groups, setGroups] = useState<{ date: string; readings: ReadingRecord[] }[]>([]);
 
   useEffect(() => {
-    setGroups(getReadingsGroupedByDate());
-  }, []);
+    setGroups(getReadingsGroupedByDate(profileId));
+  }, [profileId]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();

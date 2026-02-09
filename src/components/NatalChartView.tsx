@@ -12,7 +12,8 @@ import './NatalChartView.css';
 
 interface NatalChartViewProps {
   natalChart: NatalChart;
-  onClose: () => void;
+  onClose?: () => void;
+  mode?: 'overlay' | 'inline';
 }
 
 // ---- Glyph maps ----
@@ -87,16 +88,19 @@ function ordinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-export function NatalChartView({ natalChart, onClose }: NatalChartViewProps) {
-  // Escape key handler
+export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalChartViewProps) {
+  const isInline = mode === 'inline';
+
+  // Escape key handler (only in overlay mode)
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
+    if (e.key === 'Escape') onClose?.();
   }, [onClose]);
 
   useEffect(() => {
+    if (isInline) return;
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [handleKeyDown, isInline]);
 
   const hasHouses = !!natalChart.houses;
 
@@ -107,7 +111,7 @@ export function NatalChartView({ natalChart, onClose }: NatalChartViewProps) {
   };
 
   return (
-    <div className="chart-overlay" role="dialog" aria-modal="true" aria-label="Your Natal Chart">
+    <div className={isInline ? 'chart-inline' : 'chart-overlay'} role={isInline ? undefined : 'dialog'} aria-modal={isInline ? undefined : true} aria-label={isInline ? undefined : 'Your Natal Chart'}>
       <div className="chart-container">
         {/* Header */}
         <div className="chart-header">
@@ -115,9 +119,11 @@ export function NatalChartView({ natalChart, onClose }: NatalChartViewProps) {
             <span className="chart-title-sub">Your</span>
             <span className="chart-title-main">Natal Chart</span>
           </div>
-          <button className="chart-close" onClick={onClose} aria-label="Close">
-            ×
-          </button>
+          {!isInline && (
+            <button className="chart-close" onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          )}
         </div>
 
         {/* Ascendant & Midheaven */}

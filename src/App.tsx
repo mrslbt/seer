@@ -21,15 +21,17 @@ import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
 import { NatalChartView } from './components/NatalChartView';
 import { ProfileManager } from './components/ProfileManager';
+import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
 
 type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
-type SettingsView = 'hidden' | 'profiles' | 'add';
+type SettingsView = 'hidden' | 'settings' | 'add';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('oracle');
   const [questionText, setQuestionText] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [submittedQuestion, setSubmittedQuestion] = useState('');
@@ -39,9 +41,7 @@ function App() {
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [settingsView, setSettingsView] = useState<SettingsView>('hidden');
-  const [showDashboard, setShowDashboard] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showChart, setShowChart] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
 
   const {
@@ -73,8 +73,8 @@ function App() {
     return generateAstroContext(oldBirthData, new Date());
   }, [userProfile]);
 
-  // Auto-refresh dashboard data every 30 minutes while visible
-  useDashboardRefresh(showDashboard, refreshDailyReport);
+  // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
+  useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
 
   // ---- Cosmic Whisper (Feature 1) ----
   const cosmicWhisper = useMemo(() => {
@@ -92,16 +92,21 @@ function App() {
     const entries = Object.entries(cats) as [string, { score: number }][];
     const best = entries.reduce((a, b) => b[1].score > a[1].score ? b : a);
     const worst = entries.reduce((a, b) => b[1].score < a[1].score ? b : a);
+    const name = userProfile?.birthData.name;
     if (best[1].score >= 7) {
       const label = best[0].charAt(0).toUpperCase() + best[0].slice(1);
-      return `${label} is strong today (${best[1].score}/10)`;
+      return name
+        ? `${name}, ${label.toLowerCase()} is strong today`
+        : `${label} is strong today (${best[1].score}/10)`;
     }
     if (worst[1].score <= 3) {
       const label = worst[0].charAt(0).toUpperCase() + worst[0].slice(1);
-      return `${label} needs patience today (${worst[1].score}/10)`;
+      return name
+        ? `${label} needs patience today, ${name}`
+        : `${label} needs patience today (${worst[1].score}/10)`;
     }
     return null;
-  }, [dailyReport]);
+  }, [dailyReport, userProfile]);
 
   // ---- Transit Alerts (Feature 4) ----
   const hasTransitAlert = useMemo(() => {
@@ -179,7 +184,7 @@ function App() {
       category = scoring.category;
     }
 
-    const readingPatterns = analyzePatterns();
+    const readingPatterns = analyzePatterns(userProfile?.id);
     const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns);
     setOracleText(response);
     setOracleVerdict(verdict);
@@ -198,6 +203,7 @@ function App() {
       category,
       moonPhase: dailyReport?.moonPhase.name,
       overallScore: dailyReport?.overallScore,
+      profileId: userProfile?.id,
     });
 
     setTimeout(() => {
@@ -251,9 +257,15 @@ function App() {
     if (!newMuted) playClick();
   }, [isMuted]);
 
+  // Tab change handler
+  const handleTabChange = useCallback((tab: ActiveTab) => {
+    setActiveTab(tab);
+  }, []);
+
   // Profile switch handler
   const handleProfileSwitch = useCallback((profileId: string) => {
     switchProfile(profileId);
+    setActiveTab('oracle');
     // Reset app state if in the middle of something
     if (appState !== 'idle') {
       setAppState('idle');
@@ -285,48 +297,24 @@ function App() {
 
   return (
     <div className="app">
-      {/* Header */}
+      {/* Header — single settings icon */}
       <header className="app-header">
-        <button className="header-btn" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
-          {isMuted ? '\u{1F507}' : '\u{1F50A}'}
-        </button>
-        {hasBirthData && dailyReport && appState !== 'revealing' && (
-          <button
-            className={`header-btn ${hasTransitAlert ? 'header-btn--alert' : ''}`}
-            onClick={() => { playClick(); setShowDashboard(true); }}
-            aria-label="Cosmic Dashboard"
-          >
-            {'\u2728'}
-            {hasTransitAlert && <span className="transit-alert-dot" />}
-          </button>
-        )}
         {hasBirthData && (
           <button
-            className="header-btn"
-            onClick={() => { playClick(); setShowHistory(true); }}
-            aria-label="Reading History"
+            className="header-settings-btn"
+            onClick={() => { playClick(); setSettingsView('settings'); }}
+            aria-label="Settings"
           >
-            {'\u{1F4DC}'}
-          </button>
-        )}
-        {hasBirthData && userProfile && (
-          <button
-            className="header-btn"
-            onClick={() => { playClick(); setShowChart(true); }}
-            aria-label="Your Chart"
-          >
-            {'\u{1FA90}'}
-          </button>
-        )}
-        {hasBirthData && (
-          <button className="header-btn" onClick={() => { playClick(); setSettingsView('profiles'); }} aria-label="Profiles">
-            {'\u2699\uFE0F'}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
           </button>
         )}
       </header>
 
       {/* Main content */}
-      <main className="app-main">
+      <main className={`app-main ${hasBirthData && activeTab !== 'oracle' ? 'app-main--scrollable' : ''}`}>
         {/* First visit - show birth form inline */}
         {!hasBirthData && !cosmosLoading && (
           <div className="onboarding">
@@ -350,8 +338,8 @@ function App() {
           <p className="cosmos-status cosmos-status--warn">Readings may be less precise today</p>
         )}
 
-        {/* Main seer interface */}
-        {hasBirthData && (
+        {/* === ORACLE TAB === */}
+        {hasBirthData && activeTab === 'oracle' && (
           <>
             {/* Branding */}
             {(appState === 'idle' || appState === 'awaiting_question') && (
@@ -365,7 +353,7 @@ function App() {
             {appState === 'idle' && allProfiles.length > 1 && userProfile && (
               <button
                 className="profile-indicator"
-                onClick={() => { playClick(); setSettingsView('profiles'); }}
+                onClick={() => { playClick(); setSettingsView('settings'); }}
               >
                 {userProfile.birthData.name}
               </button>
@@ -380,9 +368,13 @@ function App() {
               />
             </div>
 
-            {/* Cosmic Whisper (Feature 1) */}
+            {/* Cosmic Whisper (Feature 1) — personalized with name */}
             {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
-              <p className="cosmic-whisper">{cosmicWhisper}</p>
+              <p className="cosmic-whisper">
+                {userProfile?.birthData.name
+                  ? `${userProfile.birthData.name}. ${cosmicWhisper}`
+                  : cosmicWhisper}
+              </p>
             )}
 
             {/* Cosmic Hint — top category energy on idle screen */}
@@ -428,6 +420,9 @@ function App() {
             {/* Question input */}
             {appState === 'awaiting_question' && (
               <div className="input-container">
+                {userProfile?.birthData.name && (
+                  <p className="reading-for">Reading for {userProfile.birthData.name}</p>
+                )}
                 <QuestionInput
                   value={questionText}
                   onChange={handleQuestionChange}
@@ -440,26 +435,91 @@ function App() {
             )}
           </>
         )}
+
+        {/* === COSMOS TAB === */}
+        {hasBirthData && activeTab === 'cosmos' && dailyReport && (
+          <CosmicDashboard
+            report={dailyReport}
+            onRefresh={refreshDailyReport}
+            mode="inline"
+          />
+        )}
+        {hasBirthData && activeTab === 'cosmos' && !dailyReport && (
+          <p className="cosmos-status">Loading cosmic data...</p>
+        )}
+
+        {/* === CHART TAB === */}
+        {hasBirthData && activeTab === 'chart' && userProfile && (
+          <NatalChartView
+            natalChart={userProfile.natalChart}
+            mode="inline"
+          />
+        )}
       </main>
 
-      {/* Settings / Profile Manager modal */}
+      {/* Bottom Tab Bar — only shown after onboarding, hidden during reveal */}
+      {hasBirthData && appState !== 'revealing' && (
+        <BottomTabBar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          hasTransitAlert={hasTransitAlert}
+        />
+      )}
+
+      {/* Settings modal — consolidated */}
       {settingsView !== 'hidden' && (
         <div className="modal-overlay" onClick={() => setSettingsView('hidden')}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{settingsView === 'profiles' ? 'Profiles' : 'New Profile'}</h2>
-              <button className="close-btn" onClick={() => setSettingsView('hidden')}>x</button>
+              <h2>{settingsView === 'settings' ? 'Settings' : 'New Profile'}</h2>
+              <button className="close-btn" onClick={() => setSettingsView('hidden')}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
 
-            {settingsView === 'profiles' && (
-              <ProfileManager
-                profiles={allProfiles}
-                activeProfileId={userProfile?.id ?? null}
-                onSwitch={handleProfileSwitch}
-                onAddNew={() => setSettingsView('add')}
-                onDelete={deleteProfile}
-                onClose={() => setSettingsView('hidden')}
-              />
+            {settingsView === 'settings' && (
+              <div className="settings-content">
+                {/* Sound toggle */}
+                <div className="settings-row">
+                  <span className="settings-row-label">Sound</span>
+                  <button
+                    className={`settings-toggle ${!isMuted ? 'settings-toggle--on' : ''}`}
+                    onClick={toggleMute}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  >
+                    <span className="settings-toggle-knob" />
+                  </button>
+                </div>
+
+                {/* Reading History link */}
+                <button
+                  className="settings-row settings-row--link"
+                  onClick={() => { playClick(); setShowHistory(true); }}
+                >
+                  <span className="settings-row-label">Reading History</span>
+                  <span className="settings-row-chevron">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </span>
+                </button>
+
+                {/* Profiles section */}
+                <div className="settings-section">
+                  <h3 className="settings-section-label">Profiles</h3>
+                  <ProfileManager
+                    profiles={allProfiles}
+                    activeProfileId={userProfile?.id ?? null}
+                    onSwitch={handleProfileSwitch}
+                    onAddNew={() => setSettingsView('add')}
+                    onDelete={deleteProfile}
+                    onClose={() => setSettingsView('hidden')}
+                  />
+                </div>
+              </div>
             )}
 
             {settingsView === 'add' && (
@@ -469,26 +529,9 @@ function App() {
         </div>
       )}
 
-      {/* Cosmic Dashboard overlay */}
-      {showDashboard && dailyReport && (
-        <CosmicDashboard
-          report={dailyReport}
-          onClose={() => setShowDashboard(false)}
-          onRefresh={refreshDailyReport}
-        />
-      )}
-
       {/* Reading History overlay */}
       {showHistory && (
-        <ReadingHistory onClose={() => setShowHistory(false)} />
-      )}
-
-      {/* Natal Chart overlay */}
-      {showChart && userProfile && (
-        <NatalChartView
-          natalChart={userProfile.natalChart}
-          onClose={() => setShowChart(false)}
-        />
+        <ReadingHistory onClose={() => setShowHistory(false)} profileId={userProfile?.id} />
       )}
 
       {/* Oracle reading overlay */}

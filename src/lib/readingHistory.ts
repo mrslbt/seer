@@ -17,6 +17,7 @@ export interface ReadingRecord {
   timestamp: number; // ms since epoch
   moonPhase?: string;
   overallScore?: number;
+  profileId?: string; // which profile made this reading
 }
 
 const HISTORY_KEY = 'seer_reading_history';
@@ -32,6 +33,7 @@ export function saveReading(reading: Omit<ReadingRecord, 'id' | 'timestamp'>): R
     timestamp: Date.now(),
   };
 
+  // Always load ALL readings (unfiltered) for storage
   const history = getReadings();
   history.unshift(record); // newest first
 
@@ -48,23 +50,29 @@ export function saveReading(reading: Omit<ReadingRecord, 'id' | 'timestamp'>): R
 }
 
 /**
- * Get all readings, newest first
+ * Get all readings, newest first.
+ * Optionally filter by profileId.
  */
-export function getReadings(): ReadingRecord[] {
+export function getReadings(profileId?: string): ReadingRecord[] {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as ReadingRecord[];
+    const all = JSON.parse(raw) as ReadingRecord[];
+    if (profileId) {
+      return all.filter(r => r.profileId === profileId);
+    }
+    return all;
   } catch {
     return [];
   }
 }
 
 /**
- * Get readings grouped by date
+ * Get readings grouped by date.
+ * Optionally filter by profileId.
  */
-export function getReadingsGroupedByDate(): { date: string; readings: ReadingRecord[] }[] {
-  const readings = getReadings();
+export function getReadingsGroupedByDate(profileId?: string): { date: string; readings: ReadingRecord[] }[] {
+  const readings = getReadings(profileId);
   const groups: Map<string, ReadingRecord[]> = new Map();
 
   for (const reading of readings) {
@@ -85,9 +93,9 @@ export function getReadingsGroupedByDate(): { date: string; readings: ReadingRec
 /**
  * Get count of readings today (for paywall gating)
  */
-export function getTodayReadingCount(): number {
+export function getTodayReadingCount(profileId?: string): number {
   const today = new Date().toDateString();
-  return getReadings().filter(r => new Date(r.timestamp).toDateString() === today).length;
+  return getReadings(profileId).filter(r => new Date(r.timestamp).toDateString() === today).length;
 }
 
 /**
@@ -107,9 +115,10 @@ export interface ReadingPatterns {
 /**
  * Analyze reading patterns for session memory.
  * Looks at readings from the last 7 days.
+ * Optionally filter by profileId.
  */
-export function analyzePatterns(): ReadingPatterns {
-  const readings = getReadings();
+export function analyzePatterns(profileId?: string): ReadingPatterns {
+  const readings = getReadings(profileId);
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const recentReadings = readings.filter(r => r.timestamp >= sevenDaysAgo);
 

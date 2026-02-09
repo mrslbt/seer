@@ -7,8 +7,9 @@ import './CosmicDashboard.css';
 
 interface CosmicDashboardProps {
   report: PersonalDailyReport;
-  onClose: () => void;
+  onClose?: () => void;
   onRefresh: () => void;
+  mode?: 'overlay' | 'inline';
 }
 
 // SVG arc calculation for the overall score ring
@@ -20,24 +21,26 @@ function getArcOffset(score: number): number {
   return RING_CIRCUMFERENCE * (1 - fraction);
 }
 
-export function CosmicDashboard({ report, onClose, onRefresh }: CosmicDashboardProps) {
+export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }: CosmicDashboardProps) {
   const [expandedCategory, setExpandedCategory] = useState<keyof PersonalDailyReport['categories'] | null>(null);
+  const isInline = mode === 'inline';
 
-  // Escape key handler
+  // Escape key handler (only in overlay mode)
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       if (expandedCategory) {
         setExpandedCategory(null);
       } else {
-        onClose();
+        onClose?.();
       }
     }
   }, [expandedCategory, onClose]);
 
   useEffect(() => {
+    if (isInline) return;
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [handleKeyDown, isInline]);
 
   // ---- Detail View ----
   if (expandedCategory) {
@@ -47,7 +50,7 @@ export function CosmicDashboard({ report, onClose, onRefresh }: CosmicDashboardP
     const scoreColor = getScoreColor(catScore.score);
 
     return (
-      <div className="dashboard-overlay" role="dialog" aria-modal="true" aria-label={`${meta.displayName} details`}>
+      <div className={isInline ? 'dashboard-inline' : 'dashboard-overlay'} role={isInline ? undefined : 'dialog'} aria-modal={isInline ? undefined : true} aria-label={isInline ? undefined : `${meta.displayName} details`}>
         <div className="dashboard-container dashboard-detail">
           <button className="detail-back" onClick={() => setExpandedCategory(null)}>
             {'←'} Back
@@ -86,13 +89,17 @@ export function CosmicDashboard({ report, onClose, onRefresh }: CosmicDashboardP
   const overallColor = getScoreColor(report.overallScore);
 
   return (
-    <div className="dashboard-overlay" role="dialog" aria-modal="true" aria-label="Cosmic Dashboard">
+    <div className={isInline ? 'dashboard-inline' : 'dashboard-overlay'} role={isInline ? undefined : 'dialog'} aria-modal={isInline ? undefined : true} aria-label={isInline ? undefined : 'Cosmic Dashboard'}>
       <div className="dashboard-container">
         {/* Header */}
         <div className="dashboard-header">
-          <button className="dashboard-close" onClick={onClose} aria-label="Close dashboard">
-            {'✕'}
-          </button>
+          {isInline ? (
+            <div style={{ width: 32 }} />
+          ) : (
+            <button className="dashboard-close" onClick={onClose} aria-label="Close dashboard">
+              {'✕'}
+            </button>
+          )}
           <div className="dashboard-title">
             <span className="dashboard-title-sub">Your</span>
             <span className="dashboard-title-main">Cosmic Day</span>

@@ -1,5 +1,17 @@
 /* NatalChartView — natal placements overlay */
 
+/* ---- Inline mode (tab content) ---- */
+.chart-inline {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  animation: chartFadeIn 0.4s ease;
+}
+
+.chart-inline::before {
+  display: none;
+}
+
 /* ---- Overlay & Container ---- */
 .chart-overlay {
   position: fixed;
