@@ -63,9 +63,9 @@ export function FirstGlimpse({ sunSign, moonSign, risingSign, onEnter }: FirstGl
   return (
     <div className="first-glimpse">
       <div className="first-glimpse__content">
-        {/* Eye in revealing state */}
+        {/* Eye closed — stays closed until user summons on main screen */}
         <div className="first-glimpse__eye">
-          <SeerEye state="revealing" />
+          <SeerEye state="closed" />
         </div>
 
         {/* Trinity: Sun · Moon · Rising */}

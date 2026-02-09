@@ -279,6 +279,9 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
                   </button>
                 );
               })}
+              <button className="compat-add-btn compat-add-btn--inline" onClick={onAddProfile}>
+                + Add Profile
+              </button>
             </div>
           ) : (
             <div className="compat-empty">

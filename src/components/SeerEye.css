@@ -55,13 +55,15 @@
   );
 }
 
-/* Closed-eye hint — faint gold seam so the eye shape is visible */
+/* Closed-eye hint — gold seam so the eye shape is clearly visible */
 .seer-eye-container.seer-eye--closed .lash-line--top {
-  stroke: rgba(201, 168, 76, 0.12) !important;
+  stroke: rgba(201, 168, 76, 0.35) !important;
+  stroke-width: 1.5;
 }
 
 .seer-eye-container.seer-eye--closed .lash-line--bottom {
-  stroke: rgba(201, 168, 76, 0.06) !important;
+  stroke: rgba(201, 168, 76, 0.18) !important;
+  stroke-width: 0.8;
 }
 
 .eye-svg {
