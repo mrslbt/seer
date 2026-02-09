@@ -11,7 +11,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #000;
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,6 +198,27 @@
   }
   85% {
     opacity: 0.2;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .seer-intro__eye-wrap,
+  .seer-intro__text,
+  .seer-intro__text-line {
+    animation: none !important;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .seer-intro__hint {
+    animation: none !important;
+    opacity: 0.15;
+  }
+
+  .seer-intro__screen {
+    transition-duration: 0.01s !important;
   }
 }
 

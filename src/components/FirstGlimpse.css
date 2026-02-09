@@ -9,7 +9,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #000;
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,6 +190,23 @@
   50% {
     opacity: 1;
     transform: scale(1.04);
+  }
+}
+
+/* ── Reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .first-glimpse__eye,
+  .first-glimpse__trinity,
+  .first-glimpse__reading,
+  .first-glimpse__enter {
+    animation: none !important;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .first-glimpse__enter::before {
+    animation: none !important;
   }
 }
 

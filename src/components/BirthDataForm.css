@@ -32,15 +32,15 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #aaa;
+  color: var(--text-secondary);
 }
 
 .field-input {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #222;
-  color: #fff;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
   padding: 12px 0;
   font-family: var(--font);
   font-size: 1rem;
@@ -54,7 +54,7 @@
 }
 
 .field-input::placeholder {
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Date and time inputs */
@@ -78,7 +78,7 @@
 /* Hint text */
 .field-hint {
   font-size: 0.6875rem;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .field-hint.selected {
@@ -95,8 +95,8 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-top: none;
   list-style: none;
   margin: 0;
@@ -108,10 +108,10 @@
 
 .suggestion {
   padding: 12px 0;
-  color: #aaa;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid var(--border);
   transition: color 0.15s;
 }
 
@@ -125,7 +125,7 @@
 
 /* Error message */
 .form-error {
-  color: #ef4444;
+  color: var(--no);
   font-size: 0.75rem;
   text-align: center;
 }

@@ -46,14 +46,14 @@
 }
 
 .question-input::placeholder {
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
   font-family: var(--font-display);
   transition: opacity 0.3s ease;
 }
 
 .question-input.has-error {
-  border-color: #8B4A4A;
+  border-color: var(--no);
 }
 
 .question-input:disabled {
@@ -93,7 +93,7 @@
 /* Error */
 .input-error {
   font-size: 0.6875rem;
-  color: #A67458;
+  color: var(--no);
   letter-spacing: 0.02em;
   animation: fadeIn 0.2s ease;
 }

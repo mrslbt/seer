@@ -5,8 +5,8 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #000;
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
   position: relative;
 }
 
@@ -194,7 +194,8 @@
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-style: italic;
-  color: rgba(201, 168, 76, 0.88);
+  color: var(--accent);
+  opacity: 0.88;
   letter-spacing: 0.02em;
   text-align: center;
   line-height: 1.4;
@@ -238,14 +239,14 @@
 }
 
 .cosmos-status--warn {
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Submitted question */
 .current-question {
   font-family: var(--font-display);
   font-size: 0.9375rem;
-  color: #999;
+  color: var(--text-muted);
   font-style: italic;
   text-align: center;
   max-width: 300px;
@@ -305,9 +306,9 @@
 }
 
 .modal {
-  background: #0a0a0a;
-  border: 1px solid #1a1a1a;
-  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   width: 100%;
   max-width: 360px;
   max-height: 85vh;
@@ -320,7 +321,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
@@ -336,15 +337,15 @@
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  color: #777;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color var(--transition);
 }
 
 .close-btn:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 /* ---- Cosmic Whisper (Feature 1) ---- */
@@ -352,7 +353,7 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-style: italic;
-  color: #aaa;
+  color: var(--text-secondary);
   text-align: center;
   max-width: 280px;
   line-height: 1.5;
@@ -414,7 +415,7 @@
 
 /* ---- Contextual First-Use Hint ---- */
 .contextual-hint {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font-display);
   font-style: italic;
   font-size: 0.8125rem;
   color: rgba(201, 168, 76, 0.82);
@@ -472,7 +473,7 @@
   font-family: var(--font-display);
   font-size: 0.6875rem;
   font-style: italic;
-  color: #999;
+  color: var(--text-muted);
   letter-spacing: 0.01em;
 }
 

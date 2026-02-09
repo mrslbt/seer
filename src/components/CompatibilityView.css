@@ -98,7 +98,7 @@
 .compat-current-question {
   font-family: var(--font-display);
   font-size: 0.9375rem;
-  color: #777;
+  color: var(--text-muted);
   font-style: italic;
   text-align: center;
   max-width: 300px;
@@ -557,13 +557,13 @@
 }
 
 .compat-question-input::placeholder {
-  color: #666;
+  color: var(--text-muted); opacity: 0.7;
   font-style: italic;
   font-family: var(--font-display);
 }
 
 .compat-question-input.has-error {
-  border-color: #8B4A4A;
+  border-color: var(--no);
 }
 
 .compat-submit-btn {
@@ -596,7 +596,7 @@
 
 .compat-input-error {
   font-size: 0.6875rem;
-  color: #A67458;
+  color: var(--no);
   letter-spacing: 0.02em;
   text-align: left;
   animation: compatFadeIn 0.2s ease;
@@ -609,7 +609,7 @@
   font-size: 0.6875rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--text-muted); opacity: 0.7;
   margin: 24px 0 12px;
   animation: compatFadeIn 0.4s ease 0.2s both;
   user-select: none;
@@ -631,7 +631,7 @@
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0.01em;
-  color: #777;
+  color: var(--text-muted);
   background: transparent;
   border: 1px solid rgba(201, 168, 76, 0.12);
   border-radius: var(--radius-full);

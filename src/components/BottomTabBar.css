@@ -116,6 +116,18 @@
   opacity: 0.7;
 }
 
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tab-alert-dot {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .tab-btn {
+    transition-duration: 0.01s !important;
+  }
+}
+
 @media (max-width: 480px) {
   .bottom-tab-bar {
     height: 56px;

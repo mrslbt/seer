@@ -538,6 +538,35 @@
   to { opacity: 1; }
 }
 
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .iris-group--gazing,
+  .iris-group--revealing,
+  .eye-pupil--gazing,
+  .seer-eye--gazing .eye-glint-main,
+  .seer-eye--revealing .eye-glint-main,
+  .seer-eye--open .eye-glint-tertiary,
+  .seer-eye--revealing .eye-glint-tertiary,
+  .seer-eye--gazing .iris-fiber,
+  .seer-eye--gazing .iris-fiber-inner,
+  .seer-eye--revealing .iris-fiber,
+  .gaze-dots span,
+  .tab-alert-dot {
+    animation: none !important;
+  }
+
+  .eyelid,
+  .lid-crease,
+  .waterline,
+  .lash-line,
+  .iris-group,
+  .eye-pupil,
+  .eye-glint-main,
+  .eye-glint-tertiary {
+    transition-duration: 0.01s !important;
+  }
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .seer-eye {

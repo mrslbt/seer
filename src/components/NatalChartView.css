@@ -85,7 +85,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.125rem;
-  color: #999;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -93,7 +93,7 @@
 }
 
 .chart-close:hover {
-  color: #bbb;
+  color: var(--text-secondary);
 }
 
 /* ---- Sections ---- */
@@ -156,7 +156,7 @@
 .chart-point-sign {
   font-family: var(--font);
   font-size: 0.8125rem;
-  color: var(--text-primary);
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -222,7 +222,7 @@
 .chart-planet-sign {
   font-family: var(--font);
   font-size: 0.8125rem;
-  color: var(--text-primary);
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 3px;
@@ -291,7 +291,7 @@
 .chart-house-sign {
   font-family: var(--font);
   font-size: 0.75rem;
-  color: var(--text-primary);
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 4px;

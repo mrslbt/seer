@@ -58,7 +58,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  color: #999;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -66,7 +66,7 @@
 }
 
 .dashboard-close:hover {
-  color: #bbb;
+  color: var(--text-secondary);
 }
 
 .dashboard-title {
@@ -101,7 +101,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
-  color: #777;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -145,7 +145,7 @@
 
 .overall-score-track {
   fill: none;
-  stroke: #111;
+  stroke: var(--border);
   stroke-width: 2;
 }
 
@@ -172,7 +172,7 @@
 .overall-score-max {
   font-family: var(--font);
   font-size: 0.75rem;
-  color: #999;
+  color: var(--text-muted);
   position: relative;
   z-index: 1;
   margin-top: -4px;
@@ -191,7 +191,7 @@
   font-family: var(--font-display);
   font-size: 0.875rem;
   font-style: italic;
-  color: #aaa;
+  color: var(--text-secondary);
   text-align: center;
   line-height: 1.4;
   max-width: 280px;
@@ -228,7 +228,7 @@
 
 .category-card:hover {
   border-color: var(--border-hover);
-  background: #0e0e0e;
+  background: var(--bg-elevated);
 }
 
 .category-card:active {
@@ -259,7 +259,7 @@
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  color: #bbb;
+  color: var(--text-secondary);
   flex: 1;
 }
 
@@ -273,7 +273,7 @@
 /* Score bar */
 .category-bar-track {
   height: 2px;
-  background: #151515;
+  background: var(--border);
   border-radius: 1px;
   margin-bottom: 8px;
   overflow: hidden;
@@ -294,14 +294,14 @@
 .category-advice {
   font-family: var(--font);
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--text-secondary);
   line-height: 1.3;
   display: block;
 }
 
 /* ---- Sections (Moon, Transits, Retrogrades) ---- */
 .dashboard-section {
-  border-top: 1px solid #111;
+  border-top: 1px solid var(--border);
   padding: 20px 0;
   animation: dashboardSlideUp 0.4s ease both;
 }
@@ -316,7 +316,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-muted);
   margin-bottom: 12px;
 }
 
@@ -336,7 +336,7 @@
 
 .moon-advice {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
@@ -362,7 +362,7 @@
 
 .transit-text {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
@@ -385,14 +385,14 @@
 
 .retrograde-advice {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 /* Timestamp */
 .dashboard-timestamp {
   font-size: 0.6875rem;
-  color: #888;
+  color: var(--text-muted);
   text-align: center;
   margin-top: 24px;
   letter-spacing: 0.1em;
@@ -411,7 +411,7 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-muted);
   background: none;
   border: none;
   cursor: pointer;
@@ -421,13 +421,13 @@
 }
 
 .detail-back:hover {
-  color: #bbb;
+  color: var(--text-secondary);
 }
 
 .detail-header {
   margin-bottom: 28px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #111;
+  border-bottom: 1px solid var(--border);
 }
 
 .detail-category-name {
@@ -465,14 +465,14 @@
 
 .detail-score-max {
   font-size: 0.875rem;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .detail-score-label {
   font-size: 0.6875rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-muted);
   margin-left: 12px;
 }
 
@@ -501,14 +501,14 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
 .detail-section-body {
   font-size: 0.875rem;
   line-height: 1.6;
-  color: #bbb;
+  color: var(--text-secondary);
   white-space: pre-line;
 }
 

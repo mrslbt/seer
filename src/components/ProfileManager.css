@@ -19,7 +19,7 @@
   padding: 14px 16px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
   color: rgba(255, 255, 255, 0.7);
@@ -136,7 +136,7 @@
   color: rgba(201, 168, 76, 0.7);
   background: transparent;
   border: 1px dashed rgba(201, 168, 76, 0.2);
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
 }
