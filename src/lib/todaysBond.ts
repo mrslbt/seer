@@ -406,48 +406,76 @@ function getFallbackTransitLines(
 
 /**
  * Calculate the daily bond data for a pair.
- * Returns null if calculation fails entirely.
+ * Falls back to synastry-only data if ephemeris is unavailable.
  */
 export function calculateTodaysBond(
   profile1: UserProfile,
   profile2: UserProfile,
   report: SynastryReport,
-): TodaysBondData | null {
-  let currentPositions: NatalChart;
+): TodaysBondData {
+  let currentPositions: NatalChart | null = null;
   try {
     currentPositions = calculateCurrentPositions();
-  } catch {
-    return null;
+  } catch (e) {
+    console.warn('Today\'s Bond: ephemeris unavailable, using synastry-only fallback', e);
   }
 
-  const moonData = getMoonPhase();
-  const dayRuler = getDayRuler();
-  const tp = profileTransits(profile1, profile2, currentPositions);
+  // Moon data (may fail independently)
+  let moonPhaseName = 'the sky';
+  let moonIllumination = 50;
+  let moonPhaseValue = 0.25;
+  try {
+    const moonData = getMoonPhase();
+    moonPhaseName = moonData.phaseName.toLowerCase();
+    moonIllumination = Math.round(moonData.illumination * 100);
+    moonPhaseValue = moonData.phase;
+  } catch { /* use defaults */ }
 
-  const mood = determineMood(tp, report, moonData.phase);
-  const pulseScore = calculatePulse(tp, report);
+  let dayRulerPlanet: Planet = 'sun';
+  try {
+    dayRulerPlanet = getDayRuler().ruler;
+  } catch { /* use default */ }
 
-  // Generate transit lines (or fallback)
-  let transitLines = generateTransitLines(tp, profile1, profile2);
-  if (transitLines.length === 0) {
-    transitLines = getFallbackTransitLines(dayRuler.ruler, mood);
+  // If we have current positions, do full transit analysis
+  if (currentPositions) {
+    const tp = profileTransits(profile1, profile2, currentPositions);
+    const mood = determineMood(tp, report, moonPhaseValue);
+    const pulseScore = calculatePulse(tp, report);
+
+    let transitLines = generateTransitLines(tp, profile1, profile2);
+    if (transitLines.length === 0) {
+      transitLines = getFallbackTransitLines(dayRulerPlanet, mood);
+    }
+
+    const moonHouseContext = getMoonHouseContext(currentPositions, profile1, profile2);
+    if (moonHouseContext && transitLines.length < 2) {
+      transitLines.push(moonHouseContext + '.');
+    }
+
+    return {
+      mood,
+      pulseScore,
+      transitLines,
+      moonPhase: moonPhaseName,
+      moonIllumination,
+      ritual: pickRitual(mood),
+      person1Name: profile1.birthData.name,
+      person2Name: profile2.birthData.name,
+    };
   }
 
-  // Moon context: append to transit lines if relevant
-  const moonHouseContext = getMoonHouseContext(currentPositions, profile1, profile2);
-  if (moonHouseContext && transitLines.length < 2) {
-    transitLines.push(moonHouseContext + '.');
-  }
-
-  const ritual = pickRitual(mood);
+  // Fallback: no ephemeris — derive mood purely from synastry report
+  const mood = deriveMoodFromSynastry(report);
+  const pulseScore = Math.max(10, Math.min(90, Math.round(report.score * 0.6 + 20)));
+  const transitLines = getFallbackTransitLines(dayRulerPlanet, mood);
 
   return {
     mood,
     pulseScore,
     transitLines,
-    moonPhase: moonData.phaseName.toLowerCase(),
-    moonIllumination: Math.round(moonData.illumination * 100),
-    ritual,
+    moonPhase: moonPhaseName,
+    moonIllumination,
+    ritual: pickRitual(mood),
     person1Name: profile1.birthData.name,
     person2Name: profile2.birthData.name,
   };
@@ -456,6 +484,25 @@ export function calculateTodaysBond(
 // ============================================
 // HELPERS
 // ============================================
+
+/** Derive mood from synastry alone (no transit data) */
+function deriveMoodFromSynastry(report: SynastryReport): BondMood {
+  const topTheme = report.themes[0]?.theme;
+
+  if (report.score >= 80) return 'fated';
+  if (report.score >= 65) {
+    if (topTheme === 'passion' || topTheme === 'attraction') return 'magnetic';
+    if (topTheme === 'soul' || topTheme === 'destiny') return 'fated';
+    return 'expanding';
+  }
+  if (report.score >= 45) {
+    if (topTheme === 'emotional') return 'tender';
+    if (topTheme === 'chaos') return 'restless';
+    return 'still';
+  }
+  if (topTheme === 'transformation') return 'raw';
+  return 'still';
+}
 
 function pickRandom<T>(arr: T[]): T {
   // Use date-seeded index for daily consistency within the same session

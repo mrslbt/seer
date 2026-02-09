@@ -72,7 +72,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [suggestions] = useState(() => getRandomQuestions(4));
-  const [todaysBond, setTodaysBond] = useState<TodaysBondData | null>(null);
+  const [todaysBond, setTodaysBond] = useState<TodaysBondData | null>(null); // null until computed
   const inputRef = useRef<HTMLInputElement>(null);
   const readingRef = useRef<HTMLDivElement>(null);
 
