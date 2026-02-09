@@ -52,13 +52,13 @@ const CATEGORY_MAP: Record<QuestionCategory, keyof PersonalDailyReport['categori
  * Describe the energy level poetically
  */
 function describeEnergy(score: number): string {
-  if (score >= 9) return "An extraordinary surge of cosmic energy flows through this domain. Rarely do the stars align with such conviction.";
-  if (score >= 7) return "Strong currents of celestial favor run through this area of your life. The cosmos lean decidedly in your direction.";
-  if (score >= 6) return "A steady, supportive energy surrounds this aspect of your existence. The stars offer quiet encouragement.";
-  if (score === 5) return "The cosmic scales rest in perfect balance. Neither blessing nor challenge dominates. This is a day of equilibrium.";
-  if (score >= 4) return "A gentle headwind blows against your efforts here. The cosmos counsel patience rather than force.";
-  if (score >= 2) return "The celestial currents run contrary to progress in this sphere. Resistance is not punishment but redirection.";
-  return "The stars stand firmly in opposition. This is the cosmos protecting you from a path best avoided today.";
+  if (score >= 9) return "Rare strength here. The sky is fully behind you in this area today.";
+  if (score >= 7) return "Strong energy working in your favor. The stars clearly support you here.";
+  if (score >= 6) return "Steady, quiet support. The sky is on your side, but not loudly.";
+  if (score === 5) return "Perfect balance. Nothing pushes you forward or holds you back. The day is yours to shape.";
+  if (score >= 4) return "Light resistance. The sky suggests patience over force right now.";
+  if (score >= 2) return "The sky works against progress here. Not punishment. Redirection.";
+  return "Strong opposition. The stars are protecting you from a path best avoided today.";
 }
 
 /**
@@ -176,7 +176,7 @@ export function generateInsightArticle(
   // Section 7: Moon phase
   sections.push({
     heading: "Lunar Guidance",
-    body: `${report.moonPhase.name} \u2014 ${report.moonPhase.advice}`,
+    body: `${report.moonPhase.name}. ${report.moonPhase.advice}`,
   });
 
   // Section 8: Personal advice

@@ -1,12 +1,12 @@
 /**
  * Oracle Response Generator
  *
- * Transforms scoring verdicts into elaborate, mystical oracle prose.
- * The Seer speaks in poetic but clear language -- never vague,
- * always direct. Like counsel from someone who has seen everything.
+ * Transforms scoring verdicts into oracle prose.
+ * The Seer speaks like someone old, direct, and slightly unsettling.
+ * Short sentences. No filler. No em dashes. No corporate mysticism.
  *
- * Now transit-aware: when a daily report is available, the oracle
- * references actual planetary transits, not generic mystical quotes.
+ * When a daily report is available, the oracle references actual
+ * planetary transits, not generic quotes.
  */
 
 import type { Verdict, QuestionCategory } from '../types/astrology';
@@ -15,7 +15,7 @@ import type { PersonalDailyReport } from './personalDailyReport';
 import { HOUSE_MEANINGS } from './personalDailyReport';
 import type { ReadingPatterns } from './readingHistory';
 
-// ---- Category mapping (question category → report category) ----
+// ---- Category mapping (question category -> report category) ----
 const CATEGORY_MAP: Record<QuestionCategory, keyof PersonalDailyReport['categories']> = {
   love: 'love',
   career: 'career',
@@ -48,193 +48,193 @@ const PLANET_NAME: Record<Planet, string> = {
   chiron: 'Chiron',
 };
 
-// ---- Aspect voice: poetic descriptions per aspect type × impact ----
+// ---- Aspect voice: descriptions per aspect type x impact ----
 const ASPECT_VOICE: Record<AspectType, Record<string, string[]>> = {
   conjunction: {
     positive: [
-      '{tp} merges its power with your natal {np} — a rare fusion that amplifies everything in its path.',
-      '{tp} and your natal {np} occupy the same degree — their combined force opens doors.',
+      '{tp} sits right on top of your natal {np}. That kind of closeness amplifies everything.',
+      '{tp} and your natal {np} share the same degree. When that happens, doors tend to open.',
     ],
     negative: [
-      '{tp} collides with your natal {np} — the intensity demands careful navigation.',
-      '{tp} and your natal {np} blend into something volatile — awareness is your shield.',
+      '{tp} presses into your natal {np}. That intensity can be useful, but you have to stay sharp.',
+      '{tp} and your natal {np} are fused together right now. Handle with care.',
     ],
     neutral: [
-      '{tp} and your natal {np} share the same space — their energies intertwine in unpredictable ways.',
+      '{tp} and your natal {np} occupy the same space. The result could go either way.',
     ],
   },
   trine: {
     positive: [
-      '{tp} flows in harmony with your natal {np} — the kind of ease that rarely needs to be forced.',
-      '{tp} and your natal {np} dance together today — grace comes naturally.',
-      '{tp} harmonizes with your natal {np} — the path of least resistance is also the wisest one.',
+      '{tp} flows easily with your natal {np}. You will not have to force anything today.',
+      '{tp} and your natal {np} are working together. This kind of ease is rare. Use it.',
+      '{tp} supports your natal {np}. The path of least resistance is also the right one.',
     ],
     negative: [
-      '{tp} harmonizes with your natal {np}, though the ease may breed complacency. Stay alert.',
+      '{tp} harmonizes with your natal {np}, but ease can make you careless. Stay aware.',
     ],
     neutral: [
-      '{tp} and your natal {np} share a graceful connection — gentle currents carry you forward.',
+      '{tp} and your natal {np} share a gentle connection. Let it carry you.',
     ],
   },
   square: {
     positive: [
-      '{tp} squares your natal {np} — friction that, handled well, becomes fuel for growth.',
+      '{tp} squares your natal {np}. There is friction, but friction creates momentum.',
     ],
     negative: [
-      '{tp} clashes with your natal {np} — there is a wall between desire and availability.',
-      '{tp} grinds against your natal {np} — the tension is real, but temporary.',
-      '{tp} squares your natal {np} — resistance meets ambition. Something has to give.',
+      '{tp} grinds against your natal {np}. There is a wall here. It will pass, but not today.',
+      '{tp} squares your natal {np}. What you want and what is possible are pulling apart.',
+      '{tp} clashes with your natal {np}. Something has to bend.',
     ],
     neutral: [
-      '{tp} challenges your natal {np} — the tension demands a choice you may not feel ready to make.',
+      '{tp} challenges your natal {np}. You may be asked to choose before you feel ready.',
     ],
   },
   opposition: {
     positive: [
-      '{tp} stands across from your natal {np} — the polarity brings clarity through contrast.',
+      '{tp} faces your natal {np} from the other side. The tension brings clarity.',
     ],
     negative: [
-      '{tp} opposes your natal {np} — what you want pulls against what the moment allows.',
-      '{tp} and your natal {np} face off — two truths compete. Only one can lead.',
+      '{tp} opposes your natal {np}. What you want pulls against what is available.',
+      '{tp} and your natal {np} face off. Two truths compete. Only one can lead.',
     ],
     neutral: [
-      '{tp} and your natal {np} mirror each other — balance is today\'s lesson.',
+      '{tp} and your natal {np} mirror each other. Balance is the work today.',
     ],
   },
   sextile: {
     positive: [
-      '{tp} winks at your natal {np} — a gentle opportunity, easily missed if you do not look.',
-      '{tp} extends a hand toward your natal {np} — accept the invitation.',
+      '{tp} opens a small window toward your natal {np}. Easy to miss if you are not looking.',
+      '{tp} reaches toward your natal {np}. A quiet invitation. Accept it.',
     ],
     negative: [
-      '{tp} offers your natal {np} a chance, but it requires your initiative to claim it.',
+      '{tp} offers your natal {np} a chance, but you have to meet it halfway.',
     ],
     neutral: [
-      '{tp} and your natal {np} exchange a subtle signal — pay attention to small openings.',
+      '{tp} and your natal {np} exchange a subtle signal. Watch for small openings.',
     ],
   },
   quincunx: {
     positive: [
-      '{tp} makes an awkward angle to your natal {np} — adjustment leads to unexpected growth.',
+      '{tp} makes an odd angle to your natal {np}. Adjustment leads to unexpected progress.',
     ],
     negative: [
-      '{tp} and your natal {np} speak different languages today — translation is required before action.',
+      '{tp} and your natal {np} do not quite fit together right now. Give it time.',
     ],
     neutral: [
-      '{tp} asks your natal {np} to adapt — discomfort is not failure, it is information.',
+      '{tp} asks your natal {np} to adapt. The discomfort is information, not failure.',
     ],
   },
 };
 
-// ---- Planet + category flavor: specific poetic lines for key pairings ----
+// ---- Planet + category flavor: specific lines for key pairings ----
 type CategoryKey = QuestionCategory | keyof PersonalDailyReport['categories'];
 const PLANET_FLAVOR: Partial<Record<Planet, Partial<Record<CategoryKey, { positive: string; negative: string }>>>> = {
   venus: {
     love: {
-      positive: 'Venus opens the heart without reservation — what you feel is reciprocated by the cosmos.',
-      negative: 'Venus withholds her warmth — desire meets a closed door. Patience, not pursuit.',
+      positive: 'Venus is warm right now. What you feel, the sky confirms.',
+      negative: 'Venus has gone quiet. Desire meets a closed door. Wait, do not chase.',
     },
     money: {
-      positive: 'Venus attracts abundance naturally today — receive it.',
-      negative: 'Venus in tension warns against impulse spending and wishful accounting.',
+      positive: 'Venus draws good things your way today. Be ready to receive.',
+      negative: 'Venus in tension. Watch impulse spending and wishful numbers.',
     },
     social: {
-      positive: 'Venus lights your social presence — you are more magnetic than you realize.',
-      negative: 'Venus complicates social dynamics today — tread lightly in group settings.',
+      positive: 'Venus lights up your presence. People notice you more than usual.',
+      negative: 'Venus tangles the social thread today. Go gently in groups.',
     },
   },
   saturn: {
     career: {
-      positive: 'Saturn rewards the work you have already done — results materialize from past effort.',
-      negative: 'Saturn demands more from you before it yields — this is a test, not a punishment.',
+      positive: 'Saturn pays off the work you already put in. Results show.',
+      negative: 'Saturn asks more from you first. Not punishment. Preparation.',
     },
     decisions: {
-      positive: 'Saturn brings the clarity of hard-won wisdom — trust the structure you have built.',
-      negative: 'Saturn restricts your options — but constraints reveal what truly matters.',
+      positive: 'Saturn brings hard clarity. Trust what you have already built.',
+      negative: 'Saturn narrows your options. But fewer choices reveal what actually matters.',
     },
   },
   jupiter: {
     money: {
-      positive: 'Jupiter expands your financial horizons — abundance flows toward the prepared.',
-      negative: 'Jupiter\'s excess tips toward recklessness — generosity without boundaries becomes loss.',
+      positive: 'Jupiter opens the financial picture up. Opportunity is real.',
+      negative: 'Jupiter pushes toward excess. Generosity without a boundary becomes loss.',
     },
     spiritual: {
-      positive: 'Jupiter illuminates your inner world — wisdom arrives without effort today.',
-      negative: 'Jupiter\'s expansion feels overwhelming — ground yourself before seeking more.',
+      positive: 'Jupiter lights the inner world. Wisdom comes without effort today.',
+      negative: 'Jupiter expands too much too fast. Ground yourself before seeking more.',
     },
   },
   mercury: {
     communication: {
-      positive: 'Mercury sharpens every word you speak — truth lands where it needs to.',
-      negative: 'Mercury tangles the signal — silence protects more than speech today.',
+      positive: 'Mercury sharpens your words. What you say will land.',
+      negative: 'Mercury scrambles the signal. Silence protects you more than speech today.',
     },
     social: {
-      positive: 'Mercury quickens your social mind — wit and connection flow easily.',
-      negative: 'Mercury scatters your attention — conversations may lead nowhere.',
+      positive: 'Mercury quickens your mind. Conversation and connection come easily.',
+      negative: 'Mercury scatters your attention. Conversations may go nowhere.',
     },
   },
   mars: {
     career: {
-      positive: 'Mars fuels your ambition — drive and opportunity align.',
-      negative: 'Mars agitates your professional sphere — ambition without patience becomes conflict.',
+      positive: 'Mars backs your ambition. Drive and timing line up.',
+      negative: 'Mars stirs the professional sphere. Ambition without patience turns to conflict.',
     },
     health: {
-      positive: 'Mars energizes your body — physical vitality peaks.',
-      negative: 'Mars pushes too hard — the body needs rest, not more force.',
+      positive: 'Mars fills your body with energy. Physical vitality peaks.',
+      negative: 'Mars pushes too hard. Your body wants rest, not force.',
     },
     conflict: {
-      positive: 'Mars stands beside you — strength and resolve are yours today.',
-      negative: 'Mars inflames the situation — engagement now costs more than retreat.',
+      positive: 'Mars stands with you. Strength and resolve are yours today.',
+      negative: 'Mars heats the situation. Engaging now costs more than stepping back.',
     },
   },
   moon: {
     love: {
-      positive: 'The Moon deepens emotional currents — intimacy comes naturally.',
-      negative: 'The Moon stirs old feelings — what surfaces needs acknowledgment, not action.',
+      positive: 'The Moon deepens what you feel. Closeness comes naturally.',
+      negative: 'The Moon stirs old feelings. What rises needs to be seen, not acted on.',
     },
     health: {
-      positive: 'The Moon nurtures your body — listen to what it craves.',
-      negative: 'The Moon brings restlessness — sleep may elude you. Be gentle with yourself.',
+      positive: 'The Moon nurtures your body. Listen to what it asks for.',
+      negative: 'The Moon brings restlessness. Sleep may be difficult. Be patient with yourself.',
     },
   },
   sun: {
     career: {
-      positive: 'The Sun illuminates your path forward — visibility and recognition increase.',
-      negative: 'The Sun exposes what you hoped to keep hidden — transparency is unavoidable.',
+      positive: 'The Sun lights your path. Visibility and recognition increase.',
+      negative: 'The Sun exposes what you hoped to keep private. There is no hiding today.',
     },
     creativity: {
-      positive: 'The Sun ignites creative fire — self-expression flows without filter.',
-      negative: 'The Sun burns too bright — creative vision blurs under its intensity.',
+      positive: 'The Sun ignites creative fire. Expression flows without filter.',
+      negative: 'The Sun burns too bright. Creative vision blurs under its glare.',
     },
   },
   pluto: {
     spiritual: {
-      positive: 'Pluto draws you into profound depths — transformation happens in the silence.',
-      negative: 'Pluto churns the deep waters — what rises is uncomfortable but necessary.',
+      positive: 'Pluto draws you deep. Transformation happens in the quiet.',
+      negative: 'Pluto stirs what was buried. Uncomfortable, but necessary.',
     },
     decisions: {
-      positive: 'Pluto reveals the hidden truth — see clearly and choose accordingly.',
-      negative: 'Pluto obscures motives — including your own. Proceed only with radical honesty.',
+      positive: 'Pluto reveals hidden truth. See it clearly and choose.',
+      negative: 'Pluto hides motives. Including your own. Move only with honesty.',
     },
   },
   neptune: {
     spiritual: {
-      positive: 'Neptune dissolves the veil — intuition and reality merge beautifully today.',
-      negative: 'Neptune clouds your vision — what feels like intuition may be wishful thinking.',
+      positive: 'Neptune thins the veil. Intuition and reality meet beautifully today.',
+      negative: 'Neptune fogs your vision. What feels like intuition might be wishing.',
     },
     creativity: {
-      positive: 'Neptune floods you with inspiration — let the current carry you.',
-      negative: 'Neptune drowns clarity — creative vision dissolves into confusion.',
+      positive: 'Neptune floods you with ideas. Let them carry you.',
+      negative: 'Neptune drowns focus. Creative vision dissolves into noise.',
     },
   },
   uranus: {
     decisions: {
-      positive: 'Uranus breaks the pattern — a sudden insight changes everything.',
-      negative: 'Uranus destabilizes — decisions made impulsively now will need revision.',
+      positive: 'Uranus breaks the pattern. A sudden shift changes everything.',
+      negative: 'Uranus destabilizes. Quick decisions now will need fixing later.',
     },
     career: {
-      positive: 'Uranus opens an unexpected door — be ready to walk through it.',
-      negative: 'Uranus disrupts your plans — flexibility is survival today.',
+      positive: 'Uranus opens an unexpected door. Be ready for it.',
+      negative: 'Uranus disrupts your plans. Flexibility is survival today.',
     },
   },
 };
@@ -243,43 +243,43 @@ const PLANET_FLAVOR: Partial<Record<Planet, Partial<Record<CategoryKey, { positi
 const VERDICT_OPENERS: Record<Verdict, string[]> = {
   HARD_YES: [
     'The stars burn bright for you.',
-    'A rare alignment graces this moment.',
-    'The cosmos have cleared your path.',
-    'The heavens speak with unusual certainty.',
-    'Every cosmic signal converges in your favor.',
+    'This is rare. The sky is clear and certain.',
+    'Everything points the same direction.',
+    'The heavens do not hesitate today.',
+    'A strong alignment. You have the green light.',
   ],
   SOFT_YES: [
-    'The stars lean in your favor, gently.',
-    'A warm current stirs in your chart.',
-    'The cosmic winds carry encouragement.',
-    'The cosmos tilt toward yes, with caveats.',
-    'A favorable current runs through this question.',
+    'The stars lean your way. Gently.',
+    'Something warm moves through your chart.',
+    'The sky says yes, with one eye open.',
+    'Encouragement, not certainty. But real.',
+    'A good current runs through this question.',
   ],
   NEUTRAL: [
-    'The stars neither pull nor push.',
-    'The cosmos hold their counsel for now.',
-    'The celestial balance hangs even.',
-    'Neither blessing nor warning today.',
-    'The oracle sees both sides with equal weight.',
+    'The stars say nothing either way.',
+    'The sky holds still. No push, no pull.',
+    'Neither blessing nor warning.',
+    'Both sides weigh the same today.',
+    'The oracle sees it both ways.',
   ],
   SOFT_NO: [
-    'The stars urge you to pause.',
-    'A shadow drifts across this path.',
-    'The cosmos counsel patience, not action.',
-    'Resistance builds in your chart.',
-    'The celestial currents run contrary.',
+    'The stars ask you to slow down.',
+    'A shadow touches this path.',
+    'Patience, not action.',
+    'Resistance is forming in your chart.',
+    'The sky leans the other way. Not hard, but clearly.',
   ],
   HARD_NO: [
-    'The stars stand firmly against this.',
-    'The cosmos speak with rare severity.',
-    'A clear warning echoes through your chart.',
-    'The heavens close this door deliberately.',
-    'Every cosmic signal urges retreat.',
+    'The stars say no.',
+    'A clear warning runs through your chart.',
+    'The sky closes this door on purpose.',
+    'Every signal points away from this.',
+    'The heavens are not subtle about it.',
   ],
   UNCLEAR: [
-    'The cosmos cannot read what you have not defined.',
-    'The signal dissolves in cosmic noise.',
-    'The oracle requires more clarity from you.',
+    'Your question is not sharp enough for the stars to read.',
+    'The signal breaks apart before it arrives.',
+    'The oracle needs more from you. Ask again, with specifics.',
   ],
 };
 
@@ -295,26 +295,26 @@ function buildGuidance(
 
   if (verdict === 'HARD_YES' || verdict === 'SOFT_YES') {
     if (goodFor.length > 0) {
-      return `This energy favors ${goodFor.slice(0, 2).join(' and ')}. Move with it.`;
+      return `Today favors ${goodFor.slice(0, 2).join(' and ')}. Move with it.`;
     }
-    return 'The path forward is open. Walk it with intention.';
+    return 'The way forward is open. Walk it.';
   }
 
   if (verdict === 'HARD_NO' || verdict === 'SOFT_NO') {
     if (badFor.length > 0) {
-      return `The cosmos urge caution around ${badFor.slice(0, 2).join(' and ')} for now.`;
+      return `Be careful with ${badFor.slice(0, 2).join(' and ')} right now.`;
     }
-    return 'This is not the moment. Wait for the current to shift.';
+    return 'Not the moment. Wait for the sky to shift.';
   }
 
   if (verdict === 'NEUTRAL') {
     if (goodFor.length > 0 && badFor.length > 0) {
-      return `The day favors ${goodFor[0]} but resists ${badFor[0]}. Choose accordingly.`;
+      return `The day helps with ${goodFor[0]} but resists ${badFor[0]}.`;
     }
-    return 'Neither pushed nor held back — the choice is entirely yours.';
+    return 'You are not being pushed or held back. The choice is yours.';
   }
 
-  return 'Sharpen your question and return. The stars respond to clarity.';
+  return 'Make the question sharper. Then come back.';
 }
 
 // ---- Transit insight builder ----
@@ -330,13 +330,11 @@ function buildTransitInsight(
   );
 
   if (!relevantTransit) {
-    // Fall back to first reasoning line if available
     const reasoning = report.categories[reportCategory].reasoning;
     if (reasoning.length > 0) {
-      // Filter out natal warnings (they don't start with "Transit")
       const transitReasoning = reasoning.find(r => r.startsWith('Transit'));
       if (transitReasoning) {
-        return `The stars cite this: ${transitReasoning.replace(/\(orb:.*?\)/, '').trim()}.`;
+        return transitReasoning.replace(/\(orb:.*?\)/, '').trim() + '.';
       }
     }
     return null;
@@ -350,7 +348,7 @@ function buildTransitInsight(
   const flavor = PLANET_FLAVOR[tp]?.[category] ?? PLANET_FLAVOR[tp]?.[reportCategory];
   if (flavor) {
     const line = impact === 'negative' ? flavor.negative : flavor.positive;
-    return transit.isExact ? `An exact aspect today — ${line}` : line;
+    return transit.isExact ? `An exact aspect today. ${line}` : line;
   }
 
   // Fall back to aspect voice
@@ -368,23 +366,23 @@ function buildTransitInsight(
 
   // Append house context when available
   if (transit.transitHouse && HOUSE_MEANINGS[transit.transitHouse]) {
-    line += ` This unfolds in your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}.`;
+    line += ` This plays out in your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}.`;
   }
 
-  return transit.isExact ? `An exact aspect today — ${line}` : line;
+  return transit.isExact ? `An exact aspect today. ${line}` : line;
 }
 
 // ---- Session memory line (the oracle remembers) ----
 const CATEGORY_DISPLAY: Partial<Record<QuestionCategory, string>> = {
-  love: 'matters of the heart',
-  career: 'your professional path',
-  money: 'financial currents',
-  health: 'your body and vitality',
-  social: 'social bonds',
-  decisions: 'crossroads',
-  creativity: 'creative impulses',
+  love: 'love',
+  career: 'work',
+  money: 'money',
+  health: 'your body',
+  social: 'people',
+  decisions: 'decisions',
+  creativity: 'creating',
   spiritual: 'the inner world',
-  communication: 'words and signals',
+  communication: 'words',
   conflict: 'conflict',
   timing: 'timing',
 };
@@ -403,9 +401,9 @@ function buildSessionMemory(
   if (freq >= 3) {
     const domainLabel = CATEGORY_DISPLAY[category] || category;
     const repeatLines = [
-      `You have returned to ${domainLabel} ${freq} times this week \u2014 the pull is undeniable.`,
-      `The oracle notes your persistence \u2014 ${domainLabel} ${freq} times in seven days.`,
-      `${freq} questions about ${domainLabel} this week. The cosmos sees a pattern forming.`,
+      `You keep asking about ${domainLabel}. ${freq} times this week. The pull is real.`,
+      `${freq} times in seven days you have asked about ${domainLabel}. The oracle notices.`,
+      `${domainLabel}, again. ${freq} times now. Something in you keeps circling back.`,
     ];
     parts.push(pick(repeatLines));
   }
@@ -421,11 +419,11 @@ function buildSessionMemory(
       (verdict === 'HARD_NO' || verdict === 'SOFT_NO');
 
     if (isPositiveShift) {
-      parts.push('The last time you asked, the stars said no. Today, the current has shifted.');
+      parts.push('Last time you asked, the answer was no. Today the sky has changed.');
     } else if (isNegativeShift) {
-      parts.push('Where the stars once favored you, resistance now builds. Heed the change.');
+      parts.push('The stars once favored this. That window has closed.');
     } else {
-      parts.push('The cosmic answer differs from your last visit \u2014 the sky has moved.');
+      parts.push('The answer is different from last time. The sky has moved.');
     }
   }
 
@@ -440,7 +438,6 @@ function buildExtras(
 ): string | null {
   const parts: string[] = [];
 
-  // Check for relevant retrograde
   const retroCategoryMap: Partial<Record<Planet, QuestionCategory[]>> = {
     mercury: ['communication', 'career', 'social', 'decisions'],
     venus: ['love', 'money', 'creativity', 'social'],
@@ -452,22 +449,21 @@ function buildExtras(
   for (const retro of report.retrogrades) {
     const affects = retroCategoryMap[retro.planet];
     if (affects && affects.includes(category)) {
-      parts.push(`${capitalize(retro.planet)} is retrograde — ${retro.advice.toLowerCase()}.`);
-      break; // Only mention one retrograde
+      parts.push(`${capitalize(retro.planet)} is retrograde. ${retro.advice}`);
+      break;
     }
   }
 
-  // Check for significant moon phase
   const moonName = report.moonPhase.name;
   if (moonName === 'New Moon' || moonName === 'Full Moon') {
-    parts.push(`The ${moonName} adds its own weight: ${report.moonPhase.advice.toLowerCase()}.`);
+    parts.push(`The ${moonName} adds weight. ${report.moonPhase.advice}`);
   }
 
   if (parts.length === 0) return null;
   return parts.join(' ');
 }
 
-// ---- Static template fallback (original system) ----
+// ---- Static template fallback (when no daily report) ----
 interface OracleTemplate {
   opening: string;
   guidance: string;
@@ -476,91 +472,91 @@ interface OracleTemplate {
 const TEMPLATES: Record<Verdict, Record<QuestionCategory, OracleTemplate[]>> = {
   HARD_YES: {
     love: [
-      { opening: "The stars burn bright for you.", guidance: "Venus opens the gate. Walk through without hesitation. What your heart knows, the cosmos confirms." },
-      { opening: "The heavens smile upon this bond.", guidance: "Love is not asking permission today. It is arriving. Receive it fully." },
-      { opening: "A rare alignment graces your heart.", guidance: "The universe conspires in your favor. Trust the pull you feel. It is real, and it is earned." },
+      { opening: "The stars burn bright for you.", guidance: "What your heart knows is real. Walk toward it." },
+      { opening: "A rare alignment touches your heart.", guidance: "Love is not asking permission today. It is arriving." },
+      { opening: "The sky is clear and warm.", guidance: "Trust the pull you feel. It is earned." },
     ],
     career: [
-      { opening: "The cosmos have cleared your path.", guidance: "Move boldly. Saturn lifts its weight and opportunity stands where doubt once was." },
-      { opening: "Your ambition finds its moment.", guidance: "The stars demand action, not contemplation. What you build now carries the force of destiny." },
+      { opening: "Your path is wide open.", guidance: "Move now. Opportunity stands where doubt used to be." },
+      { opening: "The sky demands action.", guidance: "What you build right now will last." },
     ],
     money: [
-      { opening: "Fortune turns its gaze toward you.", guidance: "The cosmic ledger favors your move. Abundance flows where courage meets preparation." },
-      { opening: "Jupiter bestows its full blessing upon your ventures.", guidance: "The financial currents run strong and clear. Trust your judgment." },
+      { opening: "Fortune turns your way.", guidance: "The numbers favor your move. Trust your instinct." },
+      { opening: "Jupiter gives its full weight.", guidance: "The financial picture is clear. Act on it." },
     ],
-    communication: [{ opening: "Mercury lends you its silver tongue.", guidance: "Your words will land exactly where they need to. Speak your truth." }],
-    conflict: [{ opening: "Strength flows through your chart today.", guidance: "You have the cosmic advantage. Stand firm." }],
-    timing: [{ opening: "The moment is ripe.", guidance: "Every celestial clock points to now. Hesitation is the only enemy." }],
-    health: [{ opening: "Vitality surges through your chart.", guidance: "Your body and the cosmos are in harmony. Push forward." }],
-    social: [{ opening: "The stars weave connections around you.", guidance: "Social energy is abundant. Every meeting carries potential." }],
-    decisions: [{ opening: "Clarity descends from the heavens.", guidance: "Your mind is sharp and the cosmos agree with your instinct. Decide without doubt." }],
-    creativity: [{ opening: "The muse descends with celestial fire.", guidance: "Create without restraint. This is your moment." }],
-    spiritual: [{ opening: "The veil between worlds thins.", guidance: "Profound insight awaits. Open your inner eye." }],
+    communication: [{ opening: "Mercury backs you completely.", guidance: "Your words will land exactly where they need to." }],
+    conflict: [{ opening: "Strength runs through your chart.", guidance: "You have the advantage. Stand firm." }],
+    timing: [{ opening: "The moment is now.", guidance: "Every clock points to this. Waiting is the only risk." }],
+    health: [{ opening: "Vitality runs high.", guidance: "Your body and the sky agree. Push forward." }],
+    social: [{ opening: "The stars pull people toward you.", guidance: "Every meeting today carries potential." }],
+    decisions: [{ opening: "Rare clarity.", guidance: "Your mind is sharp. Your instinct is right. Decide." }],
+    creativity: [{ opening: "Inspiration arrives with force.", guidance: "Create without holding back. This is your moment." }],
+    spiritual: [{ opening: "The veil thins.", guidance: "Profound seeing is available. Open up." }],
   },
   SOFT_YES: {
-    love: [{ opening: "The stars lean in your favor, gently.", guidance: "Proceed with an open heart, but not a blind one." }],
-    career: [{ opening: "The cosmic winds carry encouragement.", guidance: "Opportunity approaches, though not without effort." }],
-    money: [{ opening: "The financial stars show cautious promise.", guidance: "Gain is possible, but measure your steps." }],
-    communication: [{ opening: "Your voice carries weight today.", guidance: "The message will be received, though timing matters." }],
-    conflict: [{ opening: "The cosmos offer you an edge, but a thin one.", guidance: "Choose your battles wisely." }],
-    timing: [{ opening: "The timing is favorable, if imperfect.", guidance: "Do not wait for the perfect moment." }],
-    health: [{ opening: "Your vitality holds steady.", guidance: "Energy is available. Use it wisely." }],
-    social: [{ opening: "Social currents run in your direction.", guidance: "Connections await, though they require your presence." }],
-    decisions: [{ opening: "The cosmos tilt toward your instinct.", guidance: "Your gut feeling has merit. Trust it, but verify." }],
-    creativity: [{ opening: "Creative energy stirs beneath the surface.", guidance: "Inspiration is near. Reach for it." }],
-    spiritual: [{ opening: "A quiet opening appears in the cosmos.", guidance: "Insight comes to those who sit still long enough." }],
+    love: [{ opening: "The stars lean your way. Gently.", guidance: "Go with an open heart. But keep your eyes open too." }],
+    career: [{ opening: "Encouragement, not certainty.", guidance: "Opportunity comes, though it takes effort." }],
+    money: [{ opening: "The financial picture shows promise.", guidance: "Gain is possible. Measure your steps." }],
+    communication: [{ opening: "Your voice carries weight today.", guidance: "The message will be heard. Timing matters." }],
+    conflict: [{ opening: "You have a slight edge.", guidance: "Pick your fights carefully." }],
+    timing: [{ opening: "The timing is good, not perfect.", guidance: "Do not wait for ideal." }],
+    health: [{ opening: "Your energy holds steady.", guidance: "Use it wisely." }],
+    social: [{ opening: "People are open to you.", guidance: "Show up. They will meet you halfway." }],
+    decisions: [{ opening: "Your gut has merit.", guidance: "Trust it. But verify." }],
+    creativity: [{ opening: "Something creative stirs underneath.", guidance: "Reach for it." }],
+    spiritual: [{ opening: "A quiet opening.", guidance: "Sit with it long enough and insight comes." }],
   },
   NEUTRAL: {
-    love: [{ opening: "The stars neither pull nor push.", guidance: "Let clarity come before commitment." }],
-    career: [{ opening: "The professional cosmos stand in balance.", guidance: "Neither green light nor red. Prepare, but do not force." }],
-    money: [{ opening: "The financial stars are quiet.", guidance: "Guard what you have and wait for clearer signs." }],
+    love: [{ opening: "The stars say nothing either way.", guidance: "Let clarity come before commitment." }],
+    career: [{ opening: "The sky holds still on career.", guidance: "Prepare, but do not force." }],
+    money: [{ opening: "The financial sky is quiet.", guidance: "Guard what you have. Wait for a clearer sign." }],
     communication: [{ opening: "Mercury wanders a middle path.", guidance: "Words carry their usual weight. No more, no less." }],
-    conflict: [{ opening: "The cosmic battlefield is still.", guidance: "If you can avoid the fight, do." }],
-    timing: [{ opening: "The cosmic clock ticks, but reveals nothing.", guidance: "If pressed, you may act, but better days exist." }],
-    health: [{ opening: "Your energy holds a steady middle ground.", guidance: "Listen to your body. It will tell you what it needs." }],
-    social: [{ opening: "Social energies are unremarkable today.", guidance: "Go if you wish, stay if you prefer." }],
-    decisions: [{ opening: "The cosmos offer no decisive counsel.", guidance: "The signs are mixed. If this can wait, let it." }],
-    creativity: [{ opening: "The muse is neither present nor absent.", guidance: "Work steadily and let it come." }],
-    spiritual: [{ opening: "The veil remains as it is.", guidance: "Practice your rituals and trust the process." }],
+    conflict: [{ opening: "The field is calm.", guidance: "If you can avoid the fight, do." }],
+    timing: [{ opening: "No clear signal on timing.", guidance: "You may act if pressed. Better days exist." }],
+    health: [{ opening: "Steady energy. Nothing remarkable.", guidance: "Listen to your body. It knows." }],
+    social: [{ opening: "Nothing special in the social sky.", guidance: "Go if you want. Stay if you prefer." }],
+    decisions: [{ opening: "No strong counsel either way.", guidance: "If it can wait, let it." }],
+    creativity: [{ opening: "The creative well is neither full nor empty.", guidance: "Work steadily." }],
+    spiritual: [{ opening: "The inner world is quiet.", guidance: "Do your practice. Trust the process." }],
   },
   SOFT_NO: {
-    love: [{ opening: "The stars urge you to pause.", guidance: "What feels urgent may be premature." }],
-    career: [{ opening: "The professional winds blow against you, gently.", guidance: "Resistance is building. Reconsider your approach." }],
-    money: [{ opening: "The financial cosmos whisper caution.", guidance: "Hold your resources close." }],
-    communication: [{ opening: "The signal from Mercury weakens.", guidance: "Words may land wrong today. If it can wait, let it." }],
-    conflict: [{ opening: "The stars do not favor this fight.", guidance: "Retreat is wisdom, not weakness." }],
-    timing: [{ opening: "The cosmic clock suggests delay.", guidance: "Better timing awaits." }],
-    health: [{ opening: "Your energy reserves run lower than usual.", guidance: "The body asks for rest, not exertion." }],
-    social: [{ opening: "Social energies are complicated today.", guidance: "Choose solitude if it calls." }],
-    decisions: [{ opening: "The compass needle trembles.", guidance: "Doubt is not your enemy today. It is your guardian." }],
-    creativity: [{ opening: "The muse turns away, briefly.", guidance: "Rest and return when the well refills." }],
-    spiritual: [{ opening: "The inner world feels distant.", guidance: "Release the expectation. Presence alone is enough." }],
+    love: [{ opening: "The stars ask you to slow down.", guidance: "What feels urgent may be premature." }],
+    career: [{ opening: "The professional sky resists.", guidance: "Rethink your approach." }],
+    money: [{ opening: "The financial sky urges caution.", guidance: "Hold your resources close." }],
+    communication: [{ opening: "The signal weakens.", guidance: "Words may miss today. If it can wait, let it." }],
+    conflict: [{ opening: "The stars do not favor this fight.", guidance: "Retreat is not weakness." }],
+    timing: [{ opening: "Not yet.", guidance: "Better timing waits ahead." }],
+    health: [{ opening: "Your reserves run low.", guidance: "Your body asks for rest." }],
+    social: [{ opening: "Social ground is unsteady.", guidance: "Choose solitude if it calls." }],
+    decisions: [{ opening: "The compass trembles.", guidance: "Your doubt is protecting you. Listen to it." }],
+    creativity: [{ opening: "The well is dry for now.", guidance: "Rest. Return when it refills." }],
+    spiritual: [{ opening: "The inner world feels far away.", guidance: "Release the expectation. Being present is enough." }],
   },
   HARD_NO: {
-    love: [{ opening: "The stars stand firmly against this.", guidance: "What the heart craves, the cosmos deny. For now. Trust the no." }],
-    career: [{ opening: "The cosmos erect a wall before you.", guidance: "This path is blocked, and for good reason." }],
-    money: [{ opening: "The financial heavens flash a warning.", guidance: "Every cosmic signal screams caution. Protect what you have." }],
-    communication: [{ opening: "Mercury opposes your intent.", guidance: "Every word risks misunderstanding. Swallow what you want to say." }],
-    conflict: [{ opening: "The cosmos warn against battle.", guidance: "You will not win this fight today. Walk away." }],
-    timing: [{ opening: "The stars say: not now.", guidance: "This is the wrong moment, full stop." }],
-    health: [{ opening: "Your cosmic vitality hits a low.", guidance: "The body and stars agree: rest." }],
-    social: [{ opening: "The social cosmos close their doors.", guidance: "Isolation serves you better today." }],
-    decisions: [{ opening: "The cosmos speak with rare clarity: no.", guidance: "Do not proceed. What you are considering will cost more than you think." }],
-    creativity: [{ opening: "The muse has departed.", guidance: "Creative wells are dry. Wait for the waters to return." }],
-    spiritual: [{ opening: "The inner world is turbulent.", guidance: "Ground yourself in the physical. Spirit will return." }],
+    love: [{ opening: "The stars say no.", guidance: "What the heart wants, the sky denies. For now. Trust the no." }],
+    career: [{ opening: "A wall stands in front of you.", guidance: "This path is blocked. For good reason." }],
+    money: [{ opening: "The financial sky flashes a warning.", guidance: "Protect what you have." }],
+    communication: [{ opening: "Mercury opposes you.", guidance: "Every word risks being misread. Say less." }],
+    conflict: [{ opening: "Do not fight today.", guidance: "You will not win this one. Walk away." }],
+    timing: [{ opening: "Not now.", guidance: "Wrong moment. Full stop." }],
+    health: [{ opening: "Vitality dips low.", guidance: "Body and sky agree: rest." }],
+    social: [{ opening: "The social doors are shut.", guidance: "Being alone serves you better today." }],
+    decisions: [{ opening: "No. Clearly.", guidance: "Do not proceed. The cost is higher than you think." }],
+    creativity: [{ opening: "The well is empty.", guidance: "Nothing comes by forcing it. Wait." }],
+    spiritual: [{ opening: "The inner world is rough.", guidance: "Ground yourself in the physical. Spirit returns." }],
   },
   UNCLEAR: {
-    love: [{ opening: "The cosmos cannot read what you have not defined.", guidance: "Sharpen your question. Ask with a specific heart." }],
-    career: [{ opening: "Your question dissolves in the cosmic noise.", guidance: "Ask with more precision." }],
-    money: [{ opening: "The financial oracle requires a clearer question.", guidance: "What exactly do you seek?" }],
-    communication: [{ opening: "The signal is too weak.", guidance: "Refine your question and return." }],
-    conflict: [{ opening: "The cosmos sense confusion in your asking.", guidance: "Clarify your intent." }],
-    timing: [{ opening: "Time itself seems uncertain in your asking.", guidance: "Be specific." }],
-    health: [{ opening: "The question is unclear to the stars.", guidance: "Ask again with intention." }],
-    social: [{ opening: "Social matters blur in the cosmic lens.", guidance: "What specifically do you wish to know?" }],
-    decisions: [{ opening: "The decision you describe is shapeless.", guidance: "Give the cosmos something concrete." }],
-    creativity: [{ opening: "The creative question lacks form.", guidance: "Even the muse needs a starting point." }],
-    spiritual: [{ opening: "The spiritual realm reflects your own confusion.", guidance: "Still your mind. Then ask again." }],
+    love: [{ opening: "Your question is too vague for the stars.", guidance: "Ask with a specific heart." }],
+    career: [{ opening: "The question dissolves.", guidance: "Be more precise." }],
+    money: [{ opening: "The oracle needs a sharper question.", guidance: "What exactly do you want to know?" }],
+    communication: [{ opening: "Too faint to read.", guidance: "Try again with more detail." }],
+    conflict: [{ opening: "Confusion in the asking.", guidance: "Clarify what you actually want." }],
+    timing: [{ opening: "Time itself blurs in your question.", guidance: "Be specific." }],
+    health: [{ opening: "The question does not reach the stars.", guidance: "Ask again with intention." }],
+    social: [{ opening: "Too vague.", guidance: "What do you actually want to know?" }],
+    decisions: [{ opening: "The question has no shape.", guidance: "Give the oracle something concrete." }],
+    creativity: [{ opening: "The creative question lacks form.", guidance: "Even inspiration needs a starting point." }],
+    spiritual: [{ opening: "The signal mirrors your own confusion.", guidance: "Quiet your mind. Then ask." }],
   },
 };
 
@@ -600,7 +596,7 @@ export function generateOracleResponse(
         const t = pick(fallback);
         return `${t.opening} ${t.guidance}`;
       }
-      return "The cosmos are silent. Ask again when the stars speak.";
+      return "The stars are silent. Ask again later.";
     }
     const template = pick(categoryTemplates);
     return `${template.opening} ${template.guidance}`;
@@ -609,32 +605,30 @@ export function generateOracleResponse(
   // --- Transit-aware path ---
   const reportCategory = CATEGORY_MAP[category];
 
-  // 1. Opener: set the mystical tone
+  // 1. Opener
   const opener = pick(VERDICT_OPENERS[verdict] ?? VERDICT_OPENERS.NEUTRAL);
 
-  // 2. Transit insight: reference the actual planetary alignment
+  // 2. Transit insight
   const transitInsight = buildTransitInsight(category, reportCategory, report);
 
-  // 3. Guidance: actionable advice from goodFor/badFor
+  // 3. Guidance
   const guidance = buildGuidance(verdict, reportCategory, report);
 
-  // 4. Extras: retrograde/moon phase context (only if relevant)
+  // 4. Extras (retrograde/moon)
   const extras = buildExtras(category, report);
 
-  // 5. Session memory: the oracle remembers
+  // 5. Session memory
   const sessionMemory = buildSessionMemory(verdict, category, patterns);
 
-  // Assemble — target 3-5 sentences
+  // Assemble: target 3-5 sentences
   let response = opener;
   if (transitInsight) response += ' ' + transitInsight;
   response += ' ' + guidance;
 
-  // Only add extras if total length stays reasonable
   if (extras && response.length < 350) {
     response += ' ' + extras;
   }
 
-  // Session memory as a coda — the oracle recognizes the pattern
   if (sessionMemory && response.length < 420) {
     response += ' ' + sessionMemory;
   }

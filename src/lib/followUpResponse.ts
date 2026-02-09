@@ -56,12 +56,12 @@ const PLANET_NAME: Record<Planet, string> = {
 
 // ---- Aspect type explanations in plain language ----
 const ASPECT_EXPLAINED: Record<string, string> = {
-  conjunction: 'A conjunction is fusion — two forces merging into one. The result depends entirely on what meets.',
-  trine: 'A trine is grace. Energy flows without effort — but ease can become complacency if unexamined.',
+  conjunction: 'A conjunction is fusion. Two forces merging into one. The result depends on what meets.',
+  trine: 'A trine is grace. Energy flows without effort. But ease can make you careless if you stop paying attention.',
   square: 'A square is tension. It demands action, forces growth, and refuses to let you stay comfortable.',
   opposition: 'An opposition is polarity. Two truths face each other. Integration, not elimination, is the path.',
-  sextile: 'A sextile is an invitation — a door left ajar. It opens only if you push.',
-  quincunx: 'A quincunx is awkward misalignment. The energies don\'t speak the same language — adjustment is required.',
+  sextile: 'A sextile is an invitation. A door left open. It closes if you do not walk through.',
+  quincunx: 'A quincunx is misalignment. The energies do not fit together naturally. Adjustment is the only way forward.',
 };
 
 // ---- Planet speed classes for timing ----
@@ -86,24 +86,24 @@ const PLANET_SPEED: Record<Planet, SpeedClass> = {
 
 const SPEED_TIMING: Record<SpeedClass, string[]> = {
   fast: [
-    'This transit moves quickly — the energy shifts within days.',
+    'This transit moves quickly. The energy shifts within days.',
     'A fast-moving influence. Expect a change in tone within the week.',
-    'This won\'t linger. The shift comes in days, not weeks.',
+    'This will not linger. The shift comes in days, not weeks.',
   ],
   medium: [
     'This influence stretches across a week or two. Patience, not passivity.',
-    'Give it one to two weeks. The energy needs time to complete its arc.',
-    'A mid-tempo transit — the shift will be felt within a couple of weeks.',
+    'Give it one to two weeks. The energy needs time to finish its arc.',
+    'A mid-tempo transit. The shift will be felt within a couple of weeks.',
   ],
   slow: [
-    'This is a slow-moving influence — think weeks, possibly months. It reshapes, not just shifts.',
-    'Patience is essential. This transit operates on a timeline of several weeks.',
-    'A deep, structural change that unfolds over weeks to months.',
+    'This is slow-moving. Think weeks, possibly months. It reshapes things, not just shifts them.',
+    'Patience is essential. This transit works on a timeline of several weeks.',
+    'A deep, structural change. It unfolds over weeks to months.',
   ],
   glacial: [
-    'This spans months — it is a season, not weather. The shift is generational in nature.',
+    'This spans months. It is a season, not weather.',
     'The outer planets move slowly. This influence defines a chapter, not a day.',
-    'Measured in months. This energy is the background music of your current life phase.',
+    'Measured in months. This energy is the background of your current life phase.',
   ],
 };
 
@@ -168,7 +168,7 @@ function generateDeeperInsight(
       coreLine += `, activating your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}`;
     }
 
-    coreLine += transit.isExact ? ' — an exact aspect today, intensifying its effect.' : ` (orb: ${transit.orb.toFixed(1)}°).`;
+    coreLine += transit.isExact ? '. An exact aspect today, which intensifies its effect.' : ` (orb: ${transit.orb.toFixed(1)}°).`;
     parts.push(coreLine);
 
     // Explain aspect type in plain language
@@ -209,13 +209,13 @@ function generateDeeperInsight(
   for (const retro of report.retrogrades) {
     const affects = RETRO_CATEGORY_MAP[retro.planet];
     if (affects && affects.includes(category)) {
-      parts.push(`Note: ${capitalize(retro.planet)} is retrograde — ${retro.advice.toLowerCase()}.`);
+      parts.push(`Note: ${capitalize(retro.planet)} is retrograde. ${retro.advice}`);
       break;
     }
   }
 
   // 5. Category score context
-  parts.push(`Your ${reportCategory} energy today scores ${catScore.score}/10.`);
+  parts.push(`Your ${reportCategory} energy is at ${catScore.score}/10 today.`);
 
   return parts.join(' ');
 }
@@ -250,9 +250,9 @@ function generateTimingResponse(
     // Prefer real timing data when available
     if (timing) {
       if (timing.isApplying && timing.exactDate) {
-        parts.push(`${tp} drives this reading. This aspect becomes exact ${formatTransitDate(timing.exactDate)} — the peak of its influence.`);
+        parts.push(`${tp} drives this reading. This aspect becomes exact ${formatTransitDate(timing.exactDate)}. That is the peak.`);
       } else if (timing.separationDate) {
-        parts.push(`${tp} drives this reading. This transit separates ${formatTransitDate(timing.separationDate)} — the intensity eases after that.`);
+        parts.push(`${tp} drives this reading. This transit separates ${formatTransitDate(timing.separationDate)}. The intensity eases after that.`);
       } else if (timing.isApplying) {
         // Applying but no exact date found within scan window
         const timingLine = pick(SPEED_TIMING[speed]);
@@ -282,7 +282,7 @@ function generateTimingResponse(
       if (secondTransit.timing?.separationDate) {
         parts.push(`${sp} also plays a role and separates ${formatTransitDate(secondTransit.timing.separationDate)}.`);
       } else if (secondSpeed === 'slow' || secondSpeed === 'glacial') {
-        parts.push(`But ${sp} adds a deeper, slower layer — the underlying theme takes longer to resolve.`);
+        parts.push(`But ${sp} adds a deeper, slower layer. The underlying theme takes longer to resolve.`);
       } else {
         parts.push(`${sp} also plays a role and will shift soon.`);
       }
@@ -321,74 +321,74 @@ function generateTimingResponse(
 
 // ---- Moon phase timing lines ----
 const MOON_TIMING: Record<string, string> = {
-  'New Moon': 'The New Moon signals a fresh cycle — set intentions now and watch them unfold over the coming two weeks.',
+  'New Moon': 'The New Moon signals a fresh cycle. Set intentions now. Watch them unfold over two weeks.',
   'Waxing Crescent': 'The moon is building strength. Momentum gathers over the next week.',
-  'First Quarter': 'The First Quarter moon marks a turning point — action taken now shapes what the Full Moon reveals.',
-  'Waxing Gibbous': 'The Full Moon approaches within days. Clarity is imminent.',
-  'Full Moon': 'The Full Moon illuminates everything. What you learn now guides the next two weeks of integration.',
+  'First Quarter': 'The First Quarter moon marks a turning point. Action taken now shapes what the Full Moon reveals.',
+  'Waxing Gibbous': 'The Full Moon approaches within days. Clarity is close.',
+  'Full Moon': 'The Full Moon shows everything. What you learn now guides the next two weeks.',
   'Waning Gibbous': 'The peak has passed. The coming week is for digesting what was revealed.',
-  'Last Quarter': 'Release what no longer serves you. The New Moon arrives within a week, bringing a clean slate.',
-  'Waning Crescent': 'The cycle nears completion. Rest now — a new beginning arrives with the next New Moon.',
+  'Last Quarter': 'Release what no longer serves you. The New Moon arrives within a week. Clean slate.',
+  'Waning Crescent': 'The cycle nears completion. Rest now. A new beginning arrives with the next New Moon.',
 };
 
 // ---- Fallback pools (no report) ----
 const DEEPER_INSIGHT_POOLS: Record<Verdict, string[]> = {
   HARD_YES: [
-    'The alignment is unusually strong. This isn\'t just favorable — it\'s rare.',
-    'Multiple forces converge in your favor. The cosmos rarely aligns this clearly.',
-    'Your natal chart amplifies today\'s energy. This is deeply personal.',
+    'The alignment is unusually strong. Not just favorable. Rare.',
+    'Multiple forces converge in your favor. The sky rarely lines up this clearly.',
+    'Your birth chart amplifies today\'s energy. This is personal.',
   ],
   SOFT_YES: [
-    'The energy leans positive, but with caveats. Proceed with awareness.',
-    'There\'s support here, but it asks something of you in return.',
-    'The stars favor this — with one condition: be honest with yourself about your motives.',
+    'The energy leans positive, but with conditions. Proceed with awareness.',
+    'There is support here, but it asks something of you in return.',
+    'The stars favor this, with one condition: be honest with yourself about why you want it.',
   ],
   NEUTRAL: [
-    'The cosmos is genuinely neutral here. Your free will is the deciding factor.',
-    'Neither encouraged nor warned. This decision belongs entirely to you.',
-    'The universe is watching, not guiding. Trust your own judgment.',
+    'Genuinely neutral. Your free will is the deciding factor.',
+    'Neither encouraged nor warned. This decision belongs to you.',
+    'The sky is watching, not guiding. Trust your own judgment.',
   ],
   SOFT_NO: [
     'The resistance is real but not absolute. Timing or approach may be the issue.',
-    'Something doesn\'t align — but it could be temporary.',
-    'The cosmos hesitates. Ask yourself what you might be overlooking.',
+    'Something does not fit. But it could be temporary.',
+    'The sky hesitates. Ask yourself what you might be missing.',
   ],
   HARD_NO: [
-    'The forces are clear: this path meets significant resistance right now.',
-    'The cosmos doesn\'t say "never" — but it says "not this way, not right now."',
-    'There\'s a lesson in this resistance. What is the universe trying to protect you from?',
+    'The forces are clear. This path meets real resistance right now.',
+    'Not never. But not this way, not right now.',
+    'There is a lesson in this resistance. What is it protecting you from?',
   ],
   UNCLEAR: [
-    'The signals are genuinely mixed. This is the cosmos being honest about complexity.',
-    'Not every question has a clean answer. Sit with the ambiguity.',
-    'The universe acknowledges the question but offers no easy path.',
+    'The signals are genuinely mixed. That is the honest answer.',
+    'Not every question has a clean answer. Sit with that.',
+    'The sky acknowledges the question but offers no easy path.',
   ],
 };
 
 const TIMING_FALLBACK_POOLS: Record<Verdict, string[]> = {
   HARD_YES: [
-    'The window is open now. Don\'t wait too long.',
-    'This favorable energy has momentum — act while it lasts.',
+    'The window is open now. Do not wait too long.',
+    'This favorable energy has momentum. Act while it lasts.',
   ],
   SOFT_YES: [
-    'The energy tilts positive but isn\'t permanent. Move within the next few days.',
-    'A gentle current — it won\'t push you forever. Take the step soon.',
+    'The energy tilts positive but it is not permanent. Move within the next few days.',
+    'A gentle push. It will not last forever. Take the step soon.',
   ],
   NEUTRAL: [
     'The energy is balanced and will shift with the next major transit. Stay aware.',
-    'Neither pushed nor pulled — the next lunar phase may tip the scales.',
+    'Neither pushed nor pulled. The next lunar phase may tip the scales.',
   ],
   SOFT_NO: [
     'Give it a week or two. The friction you feel now will ease.',
     'The resistance is temporary. Let the transits shift before trying again.',
   ],
   HARD_NO: [
-    'This is not the time. Wait for a significant shift — possibly the next New or Full Moon.',
+    'This is not the time. Wait for a significant shift. Possibly the next New or Full Moon.',
     'Major resistance. The energy needs a full lunar cycle to reset.',
   ],
   UNCLEAR: [
-    'The timing is genuinely ambiguous. Wait for a clearer signal from the cosmos.',
-    'Too many forces in play. Give it time — clarity will come.',
+    'The timing is genuinely unclear. Wait for a stronger signal.',
+    'Too many forces at once. Give it time. Clarity will come.',
   ],
 };
 
@@ -652,7 +652,7 @@ export function generateContextualFollowUpResponse(
     // Person-oriented: use planet symbolism
     const tp = relevantTransit.transit.transitPlanet;
     if (tp === 'venus' || tp === 'moon') {
-      parts.push('The emotional current is strong. If someone specific comes to mind — they are relevant.');
+      parts.push('The emotional current is strong. If someone specific comes to mind, they are relevant.');
     } else if (tp === 'mercury') {
       parts.push('Pay attention to who reaches out to you in the next few days. The connection matters.');
     } else if (tp === 'saturn' || tp === 'pluto') {
@@ -670,13 +670,13 @@ export function generateContextualFollowUpResponse(
 
     if (transit.transitHouse && HOUSE_MEANINGS[transit.transitHouse]) {
       parts.push(
-        `${tp}'s influence flows through your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}, shaping how this plays out with ${np}.`
+        `${tp} moves through your ${ordinal(transit.transitHouse)} house of ${HOUSE_MEANINGS[transit.transitHouse]}, shaping how this plays out with ${np}.`
       );
     }
   }
 
   // Add score context
-  parts.push(`Your ${reportCategory} energy scores ${catScore.score}/10 today.`);
+  parts.push(`Your ${reportCategory} energy is at ${catScore.score}/10 today.`);
 
   if (parts.length === 0) {
     return pick(DEEPER_INSIGHT_POOLS[originalVerdict] || DEEPER_INSIGHT_POOLS.NEUTRAL);
