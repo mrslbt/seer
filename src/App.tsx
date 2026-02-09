@@ -80,43 +80,11 @@ function App() {
   // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
 
-  // ---- Cryptic Acknowledgment (above the eye) ----
+  // ---- Greeting (above the eye) ----
   const seerAcknowledgment = useMemo(() => {
     const name = userProfile?.birthData.name;
     if (!name) return null;
-
-    const hour = new Date().getHours();
-    const isFirstToday = (() => {
-      const lastKey = `seer_last_visit_${userProfile?.id}`;
-      const last = localStorage.getItem(lastKey);
-      const today = new Date().toDateString();
-      if (last !== today) {
-        localStorage.setItem(lastKey, today);
-        return true;
-      }
-      return false;
-    })();
-
-    if (isFirstToday) {
-      const dawn = [
-        `${name} awakens`,
-        `A new dawn, ${name}`,
-        `The stars have waited, ${name}`,
-      ];
-      return dawn[Math.floor(Math.random() * dawn.length)];
-    }
-
-    const returning = [
-      `${name} returns`,
-      `The seeker arrives`,
-      `Again, ${name}`,
-      `${name}. Expected.`,
-      `The stars remember you, ${name}`,
-    ];
-
-    // Stable pick per hour so it doesn't change on every re-render
-    const seed = hour + (userProfile?.id?.charCodeAt(0) ?? 0);
-    return returning[seed % returning.length];
+    return `Greetings, ${name}`;
   }, [userProfile]);
 
   // ---- Cosmic Whisper (Feature 1) ----

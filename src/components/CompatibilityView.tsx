@@ -317,8 +317,8 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           <div className="compat-gazing-orb" />
           <p className="compat-gazing-text">
             {state.phase === 'gazing'
-              ? 'Reading the space between...'
-              : 'Consulting the stars...'}
+              ? 'The Seer gazes into the bond...'
+              : 'The Seer contemplates...'}
           </p>
         </div>
       </div>
