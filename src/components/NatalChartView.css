@@ -85,7 +85,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.125rem;
-  color: #777;
+  color: #999;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -93,7 +93,7 @@
 }
 
 .chart-close:hover {
-  color: #999;
+  color: #bbb;
 }
 
 /* ---- Sections ---- */
@@ -117,7 +117,7 @@
 .chart-house-system {
   font-size: 0.5625rem;
   letter-spacing: 0.1em;
-  color: var(--accent-dim, rgba(201, 168, 76, 0.4));
+  color: var(--accent-dim, rgba(201, 168, 76, 0.6));
   font-weight: 400;
 }
 
@@ -230,7 +230,7 @@
 
 .zodiac-glyph {
   font-size: 0.875rem;
-  color: var(--accent-dim, rgba(201, 168, 76, 0.5));
+  color: var(--accent-dim, rgba(201, 168, 76, 0.7));
 }
 
 .chart-planet-degree {
@@ -284,7 +284,7 @@
   font-family: var(--font);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--accent-dim, rgba(201, 168, 76, 0.5));
+  color: var(--accent-dim, rgba(201, 168, 76, 0.7));
   letter-spacing: 0.05em;
 }
 

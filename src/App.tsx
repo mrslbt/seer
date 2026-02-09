@@ -176,11 +176,26 @@ function App() {
     return null;
   }, [dailyReport, userProfile]);
 
-  // ---- Transit Alerts (Feature 4) ----
+  // ---- Transit Alerts (Feature 4) — dismiss after viewing cosmos tab ----
+  const [cosmosSeenDate, setCosmosSeenDate] = useState<string | null>(
+    () => localStorage.getItem('seer_cosmos_seen_date')
+  );
+
   const hasTransitAlert = useMemo(() => {
     if (!dailyReport) return false;
+    const today = new Date().toDateString();
+    if (cosmosSeenDate === today) return false;
     return dailyReport.keyTransits.some(t => t.transit.isExact);
-  }, [dailyReport]);
+  }, [dailyReport, cosmosSeenDate]);
+
+  // Mark cosmos as seen when tab is visited
+  useEffect(() => {
+    if (activeTab === 'cosmos' && hasTransitAlert) {
+      const today = new Date().toDateString();
+      localStorage.setItem('seer_cosmos_seen_date', today);
+      setCosmosSeenDate(today);
+    }
+  }, [activeTab, hasTransitAlert]);
 
   // ---- Retrograde Countdown (Feature 7) ----
   const activeRetrogrades = dailyReport?.retrogrades ?? [];

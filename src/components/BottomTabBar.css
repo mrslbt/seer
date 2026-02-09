@@ -45,7 +45,7 @@
   cursor: pointer;
   position: relative;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.6;
   transition: color 0.3s ease, opacity 0.3s ease;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .tab-btn:hover:not(.tab-btn--active) {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .tab-btn:active {
@@ -113,7 +113,7 @@
   height: 1.5px;
   background: var(--accent);
   border-radius: 1px;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 @media (max-width: 480px) {

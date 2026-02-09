@@ -47,14 +47,14 @@
   font-style: italic;
   color: var(--accent);
   letter-spacing: 0.03em;
-  opacity: 0.55;
+  opacity: 0.7;
   transition: opacity 0.6s ease;
   animation: brandDrift 0.8s ease;
   cursor: pointer;
 }
 
 .header-brand:hover {
-  opacity: 0.65;
+  opacity: 0.85;
 }
 
 @keyframes brandDrift {
@@ -63,7 +63,7 @@
     transform: translateX(-4px);
   }
   to {
-    opacity: 0.55;
+    opacity: 0.7;
     transform: translateX(0);
   }
 }
@@ -158,7 +158,7 @@
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-style: italic;
-  color: rgba(201, 168, 76, 0.6);
+  color: rgba(201, 168, 76, 0.75);
   letter-spacing: 0.02em;
   text-align: center;
   line-height: 1.4;
@@ -209,7 +209,7 @@
 .current-question {
   font-family: var(--font-display);
   font-size: 0.9375rem;
-  color: #777;
+  color: #999;
   font-style: italic;
   text-align: center;
   max-width: 300px;
@@ -349,7 +349,7 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-style: italic;
-  color: #777;
+  color: #aaa;
   text-align: center;
   max-width: 280px;
   line-height: 1.5;
@@ -404,7 +404,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.5);
+  color: rgba(201, 168, 76, 0.7);
   text-align: center;
   animation: whisperAppear 1.2s ease;
 }
@@ -414,7 +414,7 @@
   font-family: 'Instrument Serif', Georgia, serif;
   font-style: italic;
   font-size: 0.8125rem;
-  color: rgba(201, 168, 76, 0.55);
+  color: rgba(201, 168, 76, 0.7);
   text-align: center;
   animation: hintAppear 4s ease both;
   pointer-events: none;

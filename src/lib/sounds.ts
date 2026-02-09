@@ -132,9 +132,9 @@ function playEtherealTone(
   osc2.connect(gain2);
   osc3.connect(gain3);
 
-  gain1.gain.value = volume;
-  gain2.gain.value = volume * 0.3;
-  gain3.gain.value = volume * 0.2;
+  gain1.gain.value = volume * 0.6;
+  gain2.gain.value = volume * 0.18;
+  gain3.gain.value = volume * 0.12;
 
   // Mix to filter
   gain1.connect(filter);
@@ -197,7 +197,7 @@ function playShimmer(baseFreq: number = 2000, duration: number = 0.3): void {
     osc.frequency.value = freq;
 
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.03, now + 0.05);
+    gain.gain.linearRampToValueAtTime(0.015, now + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     osc.connect(gain);
@@ -228,7 +228,7 @@ export function playClick(): void {
   filter.type = 'lowpass';
   filter.frequency.value = 1500;
 
-  gain.gain.setValueAtTime(0.1, now);
+  gain.gain.setValueAtTime(0.06, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
   osc.connect(filter);
@@ -246,17 +246,17 @@ export function playSuccess(): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  // Ethereal major chord with shimmer
+  // Ethereal major chord with shimmer (softened)
   const notes = [523, 659, 784]; // C5, E5, G5
 
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      playEtherealTone(freq, 0.6, 0.12, 0.05, 0.4);
+      playEtherealTone(freq, 0.6, 0.08, 0.05, 0.4);
     }, i * 100);
   });
 
   // Add sparkle
-  setTimeout(() => playShimmer(3000, 0.4), 250);
+  setTimeout(() => playShimmer(2500, 0.4), 250);
 }
 
 /**
@@ -287,7 +287,7 @@ export function playShake(): void {
   const data = buffer.getChannelData(0);
 
   for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * 0.5;
+    data[i] = (Math.random() * 2 - 1) * 0.3;
   }
 
   const source = ctx.createBufferSource();
@@ -301,7 +301,7 @@ export function playShake(): void {
   filter.Q.value = 2;
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.15, now);
+  gain.gain.setValueAtTime(0.08, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
   source.connect(filter);
@@ -318,18 +318,18 @@ export function playReveal(): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  // Rising ethereal arpeggio
+  // Rising ethereal arpeggio (softened)
   const notes = [262, 330, 392, 523]; // C4 to C5
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      playEtherealTone(freq, 0.4, 0.1, 0.03, 0.3);
+      playEtherealTone(freq, 0.4, 0.06, 0.03, 0.3);
     }, i * 120);
   });
 
   // Final shimmer
   setTimeout(() => {
-    playShimmer(2500, 0.5);
-    playEtherealTone(523, 0.8, 0.15, 0.1, 0.5); // Hold the top note
+    playShimmer(2000, 0.5);
+    playEtherealTone(523, 0.8, 0.08, 0.1, 0.5); // Hold the top note
   }, 500);
 }
 
@@ -392,8 +392,8 @@ export function playMysticPad(): void {
 
     // Slow envelope
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.04, now + 0.8);
-    gain.gain.setValueAtTime(0.04, now + 2);
+    gain.gain.linearRampToValueAtTime(0.025, now + 0.8);
+    gain.gain.setValueAtTime(0.025, now + 2);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
 
     osc.connect(filter);
@@ -426,17 +426,17 @@ export function playCoin(): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  // Bright, uplifting chime
+  // Bright, uplifting chime (softened)
   const notes = [1047, 1319, 1568]; // C6, E6, G6
 
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      playEtherealTone(freq, 0.5, 0.08, 0.01, 0.4);
+      playEtherealTone(freq, 0.5, 0.05, 0.01, 0.4);
     }, i * 50);
   });
 
   // Shimmer overlay
-  setTimeout(() => playShimmer(4000, 0.4), 100);
+  setTimeout(() => playShimmer(3000, 0.4), 100);
 }
 
 /**
@@ -446,18 +446,18 @@ export function playDoom(): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  // Descending minor sequence
+  // Descending minor sequence (softened)
   const notes = [392, 349, 311, 294]; // G4, F4, Eb4, D4
 
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      playEtherealTone(freq, 0.5, 0.08, 0.05, 0.35);
+      playEtherealTone(freq, 0.5, 0.05, 0.05, 0.35);
     }, i * 200);
   });
 
   // Low rumble
   setTimeout(() => {
-    playEtherealTone(73, 1.2, 0.06, 0.2, 0.8); // D2 - deep bass
+    playEtherealTone(73, 1.2, 0.04, 0.2, 0.8); // D2 - deep bass
   }, 300);
 }
 

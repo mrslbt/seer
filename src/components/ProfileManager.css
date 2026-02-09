@@ -22,7 +22,7 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
   width: 100%;
   text-align: left;
 }
@@ -88,7 +88,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  color: rgba(201, 168, 76, 0.35);
+  color: rgba(201, 168, 76, 0.5);
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.2s ease;
@@ -112,7 +112,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.35);
   font-size: 1rem;
   cursor: pointer;
   border-radius: 50%;
@@ -133,9 +133,9 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.5);
+  color: rgba(201, 168, 76, 0.7);
   background: transparent;
-  border: 1px dashed rgba(201, 168, 76, 0.15);
+  border: 1px dashed rgba(201, 168, 76, 0.2);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;

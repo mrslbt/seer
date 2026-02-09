@@ -46,7 +46,7 @@
 }
 
 .question-input::placeholder {
-  color: #666;
+  color: #888;
   font-style: italic;
   font-family: var(--font-display);
   transition: opacity 0.3s ease;
