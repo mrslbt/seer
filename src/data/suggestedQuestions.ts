@@ -2,7 +2,11 @@
  * Pre-made question suggestions for The Seer.
  *
  * Each question is crafted to contain keywords from CATEGORY_KEYWORDS
- * in scoreDecision.ts, ensuring strong classification confidence (0.8).
+ * in scoreDecision.ts, ensuring strong classification confidence.
+ *
+ * These set the tone for the entire product. Every question should feel
+ * like something you'd bring to an oracle, not a search engine.
+ * 60% weighty (screenshot material), 40% relatable-everyday (daily use).
  */
 
 import type { QuestionCategory } from '../types/astrology';
@@ -13,61 +17,58 @@ export interface SuggestedQuestion {
 }
 
 export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
-  // Love
-  { text: 'Should I confess my feelings?', category: 'love' },
-  { text: 'Will my relationship grow stronger?', category: 'love' },
-  { text: 'Is my crush thinking about me?', category: 'love' },
-  { text: 'Should I text my ex?', category: 'love' },
+  // Love — the #1 reason people consult oracles
+  { text: 'Is this love real?', category: 'love' },
+  { text: 'Should I walk away?', category: 'love' },
+  { text: 'Will they come back?', category: 'love' },
+  { text: 'Am I holding on too long?', category: 'love' },
 
-  // Career
-  { text: 'Should I go for the promotion?', category: 'career' },
-  { text: 'Will my interview go well?', category: 'career' },
-  { text: 'Is this job offer right for me?', category: 'career' },
+  // Career — stakes, not scheduling
+  { text: 'Should I take the risk?', category: 'career' },
+  { text: 'Am I wasting my potential?', category: 'career' },
+  { text: 'Is this the right move?', category: 'career' },
 
-  // Money
-  { text: 'Should I invest my savings now?', category: 'money' },
-  { text: 'Is today good for a big purchase?', category: 'money' },
-  { text: 'Will my financial situation improve?', category: 'money' },
+  // Money — fortune and risk
+  { text: 'Is this the wrong bet?', category: 'money' },
+  { text: 'Should I invest now?', category: 'money' },
+  { text: 'Will this pay off?', category: 'money' },
 
-  // Communication
-  { text: 'Should I tell them the truth?', category: 'communication' },
-  { text: 'Is now the time to apologize?', category: 'communication' },
-  { text: 'Should I have that conversation?', category: 'communication' },
+  // Communication — truth and vulnerability
+  { text: 'Should I say what I feel?', category: 'communication' },
+  { text: 'Is it time to tell the truth?', category: 'communication' },
+  { text: 'Will they understand?', category: 'communication' },
 
-  // Conflict
-  { text: 'Should I confront this problem?', category: 'conflict' },
-  { text: 'Will this disagreement resolve itself?', category: 'conflict' },
-  { text: 'Should I defend my position?', category: 'conflict' },
+  // Conflict — confrontation and resolution
+  { text: 'Am I being deceived?', category: 'conflict' },
+  { text: 'Is this fight worth it?', category: 'conflict' },
+  { text: 'Should I stand my ground?', category: 'conflict' },
 
-  // Timing
-  { text: 'Is today the right time to begin?', category: 'timing' },
-  { text: 'Should I wait or act now?', category: 'timing' },
-  { text: 'Is this a good time to travel?', category: 'timing' },
+  // Timing — the oracle's domain
+  { text: 'Is it time?', category: 'timing' },
+  { text: 'Should I wait longer?', category: 'timing' },
+  { text: 'Will this pass?', category: 'timing' },
 
-  // Health
-  { text: 'Should I start a new workout?', category: 'health' },
-  { text: 'Is today better for rest or exercise?', category: 'health' },
-  { text: 'Should I change my diet?', category: 'health' },
+  // Health — vitality, not gym routines
+  { text: 'Should I rest or push forward?', category: 'health' },
+  { text: 'Is my body telling me something?', category: 'health' },
 
-  // Social
-  { text: 'Should I go to the party tonight?', category: 'social' },
-  { text: 'Will this friendship last?', category: 'social' },
-  { text: 'Is this gathering worth attending?', category: 'social' },
+  // Social — bonds, not parties
+  { text: 'Can I trust them?', category: 'social' },
+  { text: 'Will this friendship survive?', category: 'social' },
 
-  // Decisions
-  { text: 'Should I take the leap of faith?', category: 'decisions' },
-  { text: 'Is this the right choice for me?', category: 'decisions' },
-  { text: 'Should I follow my gut feeling?', category: 'decisions' },
+  // Decisions — crossroads
+  { text: 'Should I take the leap?', category: 'decisions' },
+  { text: 'Is this the right path?', category: 'decisions' },
+  { text: 'Am I making a mistake?', category: 'decisions' },
 
-  // Creativity
-  { text: 'Will my creative project succeed?', category: 'creativity' },
-  { text: 'Should I start writing today?', category: 'creativity' },
-  { text: 'Is inspiration coming my way?', category: 'creativity' },
+  // Creativity — calling and purpose
+  { text: 'Should I start something new?', category: 'creativity' },
+  { text: 'Is inspiration near?', category: 'creativity' },
 
-  // Spiritual
-  { text: 'What does my intuition say?', category: 'spiritual' },
-  { text: 'Is the universe sending me a sign?', category: 'spiritual' },
-  { text: 'Should I trust my spiritual path?', category: 'spiritual' },
+  // Spiritual — intuition and signs
+  { text: 'Should I trust my gut?', category: 'spiritual' },
+  { text: 'What am I not seeing?', category: 'spiritual' },
+  { text: 'Is the universe sending a sign?', category: 'spiritual' },
 ];
 
 /**

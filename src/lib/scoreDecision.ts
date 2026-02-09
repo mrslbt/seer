@@ -964,16 +964,16 @@ export function scoreDecision(
 }
 
 /**
- * Get a human-readable verdict text - SASSY STYLE
+ * Get a human-readable verdict text — oracle voice
  */
 export function getVerdictText(verdict: Verdict): string {
   const texts: Record<Verdict, string> = {
-    HARD_YES: 'YES, PERIODT.',
-    SOFT_YES: 'LEANING YES',
-    NEUTRAL: 'THE VIBES ARE UNCLEAR',
-    SOFT_NO: 'PROBABLY NOT',
-    HARD_NO: 'ABSOLUTELY NOT',
-    UNCLEAR: 'THE QUESTION IS UNCLEAR'
+    HARD_YES: 'Yes.',
+    SOFT_YES: 'The path opens.',
+    NEUTRAL: 'The path is veiled.',
+    SOFT_NO: 'The stars resist.',
+    HARD_NO: 'No.',
+    UNCLEAR: 'The question is unclear.'
   };
   return texts[verdict];
 }

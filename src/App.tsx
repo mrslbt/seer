@@ -23,6 +23,7 @@ import { ReadingHistory } from './components/ReadingHistory';
 import { NatalChartView } from './components/NatalChartView';
 import { ProfileManager } from './components/ProfileManager';
 import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
+import { CompatibilityView } from './components/CompatibilityView';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
@@ -396,7 +397,7 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className={`app-main ${hasBirthData && activeTab !== 'oracle' ? 'app-main--scrollable' : ''}`}>
+      <main className={`app-main ${hasBirthData && (activeTab === 'cosmos' || activeTab === 'chart' || activeTab === 'bonds') ? 'app-main--scrollable' : ''}`}>
         {/* First visit - show birth form inline */}
         {!hasBirthData && !cosmosLoading && (
           <div className="onboarding">
@@ -525,6 +526,15 @@ function App() {
           <NatalChartView
             natalChart={userProfile.natalChart}
             mode="inline"
+          />
+        )}
+
+        {/* === BONDS TAB === */}
+        {hasBirthData && activeTab === 'bonds' && userProfile && (
+          <CompatibilityView
+            activeProfile={userProfile}
+            allProfiles={allProfiles}
+            onAddProfile={() => setSettingsView('add')}
           />
         )}
       </main>

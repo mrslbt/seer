@@ -1,0 +1,888 @@
+/* ===============================================================
+   Compatibility View — The Seer
+
+   Bonds tab: synastry readings between two charts.
+   Visual hierarchy follows oracle reading patterns:
+   dark, atmospheric, gold accents, Instrument Serif for oracle voice.
+   =============================================================== */
+
+/* ── Container ─────────────────────────────────── */
+
+.compat-view {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 8px 0 48px;
+  text-align: center;
+  animation: compatFadeIn 0.5s ease;
+}
+
+/* ── State 1: Profile Selection ────────────────── */
+
+.compat-header {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+  margin-bottom: 32px;
+  animation: compatFadeIn 0.6s ease;
+}
+
+.compat-profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: compatSlideUp 0.5s ease 0.1s both;
+}
+
+.compat-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border: none;
+  border-left: 2px solid rgba(201, 168, 76, 0.08);
+  cursor: pointer;
+  transition: background 0.25s ease,
+              border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.compat-profile-btn:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.compat-profile-btn:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.compat-profile-btn:only-child {
+  border-radius: 8px;
+}
+
+.compat-profile-btn:hover {
+  background: rgba(201, 168, 76, 0.04);
+  border-left-color: rgba(201, 168, 76, 0.35);
+}
+
+.compat-profile-btn:active {
+  background: rgba(201, 168, 76, 0.07);
+}
+
+.compat-profile-symbol {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.6;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}
+
+.compat-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.compat-profile-name {
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.01em;
+}
+
+.compat-profile-sign {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.compat-profile-arrow {
+  font-size: 1.25rem;
+  color: rgba(201, 168, 76, 0.25);
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+
+.compat-profile-btn:hover .compat-profile-arrow {
+  color: rgba(201, 168, 76, 0.6);
+}
+
+/* Empty state — no other profiles */
+
+.compat-empty {
+  padding: 40px 24px;
+  animation: compatFadeIn 0.6s ease 0.15s both;
+}
+
+.compat-empty-text {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.compat-add-btn {
+  padding: 12px 28px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed rgba(201, 168, 76, 0.25);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.compat-add-btn:hover {
+  border-color: rgba(201, 168, 76, 0.5);
+  background: rgba(201, 168, 76, 0.04);
+}
+
+.compat-add-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── State 2: Pre-Reveal (Side by Side) ────────── */
+
+.compat-pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin: 24px 0 40px;
+  animation: compatFadeIn 0.7s ease;
+}
+
+.compat-soul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: compatSoulAppear 0.6s ease both;
+}
+
+.compat-soul:first-child {
+  animation-delay: 0.1s;
+}
+
+.compat-soul:last-child {
+  animation-delay: 0.3s;
+}
+
+.compat-soul-symbol {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.6;
+  text-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
+  animation: compatSymbolGlow 4s ease-in-out infinite;
+}
+
+.compat-soul-name {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+}
+
+.compat-soul-sign {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.compat-divider {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--accent);
+  opacity: 0.25;
+  animation: compatDividerPulse 3s ease-in-out infinite;
+}
+
+/* Reveal button — styled like the summon button */
+
+.compat-reveal-btn {
+  display: block;
+  margin: 0 auto 32px;
+  padding: 14px 48px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: compatSlideUp 0.5s ease 0.5s both;
+}
+
+.compat-reveal-btn:hover {
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.4);
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.06);
+}
+
+.compat-reveal-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Gazing State ──────────────────────────────── */
+
+.compat-gazing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 28px;
+  animation: compatFadeIn 0.5s ease;
+}
+
+.compat-gazing-orb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgba(201, 168, 76, 0.25) 0%,
+    rgba(201, 168, 76, 0.08) 50%,
+    transparent 70%
+  );
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  animation: compatOrbPulse 2s ease-in-out infinite;
+}
+
+.compat-gazing-text {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+  animation: compatGazingText 2s ease-in-out infinite;
+}
+
+/* ── State 3: Reading Revealed ─────────────────── */
+
+.compat-tier {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: compatTierAppear 0.6s ease 0.2s forwards;
+}
+
+.compat-score {
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: compatFadeIn 0.5s ease 0.4s forwards;
+}
+
+.compat-score-num {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+}
+
+.compat-score-max {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  opacity: 0.3;
+}
+
+.compat-verdict {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.6;
+  letter-spacing: 0.015em;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: compatTextReveal 1.2s ease 0.6s forwards;
+}
+
+/* Reading paragraphs */
+
+.compat-reading-text {
+  text-align: left;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: compatSlideUp 0.6s ease 1s forwards;
+}
+
+.compat-reading-paragraph {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+}
+
+.compat-reading-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Theme pills */
+
+.compat-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 1.3s forwards;
+}
+
+.compat-theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+  border-radius: var(--radius-full);
+  opacity: 0.7;
+}
+
+.compat-theme-score {
+  font-size: 0.5625rem;
+  opacity: 0.5;
+}
+
+/* Sections: strengths & challenges */
+
+.compat-section {
+  text-align: left;
+  margin-bottom: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 1.5s forwards;
+}
+
+.compat-section:nth-child(7) {
+  animation-delay: 1.7s;
+}
+
+.compat-section-label {
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  margin-bottom: 14px;
+}
+
+.compat-section-item {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-style: italic;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 10px;
+  padding-left: 14px;
+  position: relative;
+}
+
+.compat-section-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.compat-section-item--strength::before {
+  background: rgba(201, 168, 76, 0.4);
+}
+
+.compat-section-item--challenge::before {
+  background: rgba(139, 74, 74, 0.5);
+}
+
+.compat-section-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Element harmony */
+
+.compat-element {
+  text-align: left;
+  margin-bottom: 36px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 1.9s forwards;
+}
+
+.compat-element-text {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-style: italic;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Actions — bottom of reading */
+
+.compat-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 2.1s forwards;
+}
+
+.compat-ask-btn {
+  padding: 12px 36px;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.compat-ask-btn:hover {
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.4);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.04);
+}
+
+.compat-ask-btn:active {
+  transform: scale(0.97);
+}
+
+/* Back / navigation link */
+
+.compat-back-link {
+  padding: 8px 16px;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.25);
+  background: none;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: color 0.3s ease;
+}
+
+.compat-back-link:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.compat-back-link:active {
+  opacity: 0.6;
+}
+
+/* ── State 4: Question Mode ────────────────────── */
+
+.compat-question-header {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+  margin-bottom: 28px;
+  animation: compatFadeIn 0.5s ease;
+}
+
+.compat-question-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: compatFadeIn 0.4s ease 0.1s both;
+}
+
+.compat-question-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.compat-question-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+  color: var(--text);
+  padding: 14px 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  outline: none;
+  transition: border-color 0.3s ease;
+  letter-spacing: 0.01em;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.compat-question-input::-webkit-search-decoration,
+.compat-question-input::-webkit-search-cancel-button,
+.compat-question-input::-webkit-search-results-button,
+.compat-question-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
+}
+
+.compat-question-input:focus {
+  border-color: rgba(201, 168, 76, 0.35);
+}
+
+.compat-question-input::placeholder {
+  color: #666;
+  font-style: italic;
+  font-family: var(--font-display);
+}
+
+.compat-question-input.has-error {
+  border-color: #8B4A4A;
+}
+
+.compat-submit-btn {
+  padding: 10px 24px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.compat-submit-btn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.4);
+}
+
+.compat-submit-btn:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
+.compat-submit-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.compat-input-error {
+  font-size: 0.6875rem;
+  color: #A67458;
+  letter-spacing: 0.02em;
+  text-align: left;
+  animation: compatFadeIn 0.2s ease;
+}
+
+/* Suggested questions */
+
+.compat-suggestions-divider {
+  text-align: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #666;
+  margin: 24px 0 12px;
+  animation: compatFadeIn 0.4s ease 0.2s both;
+  user-select: none;
+}
+
+.compat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 28px;
+  animation: compatFadeIn 0.5s ease 0.3s both;
+}
+
+.compat-suggestion-chip {
+  padding: 8px 18px;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: #777;
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color 0.3s ease,
+              border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compat-suggestion-chip:hover {
+  color: var(--accent);
+  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.compat-suggestion-chip:active {
+  transform: scale(0.96);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+/* ── State 5: Answer Shown ─────────────────────── */
+
+.compat-answer-verdict {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: compatTierAppear 0.5s ease 0.2s forwards;
+}
+
+.compat-answer-text {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.6;
+  letter-spacing: 0.015em;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: compatTextReveal 1.2s ease 0.4s forwards;
+}
+
+.compat-answer-quote {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 0;
+  vertical-align: -0.15em;
+  opacity: 0.25;
+  color: var(--accent);
+  display: inline;
+}
+
+.compat-transit-context {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.6;
+  margin-bottom: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 1.2s forwards;
+}
+
+.compat-answer-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  animation: compatSlideUp 0.5s ease 1.5s forwards;
+}
+
+/* ===============================================================
+   Keyframes
+   =============================================================== */
+
+@keyframes compatFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes compatSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes compatSoulAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes compatSymbolGlow {
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(201, 168, 76, 0.1);
+    opacity: 0.6;
+  }
+  50% {
+    text-shadow: 0 0 24px rgba(201, 168, 76, 0.25);
+    opacity: 0.8;
+  }
+}
+
+@keyframes compatDividerPulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes compatOrbPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.1);
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+    box-shadow: 0 0 40px rgba(201, 168, 76, 0.2);
+  }
+}
+
+@keyframes compatGazingText {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes compatTierAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+    letter-spacing: 0.5em;
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+    letter-spacing: 0.35em;
+  }
+}
+
+@keyframes compatTextReveal {
+  0% {
+    text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+    opacity: 0;
+  }
+  30% {
+    text-shadow: 0 0 20px currentColor;
+    opacity: 0.7;
+  }
+  60% {
+    text-shadow: 0 0 8px currentColor;
+    opacity: 0.9;
+  }
+  100% {
+    text-shadow: none;
+    opacity: 1;
+  }
+}
+
+/* ── Mobile ────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .compat-view {
+    padding: 4px 0 40px;
+  }
+
+  .compat-header {
+    font-size: 1.125rem;
+  }
+
+  .compat-soul-symbol {
+    font-size: 2rem;
+  }
+
+  .compat-pair {
+    gap: 20px;
+  }
+
+  .compat-verdict {
+    font-size: 1.125rem;
+  }
+
+  .compat-answer-text {
+    font-size: 1.1875rem;
+  }
+
+  .compat-answer-quote {
+    font-size: 2rem;
+  }
+
+  .compat-reading-paragraph {
+    font-size: 0.875rem;
+  }
+
+  .compat-question-input {
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .compat-suggestion-chip {
+    font-size: 0.75rem;
+    padding: 7px 14px;
+  }
+
+  .compat-suggestions {
+    gap: 6px;
+  }
+}

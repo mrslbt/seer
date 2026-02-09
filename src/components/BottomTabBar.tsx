@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { playClick } from '../lib/sounds';
 import './BottomTabBar.css';
 
-export type ActiveTab = 'oracle' | 'cosmos' | 'chart';
+export type ActiveTab = 'oracle' | 'cosmos' | 'chart' | 'bonds';
 
 interface BottomTabBarProps {
   activeTab: ActiveTab;
@@ -63,6 +63,22 @@ export function BottomTabBar({ activeTab, onTabChange, hasTransitAlert }: Bottom
           </svg>
         </span>
         <span className="tab-label">Chart</span>
+      </button>
+
+      {/* Bonds */}
+      <button
+        className={`tab-btn ${activeTab === 'bonds' ? 'tab-btn--active' : ''}`}
+        onClick={() => handleTab('bonds')}
+        aria-label="Bonds"
+      >
+        <span className="tab-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+            <path d="M16 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+            <path d="M12 20c-4 0-7-1.5-7-4s2-4 7-4 7 1.5 7 4-3 4-7 4z"/>
+          </svg>
+        </span>
+        <span className="tab-label">Bonds</span>
       </button>
     </nav>
   );
