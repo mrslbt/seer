@@ -13,6 +13,9 @@ import {
   getCompatibilityVerdictText,
   getCompatibilityVerdictColor,
 } from '../lib/compatibilityReading';
+import { calculateTodaysBond } from '../lib/todaysBond';
+import TodaysBond from './TodaysBond';
+import type { TodaysBondData } from './TodaysBond';
 import { ZODIAC_SYMBOLS } from '../lib/astroEngine';
 import { playClick, playReveal } from '../lib/sounds';
 import { SeerEye } from './SeerEye';
@@ -69,6 +72,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [suggestions] = useState(() => getRandomQuestions(4));
+  const [todaysBond, setTodaysBond] = useState<TodaysBondData | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const readingRef = useRef<HTMLDivElement>(null);
 
@@ -117,8 +121,10 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     playReveal();
     const synastryReport = calculateSynastry(activeProfile, partner);
     const compatReading = generateCompatibilityReading(synastryReport);
+    const dailyBond = calculateTodaysBond(activeProfile, partner, synastryReport);
     setReport(synastryReport);
     setReading(compatReading);
+    setTodaysBond(dailyBond);
     setPhase('reading');
   }, [partner, activeProfile]);
 
@@ -138,6 +144,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     setPartner(null);
     setReport(null);
     setReading(null);
+    setTodaysBond(null);
     setAnswer(null);
     setQuestion('');
     setQuestionError(null);
@@ -299,6 +306,9 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
       {/* ---- Phase: Reading revealed (below eye) ---- */}
       {phase === 'reading' && report && reading && (
         <div className="compat-reading-container" ref={readingRef}>
+          {/* Today's Bond — daily oracle pulse */}
+          {todaysBond && <TodaysBond data={todaysBond} />}
+
           {/* Tier badge */}
           <div className="compat-tier" style={{ color: getTierColor(report.tier) }}>
             {getTierLabel(report.tier)}
