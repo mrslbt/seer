@@ -480,11 +480,9 @@ function App() {
 
         {/* === ORACLE TAB === */}
         {hasBirthData && activeTab === 'oracle' && (
-          <>
-            {/* Cryptic acknowledgment — the Seer notes your presence */}
-            {(appState === 'idle' || appState === 'awaiting_question') && seerAcknowledgment && (
-              <p className="seer-acknowledgment">{seerAcknowledgment}</p>
-            )}
+          <div className="oracle-card">
+            {/* Card inner glow */}
+            <div className="oracle-card__glow" />
 
             {/* Profile indicator — shown when multiple profiles exist */}
             {appState === 'idle' && allProfiles.length > 1 && userProfile && (
@@ -496,6 +494,14 @@ function App() {
               </button>
             )}
 
+            {/* Cryptic acknowledgment — the Seer notes your presence */}
+            {appState === 'idle' && (
+              <p className="seer-acknowledgment">I sleep until summoned.</p>
+            )}
+            {appState === 'awaiting_question' && seerAcknowledgment && (
+              <p className="seer-acknowledgment">{seerAcknowledgment}</p>
+            )}
+
             {/* The Eye — with cosmic mood class */}
             <div className={`eye-section ${cosmicMoodClass}`}>
               <SeerEye
@@ -504,39 +510,6 @@ function App() {
                 onGazeComplete={handleGazeComplete}
               />
             </div>
-
-            {/* Cosmic Whisper (Feature 1) */}
-            {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
-              <p className="cosmic-whisper">{cosmicWhisper}</p>
-            )}
-
-            {/* Cosmic Hint — top category energy on idle screen */}
-            {appState === 'idle' && cosmicHint && !cosmosLoading && !cosmicWhisper && (
-              <p className="cosmic-hint">{cosmicHint}</p>
-            )}
-
-            {/* Retrograde Alert (Feature 7) */}
-            {appState === 'idle' && activeRetrogrades.length > 0 && !cosmosLoading && (
-              <div className="retrograde-alert">
-                {activeRetrogrades.map(r => (
-                  <span key={r.planet} className="retrograde-badge">
-                    {r.planet.charAt(0).toUpperCase() + r.planet.slice(1)} Rx
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Moon Phase Ritual (Feature 8) */}
-            {appState === 'idle' && isSpecialMoonPhase && !cosmosLoading && (
-              <div className="moon-ritual-hint">
-                <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
-                <span className="moon-ritual-text">
-                  {isSpecialMoonPhase === 'New Moon'
-                    ? 'New Moon — Set intentions. Ask what to begin.'
-                    : 'Full Moon — Seek clarity. Ask what to release.'}
-                </span>
-              </div>
-            )}
 
             {/* Submitted question while gazing */}
             {appState === 'gazing' && (
@@ -548,11 +521,6 @@ function App() {
               <button className="summon-btn" onClick={handleSummon}>
                 Summon
               </button>
-            )}
-
-            {/* Contextual hint */}
-            {activeHint && activeTab === 'oracle' && (
-              <p className="contextual-hint">{activeHint}</p>
             )}
 
             {/* Question input */}
@@ -568,7 +536,50 @@ function App() {
                 <SuggestedQuestions onSelect={handleSuggestedSelect} />
               </div>
             )}
-          </>
+
+            {/* Contextual hint */}
+            {activeHint && activeTab === 'oracle' && (
+              <p className="contextual-hint">{activeHint}</p>
+            )}
+
+            {/* Cosmic footer — ambient data below the eye */}
+            {appState === 'idle' && !cosmosLoading && (
+              <div className="oracle-card__footer">
+                {/* Cosmic Whisper */}
+                {cosmicWhisper && (
+                  <p className="cosmic-whisper">{cosmicWhisper}</p>
+                )}
+
+                {/* Cosmic Hint — top category energy */}
+                {cosmicHint && !cosmicWhisper && (
+                  <p className="cosmic-hint">{cosmicHint}</p>
+                )}
+
+                {/* Retrograde Alert */}
+                {activeRetrogrades.length > 0 && (
+                  <div className="retrograde-alert">
+                    {activeRetrogrades.map(r => (
+                      <span key={r.planet} className="retrograde-badge">
+                        {r.planet.charAt(0).toUpperCase() + r.planet.slice(1)} Rx
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Moon Phase Ritual */}
+                {isSpecialMoonPhase && (
+                  <div className="moon-ritual-hint">
+                    <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
+                    <span className="moon-ritual-text">
+                      {isSpecialMoonPhase === 'New Moon'
+                        ? 'New Moon — Set intentions. Ask what to begin.'
+                        : 'Full Moon — Seek clarity. Ask what to release.'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* === COSMOS TAB === */}

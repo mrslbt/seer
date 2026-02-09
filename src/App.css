@@ -156,6 +156,108 @@
   overflow: hidden;
 }
 
+/* ═══════════════════════════════════════════════════
+   Oracle Card — dark glass vessel for the Seer
+   ═══════════════════════════════════════════════════ */
+
+.oracle-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 40px 28px 36px;
+  background:
+    linear-gradient(
+      168deg,
+      rgba(201, 168, 76, 0.018) 0%,
+      rgba(10, 8, 4, 0.6) 30%,
+      rgba(6, 5, 3, 0.85) 70%,
+      rgba(201, 168, 76, 0.012) 100%
+    );
+  border: 1px solid rgba(201, 168, 76, 0.08);
+  border-radius: 24px;
+  overflow: hidden;
+  animation: cardAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Top edge highlight — like light catching a glass edge */
+.oracle-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 168, 76, 0.15),
+    rgba(201, 168, 76, 0.25),
+    rgba(201, 168, 76, 0.15),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Subtle corner accents */
+.oracle-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse 120px 120px at 0% 0%, rgba(201, 168, 76, 0.025) 0%, transparent 70%),
+    radial-gradient(ellipse 120px 120px at 100% 100%, rgba(201, 168, 76, 0.015) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Inner atmospheric glow — warm center where the eye lives */
+.oracle-card__glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
+    ellipse 50% 45% at 50% 50%,
+    rgba(201, 168, 76, 0.03) 0%,
+    rgba(201, 168, 76, 0.01) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Footer section — separated cosmic data */
+.oracle-card__footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(201, 168, 76, 0.05);
+  animation: fadeIn 0.6s ease 0.3s both;
+}
+
+@keyframes cardAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Seer acknowledgment — cryptic, oracle noting your presence */
 .seer-acknowledgment {
   font-family: var(--font-display);
@@ -623,12 +725,24 @@
 /* Mobile */
 @media (max-width: 480px) {
   .app-main {
-    padding: 20px 20px 76px;
+    padding: 20px 16px 76px;
     gap: 28px;
   }
 
   .title-seer {
     font-size: 2.5rem;
+  }
+
+  .oracle-card {
+    padding: 32px 20px 28px;
+    gap: 24px;
+    border-radius: 20px;
+    max-width: 100%;
+  }
+
+  .oracle-card::before {
+    left: 15%;
+    right: 15%;
   }
 
   .summon-btn {
