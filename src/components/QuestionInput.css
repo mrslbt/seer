@@ -18,7 +18,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.25);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
   color: var(--text);
   padding: 14px 0;
   font-family: var(--font-display);
@@ -42,7 +42,7 @@
 }
 
 .question-input:focus {
-  border-color: rgba(201, 168, 76, 0.5);
+  border-color: rgba(201, 168, 76, 0.35);
 }
 
 .question-input::placeholder {
@@ -69,15 +69,15 @@
   text-transform: uppercase;
   color: var(--accent);
   background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  border: 1px solid rgba(201, 168, 76, 0.2);
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
 }
 
 .ask-btn:hover:not(:disabled) {
-  background: rgba(201, 168, 76, 0.08);
-  border-color: rgba(201, 168, 76, 0.5);
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.4);
   box-shadow: 0 0 20px rgba(201, 168, 76, 0.04);
 }
 
