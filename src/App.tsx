@@ -141,7 +141,7 @@ function App() {
   const seerAcknowledgment = useMemo(() => {
     const name = userProfile?.birthData.name;
     if (!name) return null;
-    return `Greetings, ${name}`;
+    return `I have your celestial map, ${name}. Now ask.`;
   }, [userProfile]);
 
   // ---- Cosmic Whisper (Feature 1) ----
