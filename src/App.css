@@ -177,7 +177,7 @@
       rgba(6, 5, 3, 0.85) 70%,
       rgba(201, 168, 76, 0.012) 100%
     );
-  border: 1px solid rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.14);
   border-radius: 24px;
   overflow: hidden;
   animation: cardAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -239,7 +239,7 @@
   align-items: center;
   gap: 12px;
   padding-top: 20px;
-  border-top: 1px solid rgba(201, 168, 76, 0.05);
+  border-top: 1px solid rgba(201, 168, 76, 0.1);
   animation: fadeIn 0.6s ease 0.3s both;
 }
 
@@ -263,7 +263,7 @@
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-style: italic;
-  color: rgba(201, 168, 76, 0.75);
+  color: rgba(201, 168, 76, 0.88);
   letter-spacing: 0.02em;
   text-align: center;
   line-height: 1.4;
@@ -333,7 +333,7 @@
   text-transform: uppercase;
   color: var(--accent);
   background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.2);
+  border: 1px solid rgba(201, 168, 76, 0.3);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: summonAppear 0.6s ease;
@@ -345,7 +345,7 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border: 1px solid rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.12);
   animation: summonPulse 4s ease-in-out infinite;
   pointer-events: none;
 }
@@ -483,9 +483,9 @@
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  color: rgba(201, 168, 76, 0.4);
+  color: rgba(201, 168, 76, 0.55);
   background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.18);
   border-radius: 20px;
   padding: 4px 14px;
   cursor: pointer;
@@ -509,7 +509,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.7);
+  color: rgba(201, 168, 76, 0.82);
   text-align: center;
   animation: whisperAppear 1.2s ease;
 }
@@ -519,7 +519,7 @@
   font-family: 'Instrument Serif', Georgia, serif;
   font-style: italic;
   font-size: 0.8125rem;
-  color: rgba(201, 168, 76, 0.7);
+  color: rgba(201, 168, 76, 0.82);
   text-align: center;
   animation: hintAppear 4s ease both;
   pointer-events: none;
@@ -560,7 +560,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border: 1px solid rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.14);
   border-radius: 999px;
   animation: fadeIn 0.6s ease 0.4s both;
 }
@@ -574,7 +574,7 @@
   font-family: var(--font-display);
   font-size: 0.6875rem;
   font-style: italic;
-  color: #777;
+  color: #999;
   letter-spacing: 0.01em;
 }
 

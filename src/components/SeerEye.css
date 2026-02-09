@@ -57,13 +57,13 @@
 
 /* Closed-eye hint — gold seam so the eye shape is clearly visible */
 .seer-eye-container.seer-eye--closed .lash-line--top {
-  stroke: rgba(201, 168, 76, 0.35) !important;
-  stroke-width: 1.5;
+  stroke: rgba(201, 168, 76, 0.45) !important;
+  stroke-width: 1.6;
 }
 
 .seer-eye-container.seer-eye--closed .lash-line--bottom {
-  stroke: rgba(201, 168, 76, 0.18) !important;
-  stroke-width: 0.8;
+  stroke: rgba(201, 168, 76, 0.25) !important;
+  stroke-width: 0.9;
 }
 
 .eye-svg {
