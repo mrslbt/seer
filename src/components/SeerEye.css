@@ -25,8 +25,8 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse 50% 40% at 50% 50%,
-    rgba(201, 168, 76, 0.04) 0%,
-    rgba(201, 168, 76, 0.015) 30%,
+    rgba(201, 168, 76, 0.07) 0%,
+    rgba(201, 168, 76, 0.025) 30%,
     transparent 70%
   );
   pointer-events: none;
@@ -57,13 +57,13 @@
 
 /* Closed-eye hint — gold seam so the eye shape is clearly visible */
 .seer-eye-container.seer-eye--closed .lash-line--top {
-  stroke: rgba(201, 168, 76, 0.35) !important;
-  stroke-width: 1.5;
+  stroke: rgba(201, 168, 76, 0.5) !important;
+  stroke-width: 1.8;
 }
 
 .seer-eye-container.seer-eye--closed .lash-line--bottom {
-  stroke: rgba(201, 168, 76, 0.18) !important;
-  stroke-width: 0.8;
+  stroke: rgba(201, 168, 76, 0.3) !important;
+  stroke-width: 1;
 }
 
 .eye-svg {

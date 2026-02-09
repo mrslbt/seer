@@ -28,9 +28,9 @@
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0.01em;
-  color: #999;
+  color: #aaa;
   background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.25);
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: color 0.3s ease,
@@ -52,8 +52,8 @@
 
 .suggestion-chip:hover {
   color: var(--accent);
-  border-color: rgba(201, 168, 76, 0.25);
-  background: rgba(201, 168, 76, 0.03);
+  border-color: rgba(201, 168, 76, 0.4);
+  background: rgba(201, 168, 76, 0.05);
 }
 
 .suggestion-chip:active {
