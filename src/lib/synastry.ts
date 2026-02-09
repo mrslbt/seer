@@ -18,6 +18,7 @@ import type {
   AspectType,
   UserProfile,
 } from '../types/userProfile';
+import { getHouseForLongitude } from './ephemerisService';
 
 // ============================================
 // TYPES
@@ -84,6 +85,9 @@ export interface SynastryReport {
   strengths: string[];         // oracle-voice bullet points
   challenges: string[];        // oracle-voice bullet points
 
+  // House overlays (if house data is available)
+  houseOverlays?: HouseOverlays;
+
   // The oracle's overall read
   oracleVerdict: string;       // 1-2 sentence oracle summary
 }
@@ -94,26 +98,81 @@ export interface SynastryThemeScore {
   label: string;               // human-readable theme name
 }
 
+export interface HouseOverlayEntry {
+  planet: Planet;              // the visiting planet
+  house: number;               // which house it lands in (1-12)
+  personName: string;          // whose planet is visiting
+  hostName: string;            // whose house system is being used
+  isKeyOverlay: boolean;       // true if in 1st, 4th, 5th, 7th, or 8th house
+  description: string;         // oracle-voice interpretation
+}
+
+export interface HouseOverlays {
+  /** Person B's planets in Person A's houses */
+  person2InPerson1Houses: HouseOverlayEntry[];
+  /** Person A's planets in Person B's houses */
+  person1InPerson2Houses: HouseOverlayEntry[];
+  /** Overall weight score from key overlays (0-10) */
+  score: number;
+}
+
 // ============================================
 // CONSTANTS
 // ============================================
 
-/** Planets to include in synastry (core 10 + nodes) */
+/** Planets to include in synastry (core 10 + nodes + angles) */
 const SYNASTRY_PLANETS: Planet[] = [
   'sun', 'moon', 'mercury', 'venus', 'mars',
   'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
-  'northNode',
+  'northNode', 'ascendant', 'midheaven',
 ];
 
-/** Aspect definitions with synastry-specific orbs (tighter than natal) */
-const SYNASTRY_ASPECTS: { type: AspectType; angle: number; orb: number }[] = [
-  { type: 'conjunction', angle: 0, orb: 8 },
-  { type: 'opposition', angle: 180, orb: 7 },
-  { type: 'trine', angle: 120, orb: 6 },
-  { type: 'square', angle: 90, orb: 6 },
-  { type: 'sextile', angle: 60, orb: 4 },
-  { type: 'quincunx', angle: 150, orb: 3 },
+/** Aspect angle definitions (orbs are now planet-specific) */
+const SYNASTRY_ASPECT_ANGLES: { type: AspectType; angle: number }[] = [
+  { type: 'conjunction', angle: 0 },
+  { type: 'opposition', angle: 180 },
+  { type: 'trine', angle: 120 },
+  { type: 'square', angle: 90 },
+  { type: 'sextile', angle: 60 },
+  { type: 'quincunx', angle: 150 },
 ];
+
+/** Planet categories for orb calculation */
+type PlanetCategory = 'luminary' | 'personal' | 'angle' | 'social' | 'outer' | 'node';
+
+const PLANET_CATEGORIES: Record<Planet, PlanetCategory> = {
+  sun: 'luminary',
+  moon: 'luminary',
+  mercury: 'personal',
+  venus: 'personal',
+  mars: 'personal',
+  ascendant: 'angle',
+  midheaven: 'angle',
+  jupiter: 'social',
+  saturn: 'social',
+  uranus: 'outer',
+  neptune: 'outer',
+  pluto: 'outer',
+  northNode: 'node',
+  chiron: 'outer', // fallback, not used in synastry planets
+};
+
+/** Planet-specific orbs per aspect type, keyed by category */
+const CATEGORY_ORBS: Record<PlanetCategory, Record<AspectType, number>> = {
+  luminary:  { conjunction: 8, opposition: 7, trine: 6, square: 6, sextile: 4, quincunx: 3 },
+  personal:  { conjunction: 6, opposition: 5, trine: 5, square: 5, sextile: 3, quincunx: 2 },
+  angle:     { conjunction: 5, opposition: 4, trine: 4, square: 4, sextile: 3, quincunx: 2 },
+  social:    { conjunction: 5, opposition: 4, trine: 4, square: 4, sextile: 3, quincunx: 2 },
+  outer:     { conjunction: 4, opposition: 3, trine: 3, square: 3, sextile: 2, quincunx: 1 },
+  node:      { conjunction: 4, opposition: 3, trine: 3, square: 3, sextile: 2, quincunx: 2 },
+};
+
+/** Get the allowed orb for a planet pair and aspect type (use the wider orb) */
+function getPairOrb(p1: Planet, p2: Planet, aspectType: AspectType): number {
+  const cat1 = PLANET_CATEGORIES[p1];
+  const cat2 = PLANET_CATEGORIES[p2];
+  return Math.max(CATEGORY_ORBS[cat1][aspectType], CATEGORY_ORBS[cat2][aspectType]);
+}
 
 /** Weight multipliers for planet pairs — how important is this connection? */
 const PAIR_WEIGHTS: Record<string, number> = {
@@ -173,6 +232,31 @@ const PAIR_WEIGHTS: Record<string, number> = {
   'northNode-moon': 7,
   'northNode-venus': 7,
   'northNode-mars': 5,
+
+  // Angles — Ascendant (identity, first impression)
+  'ascendant-sun': 8,
+  'ascendant-moon': 7,
+  'ascendant-venus': 8,
+  'ascendant-mars': 7,
+  'ascendant-jupiter': 5,
+  'ascendant-saturn': 6,
+  'ascendant-pluto': 6,
+  'ascendant-neptune': 5,
+  'ascendant-uranus': 5,
+  'ascendant-northNode': 6,
+  'ascendant-ascendant': 6,
+  'ascendant-midheaven': 5,
+
+  // Angles — Midheaven (public life, direction)
+  'midheaven-sun': 6,
+  'midheaven-moon': 5,
+  'midheaven-venus': 6,
+  'midheaven-mars': 5,
+  'midheaven-jupiter': 5,
+  'midheaven-saturn': 6,
+  'midheaven-pluto': 5,
+  'midheaven-northNode': 5,
+  'midheaven-midheaven': 5,
 };
 
 /** Map planet pairs to themes */
@@ -248,6 +332,50 @@ const PAIR_THEMES: Record<string, SynastryTheme> = {
   'venus-northNode': 'destiny',
   'northNode-mars': 'destiny',
   'mars-northNode': 'destiny',
+
+  // Ascendant themes (identity / attraction)
+  'ascendant-sun': 'identity',
+  'sun-ascendant': 'identity',
+  'ascendant-moon': 'emotional',
+  'moon-ascendant': 'emotional',
+  'ascendant-venus': 'attraction',
+  'venus-ascendant': 'attraction',
+  'ascendant-mars': 'passion',
+  'mars-ascendant': 'passion',
+  'ascendant-jupiter': 'growth',
+  'jupiter-ascendant': 'growth',
+  'ascendant-saturn': 'commitment',
+  'saturn-ascendant': 'commitment',
+  'ascendant-pluto': 'transformation',
+  'pluto-ascendant': 'transformation',
+  'ascendant-neptune': 'dreams',
+  'neptune-ascendant': 'dreams',
+  'ascendant-uranus': 'chaos',
+  'uranus-ascendant': 'chaos',
+  'ascendant-northNode': 'destiny',
+  'northNode-ascendant': 'destiny',
+  'ascendant-ascendant': 'identity',
+  'ascendant-midheaven': 'identity',
+  'midheaven-ascendant': 'identity',
+
+  // Midheaven themes (direction / commitment)
+  'midheaven-sun': 'identity',
+  'sun-midheaven': 'identity',
+  'midheaven-moon': 'emotional',
+  'moon-midheaven': 'emotional',
+  'midheaven-venus': 'attraction',
+  'venus-midheaven': 'attraction',
+  'midheaven-mars': 'passion',
+  'mars-midheaven': 'passion',
+  'midheaven-jupiter': 'growth',
+  'jupiter-midheaven': 'growth',
+  'midheaven-saturn': 'commitment',
+  'saturn-midheaven': 'commitment',
+  'midheaven-pluto': 'transformation',
+  'pluto-midheaven': 'transformation',
+  'midheaven-northNode': 'destiny',
+  'northNode-midheaven': 'destiny',
+  'midheaven-midheaven': 'identity',
 };
 
 /** Zodiac element map */
@@ -464,15 +592,16 @@ function calculateSynastryAspects(
 
       const dist = angularDistance(pos1.longitude, pos2.longitude);
 
-      for (const aspDef of SYNASTRY_ASPECTS) {
+      for (const aspDef of SYNASTRY_ASPECT_ANGLES) {
+        const maxOrb = getPairOrb(p1, p2, aspDef.type);
         const orb = Math.abs(dist - aspDef.angle);
-        if (orb <= aspDef.orb) {
+        if (orb <= maxOrb) {
           const nature = getAspectNature(aspDef.type);
           const weight = getPairWeight(p1, p2);
           const theme = getPairTheme(p1, p2);
 
           // Tighter orb = stronger aspect (boost weight)
-          const orbBonus = 1 + (1 - orb / aspDef.orb) * 0.5;
+          const orbBonus = 1 + (1 - orb / maxOrb) * 0.5;
           const effectiveWeight = weight * orbBonus;
 
           aspects.push({
@@ -616,6 +745,7 @@ function aggregateThemes(aspects: SynastryAspect[]): SynastryThemeScore[] {
 function calculateOverallScore(
   aspects: SynastryAspect[],
   elementHarmony: number,
+  houseOverlayScore?: number,
 ): number {
   if (aspects.length === 0) return 30; // minimal data
 
@@ -647,13 +777,16 @@ function calculateOverallScore(
   const aspectRatio = totalWeight > 0 ? positiveWeight / totalWeight : 0.5;
 
   // Score components
-  const aspectScore = aspectRatio * 60;                    // 0-60 points
-  const elementScore = (elementHarmony / 10) * 15;         // 0-15 points
-  const volumeBonus = Math.min(15, aspects.length * 0.8);  // 0-15 points (more connections = more chemistry)
+  const aspectScore = aspectRatio * 55;                    // 0-55 points (reduced from 60 to make room for house overlay)
+  const elementScore = (elementHarmony / 10) * 13;         // 0-13 points (reduced from 15)
+  const volumeBonus = Math.min(12, aspects.length * 0.7);  // 0-12 points (more connections = more chemistry)
   const qualityBonus = aspects.slice(0, 5)                 // 0-10 points (top aspects quality)
     .reduce((sum, a) => sum + (a.weight > 7 ? 2 : a.weight > 5 ? 1 : 0), 0);
+  const houseBonus = houseOverlayScore != null             // 0-10 points (key house placements)
+    ? houseOverlayScore
+    : 0;
 
-  const raw = aspectScore + elementScore + volumeBonus + qualityBonus;
+  const raw = aspectScore + elementScore + volumeBonus + qualityBonus + houseBonus;
   return Math.max(0, Math.min(100, Math.round(raw)));
 }
 
@@ -823,6 +956,107 @@ function generateInsights(
 }
 
 // ============================================
+// HOUSE OVERLAY CALCULATION
+// ============================================
+
+/** Houses that carry heavy weight in synastry overlays */
+const KEY_OVERLAY_HOUSES = new Set([1, 4, 5, 7, 8]);
+
+/** Planets to consider for house overlays (exclude angles — they don't "visit" houses) */
+const OVERLAY_PLANETS: Planet[] = [
+  'sun', 'moon', 'mercury', 'venus', 'mars',
+  'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
+  'northNode',
+];
+
+/** Oracle-voice descriptions for planet-in-house overlays */
+const HOUSE_OVERLAY_DESCRIPTIONS: Record<number, (planet: string, host: string) => string> = {
+  1: (p, h) => `Their ${p} touches ${h}'s sense of self. An immediate, visible impact.`,
+  2: (p, h) => `Their ${p} stirs ${h}'s relationship to security and worth.`,
+  3: (p, h) => `Their ${p} enters ${h}'s world of words and daily exchange.`,
+  4: (p, h) => `Their ${p} reaches into ${h}'s foundations. This one goes deep.`,
+  5: (p, h) => `Their ${p} lights up ${h}'s house of joy and desire. Play and creation.`,
+  6: (p, h) => `Their ${p} touches ${h}'s routines and rituals. The small, daily devotions.`,
+  7: (p, h) => `Their ${p} lands in ${h}'s house of the other. Partnership is activated.`,
+  8: (p, h) => `Their ${p} pierces ${h}'s 8th house. Intimacy, power, and shared vulnerability.`,
+  9: (p, h) => `Their ${p} expands ${h}'s horizons. Shared beliefs and far-off places.`,
+  10: (p, h) => `Their ${p} enters ${h}'s house of ambition. Public life is intertwined.`,
+  11: (p, h) => `Their ${p} joins ${h}'s circle of hopes and community.`,
+  12: (p, h) => `Their ${p} drifts into ${h}'s hidden depths. Unconscious bonds form here.`,
+};
+
+/**
+ * Calculate house overlays between two charts.
+ * For each planet of one person, determine which house it falls in for the other.
+ */
+function calculateHouseOverlays(
+  chart1: NatalChart,
+  chart2: NatalChart,
+  name1: string,
+  name2: string,
+): HouseOverlays | undefined {
+  const houses1 = chart1.houses;
+  const houses2 = chart2.houses;
+
+  // Need at least one chart with house data
+  if (!houses1 && !houses2) return undefined;
+
+  const person2InPerson1Houses: HouseOverlayEntry[] = [];
+  const person1InPerson2Houses: HouseOverlayEntry[] = [];
+
+  // Person 2's planets in Person 1's houses
+  if (houses1) {
+    for (const planet of OVERLAY_PLANETS) {
+      const pos = getPosition(chart2, planet);
+      if (!pos) continue;
+      const house = getHouseForLongitude(pos.longitude, houses1.cusps);
+      const planetLabel = planet.replace('northNode', 'North Node');
+      person2InPerson1Houses.push({
+        planet,
+        house,
+        personName: name2,
+        hostName: name1,
+        isKeyOverlay: KEY_OVERLAY_HOUSES.has(house),
+        description: HOUSE_OVERLAY_DESCRIPTIONS[house](planetLabel, name1),
+      });
+    }
+  }
+
+  // Person 1's planets in Person 2's houses
+  if (houses2) {
+    for (const planet of OVERLAY_PLANETS) {
+      const pos = getPosition(chart1, planet);
+      if (!pos) continue;
+      const house = getHouseForLongitude(pos.longitude, houses2.cusps);
+      const planetLabel = planet.replace('northNode', 'North Node');
+      person1InPerson2Houses.push({
+        planet,
+        house,
+        personName: name1,
+        hostName: name2,
+        isKeyOverlay: KEY_OVERLAY_HOUSES.has(house),
+        description: HOUSE_OVERLAY_DESCRIPTIONS[house](planetLabel, name2),
+      });
+    }
+  }
+
+  // Score based on key overlays (planets in 1st, 4th, 5th, 7th, 8th)
+  const allOverlays = [...person2InPerson1Houses, ...person1InPerson2Houses];
+  const keyCount = allOverlays.filter(o => o.isKeyOverlay).length;
+  const totalCount = allOverlays.length;
+  // Normalize to 0-10: if ~40% of overlays land in key houses, that's roughly average (5)
+  // More than that is noteworthy, less is mild
+  const keyRatio = totalCount > 0 ? keyCount / totalCount : 0;
+  const score = Math.min(10, Math.round((keyRatio / 0.42) * 5 * 10) / 10);
+
+  return {
+    person2InPerson1Houses,
+    person1InPerson2Houses,
+    score,
+  };
+}
+
+// ============================================
 // PUBLIC API
 // ============================================
 
@@ -850,8 +1084,11 @@ export function calculateSynastry(
   // Element harmony
   const elementHarmony = calculateElementHarmony(chart1, chart2);
 
-  // Overall score
-  const score = calculateOverallScore(aspects, elementHarmony.score);
+  // House overlays
+  const houseOverlays = calculateHouseOverlays(chart1, chart2, name1, name2);
+
+  // Overall score (include house overlay bonus)
+  const score = calculateOverallScore(aspects, elementHarmony.score, houseOverlays?.score);
   const tier = getTier(score);
 
   // Oracle verdict
@@ -881,6 +1118,7 @@ export function calculateSynastry(
     keyAspects,
     themes,
     elementHarmony,
+    houseOverlays,
     strengths,
     challenges,
     oracleVerdict,
