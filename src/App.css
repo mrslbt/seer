@@ -157,93 +157,23 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   Seer Card — shared dark glass vessel
-   ═══════════════════════════════════════════════════ */
-
-.seer-card {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  padding: 32px 24px 28px;
-  background:
-    linear-gradient(
-      168deg,
-      rgba(201, 168, 76, 0.018) 0%,
-      rgba(10, 8, 4, 0.6) 30%,
-      rgba(6, 5, 3, 0.85) 70%,
-      rgba(201, 168, 76, 0.012) 100%
-    );
-  border: 1px solid rgba(201, 168, 76, 0.14);
-  border-radius: 24px;
-  overflow: hidden;
-}
-
-/* Top edge highlight */
-.seer-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(201, 168, 76, 0.15),
-    rgba(201, 168, 76, 0.25),
-    rgba(201, 168, 76, 0.15),
-    transparent
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Subtle corner accents */
-.seer-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  background:
-    radial-gradient(ellipse 120px 120px at 0% 0%, rgba(201, 168, 76, 0.025) 0%, transparent 70%),
-    radial-gradient(ellipse 120px 120px at 100% 100%, rgba(201, 168, 76, 0.015) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* ═══════════════════════════════════════════════════
-   Oracle Card — extends seer-card for the eye page
+   Oracle Layout — invisible container for the eye page
    ═══════════════════════════════════════════════════ */
 
 .oracle-card {
+  position: relative;
+  width: 100%;
   max-width: 380px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 28px;
-  padding: 40px 28px 36px;
 }
 
-/* Processing state — hold card height while eye gazes */
+/* Processing state — hold height while eye gazes */
 .oracle-card--processing {
   min-height: 480px;
-}
-
-/* Inner atmospheric glow — warm center where the eye lives */
-.oracle-card__glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -55%);
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(
-    ellipse 50% 45% at 50% 50%,
-    rgba(201, 168, 76, 0.03) 0%,
-    rgba(201, 168, 76, 0.01) 40%,
-    transparent 70%
-  );
-  pointer-events: none;
 }
 
 /* Footer section — separated cosmic data */
@@ -701,23 +631,13 @@
     font-size: 2.5rem;
   }
 
-  .seer-card {
-    border-radius: 20px;
-    max-width: 100%;
-  }
-
   .oracle-card {
-    padding: 32px 20px 28px;
+    max-width: 100%;
     gap: 24px;
   }
 
   .oracle-card--processing {
     min-height: 460px;
-  }
-
-  .oracle-card::before {
-    left: 15%;
-    right: 15%;
   }
 
   .summon-btn {

@@ -480,9 +480,7 @@ function App() {
 
         {/* === ORACLE TAB === */}
         {hasBirthData && activeTab === 'oracle' && (
-          <div className={`seer-card oracle-card${appState === 'summoning' || appState === 'gazing' || appState === 'revealing' ? ' oracle-card--processing' : ''}`}>
-            {/* Card inner glow */}
-            <div className="oracle-card__glow" />
+          <div className={`oracle-card${appState === 'summoning' || appState === 'gazing' || appState === 'revealing' ? ' oracle-card--processing' : ''}`}>
 
             {/* Profile indicator — shown when multiple profiles exist */}
             {appState === 'idle' && allProfiles.length > 1 && userProfile && (
