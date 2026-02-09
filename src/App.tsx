@@ -76,6 +76,45 @@ function App() {
   // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
 
+  // ---- Cryptic Acknowledgment (above the eye) ----
+  const seerAcknowledgment = useMemo(() => {
+    const name = userProfile?.birthData.name;
+    if (!name) return null;
+
+    const hour = new Date().getHours();
+    const isFirstToday = (() => {
+      const lastKey = `seer_last_visit_${userProfile?.id}`;
+      const last = localStorage.getItem(lastKey);
+      const today = new Date().toDateString();
+      if (last !== today) {
+        localStorage.setItem(lastKey, today);
+        return true;
+      }
+      return false;
+    })();
+
+    if (isFirstToday) {
+      const dawn = [
+        `${name} awakens`,
+        `A new dawn, ${name}`,
+        `The stars have waited, ${name}`,
+      ];
+      return dawn[Math.floor(Math.random() * dawn.length)];
+    }
+
+    const returning = [
+      `${name} returns`,
+      `The seeker arrives`,
+      `Again, ${name}`,
+      `${name}. Expected.`,
+      `The stars remember you, ${name}`,
+    ];
+
+    // Stable pick per hour so it doesn't change on every re-render
+    const seed = hour + (userProfile?.id?.charCodeAt(0) ?? 0);
+    return returning[seed % returning.length];
+  }, [userProfile]);
+
   // ---- Cosmic Whisper (Feature 1) ----
   const cosmicWhisper = useMemo(() => {
     if (!dailyReport) return null;
@@ -297,8 +336,16 @@ function App() {
 
   return (
     <div className="app">
-      {/* Header — single settings icon */}
+      {/* Header — brand left, settings right */}
       <header className="app-header">
+        {hasBirthData ? (
+          <div className="header-brand">
+            <span className="header-brand-the">The</span>
+            <span className="header-brand-seer">Seer</span>
+          </div>
+        ) : (
+          <div />
+        )}
         {hasBirthData && (
           <button
             className="header-settings-btn"
@@ -341,12 +388,9 @@ function App() {
         {/* === ORACLE TAB === */}
         {hasBirthData && activeTab === 'oracle' && (
           <>
-            {/* Branding */}
-            {(appState === 'idle' || appState === 'awaiting_question') && (
-              <div className="seer-brand">
-                <span className="brand-the">The</span>
-                <span className="brand-seer">Seer</span>
-              </div>
+            {/* Cryptic acknowledgment — the Seer notes your presence */}
+            {(appState === 'idle' || appState === 'awaiting_question') && seerAcknowledgment && (
+              <p className="seer-acknowledgment">{seerAcknowledgment}</p>
             )}
 
             {/* Profile indicator — shown when multiple profiles exist */}
@@ -368,13 +412,9 @@ function App() {
               />
             </div>
 
-            {/* Cosmic Whisper (Feature 1) — personalized with name */}
+            {/* Cosmic Whisper (Feature 1) */}
             {appState === 'idle' && cosmicWhisper && !cosmosLoading && (
-              <p className="cosmic-whisper">
-                {userProfile?.birthData.name
-                  ? `${userProfile.birthData.name}. ${cosmicWhisper}`
-                  : cosmicWhisper}
-              </p>
+              <p className="cosmic-whisper">{cosmicWhisper}</p>
             )}
 
             {/* Cosmic Hint — top category energy on idle screen */}
