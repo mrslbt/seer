@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { UserProfile } from '../types/userProfile';
 import type { SynastryReport } from '../lib/synastry';
 import type { CompatibilityReading, RelationshipAnswer } from '../lib/compatibilityReading';
@@ -15,6 +15,7 @@ import {
 } from '../lib/compatibilityReading';
 import { ZODIAC_SYMBOLS } from '../lib/astroEngine';
 import { playClick, playReveal } from '../lib/sounds';
+import { SeerEye } from './SeerEye';
 import { validateQuestionInput } from './QuestionInput';
 import './CompatibilityView.css';
 
@@ -28,14 +29,13 @@ interface CompatibilityViewProps {
   onAddProfile: () => void;
 }
 
-type ViewState =
-  | { phase: 'select' }
-  | { phase: 'pre-reveal'; partner: UserProfile }
-  | { phase: 'gazing'; partner: UserProfile; report: SynastryReport }
-  | { phase: 'reading'; partner: UserProfile; report: SynastryReport; reading: CompatibilityReading }
-  | { phase: 'asking'; partner: UserProfile; report: SynastryReport; reading: CompatibilityReading }
-  | { phase: 'answering'; partner: UserProfile; report: SynastryReport; reading: CompatibilityReading }
-  | { phase: 'answered'; partner: UserProfile; report: SynastryReport; reading: CompatibilityReading; answer: RelationshipAnswer };
+type BondPhase =
+  | 'select'           // Eye closed, pick a partner
+  | 'summoning'        // Eye opening after partner chosen
+  | 'reading'          // Eye open, reading revealed below
+  | 'asking'           // Eye open, question input below
+  | 'gazing'           // Eye gazing on a question
+  | 'answered';        // Eye open, answer shown
 
 // ============================================
 // SUGGESTED RELATIONSHIP QUESTIONS
@@ -57,83 +57,105 @@ function getRandomQuestions(count: number): string[] {
 }
 
 // ============================================
-// GAZING DURATION
-// ============================================
-
-const GAZE_DURATION = 2800;
-
-// ============================================
 // COMPONENT
 // ============================================
 
 export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: CompatibilityViewProps) {
-  const [state, setState] = useState<ViewState>({ phase: 'select' });
+  const [phase, setPhase] = useState<BondPhase>('select');
+  const [partner, setPartner] = useState<UserProfile | null>(null);
+  const [report, setReport] = useState<SynastryReport | null>(null);
+  const [reading, setReading] = useState<CompatibilityReading | null>(null);
+  const [answer, setAnswer] = useState<RelationshipAnswer | null>(null);
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [suggestions] = useState(() => getRandomQuestions(4));
   const inputRef = useRef<HTMLInputElement>(null);
   const readingRef = useRef<HTMLDivElement>(null);
-  const gazeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Others = all profiles minus active
   const others = allProfiles.filter(p => p.id !== activeProfile.id);
   const hasOthers = others.length > 0;
 
-  // Clean up gaze timer on unmount
-  useEffect(() => {
-    return () => {
-      if (gazeTimerRef.current) clearTimeout(gazeTimerRef.current);
+  // Pair label shown above the eye
+  const pairLabel = useMemo(() => {
+    if (!partner) return null;
+    const activeSun = activeProfile.natalChart.sun.sign;
+    const partnerSun = partner.natalChart.sun.sign;
+    return {
+      name1: activeProfile.birthData.name,
+      name2: partner.birthData.name,
+      symbol1: ZODIAC_SYMBOLS[activeSun],
+      symbol2: ZODIAC_SYMBOLS[partnerSun],
+      sign1: activeSun,
+      sign2: partnerSun,
     };
-  }, []);
+  }, [partner, activeProfile]);
+
+  // ---- Eye state mapping ----
+  const getEyeState = (): 'closed' | 'opening' | 'open' | 'gazing' | 'revealing' => {
+    switch (phase) {
+      case 'select': return 'closed';
+      case 'summoning': return 'opening';
+      case 'reading': return 'open';
+      case 'asking': return 'open';
+      case 'gazing': return 'gazing';
+      case 'answered': return 'revealing';
+      default: return 'closed';
+    }
+  };
 
   // ---- Select partner ----
-  const handleSelectPartner = useCallback((partner: UserProfile) => {
+  const handleSelectPartner = useCallback((p: UserProfile) => {
     playClick();
-    setState({ phase: 'pre-reveal', partner });
+    setPartner(p);
+    setPhase('summoning');
   }, []);
 
-  // ---- Reveal ----
-  const handleReveal = useCallback(() => {
-    if (state.phase !== 'pre-reveal') return;
-    playClick();
+  // ---- Eye opened → compute synastry + reading ----
+  const handleEyeOpenComplete = useCallback(() => {
+    if (!partner) return;
+    playReveal();
+    const synastryReport = calculateSynastry(activeProfile, partner);
+    const compatReading = generateCompatibilityReading(synastryReport);
+    setReport(synastryReport);
+    setReading(compatReading);
+    setPhase('reading');
+  }, [partner, activeProfile]);
 
-    const report = calculateSynastry(activeProfile, state.partner);
-    setState({ phase: 'gazing', partner: state.partner, report });
-
-    gazeTimerRef.current = setTimeout(() => {
-      playReveal();
-      const reading = generateCompatibilityReading(report);
-      setState({ phase: 'reading', partner: state.partner, report, reading });
-    }, GAZE_DURATION);
-  }, [state, activeProfile]);
+  // ---- Eye finished gazing → generate answer ----
+  const handleGazeComplete = useCallback(() => {
+    if (!partner || !report) return;
+    playReveal();
+    const a = answerRelationshipQuestion(question, activeProfile, partner, report);
+    setAnswer(a);
+    setPhase('answered');
+  }, [partner, report, question, activeProfile]);
 
   // ---- Back to selection ----
   const handleBack = useCallback(() => {
     playClick();
-    setState({ phase: 'select' });
+    setPhase('select');
+    setPartner(null);
+    setReport(null);
+    setReading(null);
+    setAnswer(null);
     setQuestion('');
     setQuestionError(null);
   }, []);
 
   // ---- Enter question mode ----
   const handleAskMode = useCallback(() => {
-    if (state.phase !== 'reading' && state.phase !== 'answered') return;
     playClick();
     setQuestion('');
     setQuestionError(null);
-    setState({
-      phase: 'asking',
-      partner: state.partner,
-      report: state.report,
-      reading: state.reading,
-    });
-    // Focus input after render
+    setAnswer(null);
+    setPhase('asking');
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [state]);
+  }, []);
 
   // ---- Submit question ----
   const handleSubmitQuestion = useCallback(() => {
-    if (state.phase !== 'asking') return;
+    if (phase !== 'asking') return;
 
     const validation = validateQuestionInput(question);
     if (!validation.valid) {
@@ -143,67 +165,20 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
 
     setQuestionError(null);
     playClick();
-
-    // Show gazing state briefly
-    setState({
-      phase: 'answering',
-      partner: state.partner,
-      report: state.report,
-      reading: state.reading,
-    });
-
-    gazeTimerRef.current = setTimeout(() => {
-      playReveal();
-      const answer = answerRelationshipQuestion(
-        question,
-        activeProfile,
-        state.partner,
-        state.report,
-      );
-      setState({
-        phase: 'answered',
-        partner: state.partner,
-        report: state.report,
-        reading: state.reading,
-        answer,
-      });
-    }, 2000);
-  }, [state, question, activeProfile]);
+    setPhase('gazing');
+  }, [phase, question]);
 
   // ---- Select suggested question ----
   const handleSuggestedQuestion = useCallback((q: string) => {
     setQuestion(q);
-    // Submit immediately after setting
-    if (state.phase !== 'asking') return;
+    if (phase !== 'asking') return;
 
     const validation = validateQuestionInput(q);
     if (!validation.valid) return;
 
     playClick();
-    setState({
-      phase: 'answering',
-      partner: state.partner,
-      report: state.report,
-      reading: state.reading,
-    });
-
-    gazeTimerRef.current = setTimeout(() => {
-      playReveal();
-      const answer = answerRelationshipQuestion(
-        q,
-        activeProfile,
-        state.partner,
-        state.report,
-      );
-      setState({
-        phase: 'answered',
-        partner: state.partner,
-        report: state.report,
-        reading: state.reading,
-        answer,
-      });
-    }, 2000);
-  }, [state, activeProfile]);
+    setPhase('gazing');
+  }, [phase]);
 
   // ---- Input handlers ----
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,320 +200,270 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     }, 300);
   }, []);
 
-  // ============================================
-  // RENDER: State 1 — Profile Selection
-  // ============================================
+  // ---- Back to reading from asking/answered ----
+  const handleBackToReading = useCallback(() => {
+    playClick();
+    setAnswer(null);
+    setPhase('reading');
+  }, []);
 
-  if (state.phase === 'select') {
-    return (
-      <div className="compat-view">
-        <h2 className="compat-header">Choose a soul to compare</h2>
-
-        {hasOthers ? (
-          <div className="compat-profile-list">
-            {others.map((profile) => {
-              const sunSign = profile.natalChart.sun.sign;
-              const symbol = ZODIAC_SYMBOLS[sunSign];
-              return (
-                <button
-                  key={profile.id}
-                  className="compat-profile-btn"
-                  onClick={() => handleSelectPartner(profile)}
-                >
-                  <span className="compat-profile-symbol">{symbol}</span>
-                  <div className="compat-profile-info">
-                    <span className="compat-profile-name">{profile.birthData.name}</span>
-                    <span className="compat-profile-sign">{sunSign}</span>
-                  </div>
-                  <span className="compat-profile-arrow">{'\u203A'}</span>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="compat-empty">
-            <p className="compat-empty-text">
-              Add a second soul to reveal what lies between you
-            </p>
-            <button className="compat-add-btn" onClick={onAddProfile}>
-              + Add Profile
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
+  // Scroll reading into view when it appears
+  useEffect(() => {
+    if (phase === 'reading' && readingRef.current) {
+      setTimeout(() => {
+        readingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 400);
+    }
+  }, [phase]);
 
   // ============================================
-  // RENDER: State 2 — Pre-reveal (side by side)
+  // RENDER
   // ============================================
 
-  if (state.phase === 'pre-reveal') {
-    const activeSun = activeProfile.natalChart.sun.sign;
-    const partnerSun = state.partner.natalChart.sun.sign;
-
-    return (
-      <div className="compat-view">
-        <div className="compat-pair">
-          <div className="compat-soul">
-            <span className="compat-soul-symbol">{ZODIAC_SYMBOLS[activeSun]}</span>
-            <span className="compat-soul-name">{activeProfile.birthData.name}</span>
-            <span className="compat-soul-sign">{activeSun}</span>
-          </div>
-
-          <div className="compat-divider">{'\u00D7'}</div>
-
-          <div className="compat-soul">
-            <span className="compat-soul-symbol">{ZODIAC_SYMBOLS[partnerSun]}</span>
-            <span className="compat-soul-name">{state.partner.birthData.name}</span>
-            <span className="compat-soul-sign">{partnerSun}</span>
-          </div>
+  return (
+    <div className="compat-view">
+      {/* ---- Pair label above the eye ---- */}
+      {pairLabel && phase !== 'select' && (
+        <div className="compat-pair-label">
+          <span className="compat-pair-soul">
+            <span className="compat-pair-symbol">{pairLabel.symbol1}</span>
+            <span className="compat-pair-name">{pairLabel.name1}</span>
+          </span>
+          <span className="compat-pair-divider">{'\u00D7'}</span>
+          <span className="compat-pair-soul">
+            <span className="compat-pair-symbol">{pairLabel.symbol2}</span>
+            <span className="compat-pair-name">{pairLabel.name2}</span>
+          </span>
         </div>
+      )}
 
-        <button className="compat-reveal-btn" onClick={handleReveal}>
-          Reveal
-        </button>
+      {/* ---- Header text when selecting ---- */}
+      {phase === 'select' && (
+        <p className="compat-header">Choose a soul to compare</p>
+      )}
 
-        <button className="compat-back-link" onClick={handleBack}>
-          Choose another soul
-        </button>
+      {/* ---- THE SEER EYE — always present ---- */}
+      <div className="compat-eye-section">
+        <SeerEye
+          state={getEyeState()}
+          onOpenComplete={handleEyeOpenComplete}
+          onGazeComplete={handleGazeComplete}
+        />
       </div>
-    );
-  }
 
-  // ============================================
-  // RENDER: Gazing states
-  // ============================================
+      {/* ---- Gazing question echo ---- */}
+      {phase === 'gazing' && question && (
+        <p className="compat-current-question">"{question}"</p>
+      )}
 
-  if (state.phase === 'gazing' || state.phase === 'answering') {
-    return (
-      <div className="compat-view">
-        <div className="compat-gazing">
-          <div className="compat-gazing-orb" />
-          <p className="compat-gazing-text">
-            {state.phase === 'gazing'
-              ? 'The Seer gazes into the bond...'
-              : 'The Seer contemplates...'}
+      {/* ---- Phase: Select (below eye) ---- */}
+      {phase === 'select' && (
+        <>
+          {hasOthers ? (
+            <div className="compat-profile-list">
+              {others.map((profile) => {
+                const sunSign = profile.natalChart.sun.sign;
+                const symbol = ZODIAC_SYMBOLS[sunSign];
+                return (
+                  <button
+                    key={profile.id}
+                    className="compat-profile-btn"
+                    onClick={() => handleSelectPartner(profile)}
+                  >
+                    <span className="compat-profile-symbol">{symbol}</span>
+                    <div className="compat-profile-info">
+                      <span className="compat-profile-name">{profile.birthData.name}</span>
+                      <span className="compat-profile-sign">{sunSign}</span>
+                    </div>
+                    <span className="compat-profile-arrow">{'\u203A'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="compat-empty">
+              <p className="compat-empty-text">
+                Add a second soul to reveal what lies between you
+              </p>
+              <button className="compat-add-btn" onClick={onAddProfile}>
+                + Add Profile
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ---- Phase: Reading revealed (below eye) ---- */}
+      {phase === 'reading' && report && reading && (
+        <div className="compat-reading-container" ref={readingRef}>
+          {/* Tier badge */}
+          <div className="compat-tier" style={{ color: getTierColor(report.tier) }}>
+            {getTierLabel(report.tier)}
+          </div>
+
+          {/* Score */}
+          <div className="compat-score" style={{ color: getTierColor(report.tier) }}>
+            <span className="compat-score-num">{report.score}</span>
+            <span className="compat-score-max">/100</span>
+          </div>
+
+          {/* Oracle verdict */}
+          <p className="compat-verdict" style={{ color: getTierColor(report.tier) }}>
+            {report.oracleVerdict}
           </p>
+
+          {/* Reading text */}
+          <div className="compat-reading-text">
+            {reading.fullText.split('\n\n').filter(Boolean).map((p, i) => (
+              <p key={i} className="compat-reading-paragraph">{p}</p>
+            ))}
+          </div>
+
+          {/* Theme pills */}
+          {(() => {
+            const topThemes = report.themes.filter(t => t.score > 2).slice(0, 5);
+            return topThemes.length > 0 ? (
+              <div className="compat-themes">
+                {topThemes.map((t) => (
+                  <span
+                    key={t.theme}
+                    className="compat-theme-pill"
+                    style={{ borderColor: `${getTierColor(report.tier)}33`, color: getTierColor(report.tier) }}
+                  >
+                    {t.label}
+                    <span className="compat-theme-score">{t.score.toFixed(1)}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Strengths */}
+          {report.strengths.length > 0 && (
+            <div className="compat-section">
+              <h3 className="compat-section-label">What Draws You Together</h3>
+              {report.strengths.map((s, i) => (
+                <p key={i} className="compat-section-item compat-section-item--strength">{s}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Challenges */}
+          {report.challenges.length > 0 && (
+            <div className="compat-section">
+              <h3 className="compat-section-label">What Tests You</h3>
+              {report.challenges.map((c, i) => (
+                <p key={i} className="compat-section-item compat-section-item--challenge">{c}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Element harmony */}
+          <div className="compat-element">
+            <h3 className="compat-section-label">Elemental Harmony</h3>
+            <p className="compat-element-text">{report.elementHarmony.description}</p>
+          </div>
+
+          {/* Actions */}
+          <div className="compat-actions">
+            <button className="compat-ask-btn" onClick={handleAskMode}>
+              Ask about this bond
+            </button>
+            <button className="compat-back-link" onClick={handleBack}>
+              Choose another soul
+            </button>
+          </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  // ============================================
-  // RENDER: State 3 — Reading revealed
-  // ============================================
-
-  if (state.phase === 'reading') {
-    const { report, reading } = state;
-    const tierLabel = getTierLabel(report.tier);
-    const tierColor = getTierColor(report.tier);
-    const paragraphs = reading.fullText.split('\n\n').filter(Boolean);
-    // Top themes (score > 0, max 5)
-    const topThemes = report.themes.filter(t => t.score > 2).slice(0, 5);
-
-    return (
-      <div className="compat-view" ref={readingRef}>
-        {/* Tier badge */}
-        <div className="compat-tier" style={{ color: tierColor }}>
-          {tierLabel}
-        </div>
-
-        {/* Score — subtle */}
-        <div className="compat-score" style={{ color: tierColor }}>
-          <span className="compat-score-num">{report.score}</span>
-          <span className="compat-score-max">/100</span>
-        </div>
-
-        {/* Oracle verdict */}
-        <p className="compat-verdict" style={{ color: tierColor }}>
-          {report.oracleVerdict}
-        </p>
-
-        {/* Reading text */}
-        <div className="compat-reading-text">
-          {paragraphs.map((p, i) => (
-            <p key={i} className="compat-reading-paragraph">{p}</p>
-          ))}
-        </div>
-
-        {/* Theme pills */}
-        {topThemes.length > 0 && (
-          <div className="compat-themes">
-            {topThemes.map((t) => (
-              <span
-                key={t.theme}
-                className="compat-theme-pill"
-                style={{ borderColor: `${tierColor}33`, color: tierColor }}
+      {/* ---- Phase: Question input (below eye) ---- */}
+      {phase === 'asking' && (
+        <div className="compat-input-container">
+          <div className="compat-question-form">
+            <div className="compat-question-row">
+              <input
+                ref={inputRef}
+                type="search"
+                name="seer-compat-question"
+                className={`compat-question-input ${questionError ? 'has-error' : ''}`}
+                value={question}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                onFocus={handleInputFocus}
+                placeholder="Will this work between us?"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
+                enterKeyHint="go"
+                data-form-type="other"
+                data-lpignore="true"
+              />
+              <button
+                className="compat-submit-btn"
+                onClick={handleSubmitQuestion}
+                disabled={!question.trim()}
+                type="button"
               >
-                {t.label}
-                <span className="compat-theme-score">{t.score.toFixed(1)}</span>
-              </span>
+                Ask
+              </button>
+            </div>
+            {questionError && <div className="compat-input-error">{questionError}</div>}
+          </div>
+
+          {/* Suggested questions */}
+          <p className="compat-suggestions-divider">or ask the stars</p>
+          <div className="compat-suggestions">
+            {suggestions.map((q) => (
+              <button
+                key={q}
+                className="compat-suggestion-chip"
+                onClick={() => handleSuggestedQuestion(q)}
+              >
+                {q}
+              </button>
             ))}
           </div>
-        )}
 
-        {/* Strengths */}
-        {report.strengths.length > 0 && (
-          <div className="compat-section">
-            <h3 className="compat-section-label">What Draws You Together</h3>
-            {report.strengths.map((s, i) => (
-              <p key={i} className="compat-section-item compat-section-item--strength">{s}</p>
-            ))}
-          </div>
-        )}
-
-        {/* Challenges */}
-        {report.challenges.length > 0 && (
-          <div className="compat-section">
-            <h3 className="compat-section-label">What Tests You</h3>
-            {report.challenges.map((c, i) => (
-              <p key={i} className="compat-section-item compat-section-item--challenge">{c}</p>
-            ))}
-          </div>
-        )}
-
-        {/* Element harmony */}
-        <div className="compat-element">
-          <h3 className="compat-section-label">Elemental Harmony</h3>
-          <p className="compat-element-text">{report.elementHarmony.description}</p>
-        </div>
-
-        {/* Actions */}
-        <div className="compat-actions">
-          <button className="compat-ask-btn" onClick={handleAskMode}>
-            Ask about this bond
-          </button>
-          <button className="compat-back-link" onClick={handleBack}>
-            Choose another soul
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ============================================
-  // RENDER: State 4 — Question mode
-  // ============================================
-
-  if (state.phase === 'asking') {
-    return (
-      <div className="compat-view">
-        <h2 className="compat-question-header">
-          Ask about the bond between you
-        </h2>
-
-        <div className="compat-question-form">
-          <div className="compat-question-row">
-            <input
-              ref={inputRef}
-              type="search"
-              name="seer-compat-question"
-              className={`compat-question-input ${questionError ? 'has-error' : ''}`}
-              value={question}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              onFocus={handleInputFocus}
-              placeholder="Will this work between us?"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck="false"
-              enterKeyHint="go"
-              data-form-type="other"
-              data-lpignore="true"
-            />
-            <button
-              className="compat-submit-btn"
-              onClick={handleSubmitQuestion}
-              disabled={!question.trim()}
-              type="button"
-            >
-              Ask
-            </button>
-          </div>
-          {questionError && <div className="compat-input-error">{questionError}</div>}
-        </div>
-
-        {/* Suggested questions */}
-        <p className="compat-suggestions-divider">or ask the stars</p>
-        <div className="compat-suggestions">
-          {suggestions.map((q) => (
-            <button
-              key={q}
-              className="compat-suggestion-chip"
-              onClick={() => handleSuggestedQuestion(q)}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        <button className="compat-back-link" onClick={() => {
-          playClick();
-          setState({
-            phase: 'reading',
-            partner: state.partner,
-            report: state.report,
-            reading: state.reading,
-          });
-        }}>
-          Back to reading
-        </button>
-      </div>
-    );
-  }
-
-  // ============================================
-  // RENDER: State 5 — Answer shown
-  // ============================================
-
-  if (state.phase === 'answered') {
-    const { answer } = state;
-    const verdictText = getCompatibilityVerdictText(answer.verdict);
-    const verdictColor = getCompatibilityVerdictColor(answer.verdict);
-
-    return (
-      <div className="compat-view">
-        {/* Verdict */}
-        <div className="compat-answer-verdict" style={{ color: verdictColor }}>
-          {verdictText}
-        </div>
-
-        {/* Response */}
-        <div className="compat-answer-text" style={{ color: verdictColor }}>
-          <span className="compat-answer-quote">{'\u201C'}</span>
-          {answer.response}
-          <span className="compat-answer-quote">{'\u201D'}</span>
-        </div>
-
-        {/* Transit context */}
-        {answer.transitContext && (
-          <p className="compat-transit-context">{answer.transitContext}</p>
-        )}
-
-        {/* Actions */}
-        <div className="compat-answer-actions">
-          <button className="compat-ask-btn" onClick={handleAskMode}>
-            Ask another
-          </button>
-          <button className="compat-back-link" onClick={() => {
-            playClick();
-            setState({
-              phase: 'reading',
-              partner: state.partner,
-              report: state.report,
-              reading: state.reading,
-            });
-          }}>
+          <button className="compat-back-link" onClick={handleBackToReading}>
             Back to reading
           </button>
-          <button className="compat-back-link" onClick={handleBack}>
-            Choose another soul
-          </button>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return null;
+      {/* ---- Phase: Answer shown (below eye) ---- */}
+      {phase === 'answered' && answer && (
+        <div className="compat-answer-container">
+          {/* Verdict */}
+          <div className="compat-answer-verdict" style={{ color: getCompatibilityVerdictColor(answer.verdict) }}>
+            {getCompatibilityVerdictText(answer.verdict)}
+          </div>
+
+          {/* Response */}
+          <div className="compat-answer-text" style={{ color: getCompatibilityVerdictColor(answer.verdict) }}>
+            <span className="compat-answer-quote">{'\u201C'}</span>
+            {answer.response}
+            <span className="compat-answer-quote">{'\u201D'}</span>
+          </div>
+
+          {/* Transit context */}
+          {answer.transitContext && (
+            <p className="compat-transit-context">{answer.transitContext}</p>
+          )}
+
+          {/* Actions */}
+          <div className="compat-answer-actions">
+            <button className="compat-ask-btn" onClick={handleAskMode}>
+              Ask another
+            </button>
+            <button className="compat-back-link" onClick={handleBackToReading}>
+              Back to reading
+            </button>
+            <button className="compat-back-link" onClick={handleBack}>
+              Choose another soul
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

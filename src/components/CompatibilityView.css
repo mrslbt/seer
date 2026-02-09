@@ -2,8 +2,8 @@
    Compatibility View — The Seer
 
    Bonds tab: synastry readings between two charts.
-   Visual hierarchy follows oracle reading patterns:
-   dark, atmospheric, gold accents, Instrument Serif for oracle voice.
+   Uses the same SeerEye component as the Oracle tab.
+   Eye-centric layout: content flows above + below the eye.
    =============================================================== */
 
 /* ── Container ─────────────────────────────────── */
@@ -12,29 +12,108 @@
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
-  padding: 8px 0 48px;
+  padding: 0 0 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
   text-align: center;
-  animation: compatFadeIn 0.5s ease;
 }
 
-/* ── State 1: Profile Selection ────────────────── */
+/* ── Pair Label (above eye) ────────────────────── */
+
+.compat-pair-label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: compatFadeIn 0.6s ease;
+}
+
+.compat-pair-soul {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compat-pair-symbol {
+  font-size: 1.125rem;
+  color: var(--accent);
+  opacity: 0.5;
+}
+
+.compat-pair-name {
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.compat-pair-divider {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  color: var(--accent);
+  opacity: 0.2;
+}
+
+/* ── Header (select phase) ────────────────────── */
 
 .compat-header {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
   font-weight: 400;
   font-style: italic;
-  color: var(--accent);
-  opacity: 0.7;
+  color: rgba(201, 168, 76, 0.45);
   letter-spacing: 0.02em;
-  margin-bottom: 32px;
-  animation: compatFadeIn 0.6s ease;
+  animation: compatAcknowledgment 1.4s ease;
 }
+
+@keyframes compatAcknowledgment {
+  0% {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-2px);
+  }
+  50% {
+    opacity: 0.3;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* ── Eye Section ───────────────────────────────── */
+
+.compat-eye-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── Gazing question echo ──────────────────────── */
+
+.compat-current-question {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  max-width: 300px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  animation: compatFadeIn 0.3s ease;
+}
+
+/* ── Profile Selection (below eye) ────────────── */
 
 .compat-profile-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  width: 100%;
   animation: compatSlideUp 0.5s ease 0.1s both;
 }
 
@@ -122,7 +201,7 @@
 /* Empty state — no other profiles */
 
 .compat-empty {
-  padding: 40px 24px;
+  padding: 20px 24px;
   animation: compatFadeIn 0.6s ease 0.15s both;
 }
 
@@ -159,130 +238,13 @@
   transform: scale(0.97);
 }
 
-/* ── State 2: Pre-Reveal (Side by Side) ────────── */
+/* ── Reading Container (below eye) ────────────── */
 
-.compat-pair {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  margin: 24px 0 40px;
-  animation: compatFadeIn 0.7s ease;
-}
-
-.compat-soul {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  animation: compatSoulAppear 0.6s ease both;
-}
-
-.compat-soul:first-child {
-  animation-delay: 0.1s;
-}
-
-.compat-soul:last-child {
-  animation-delay: 0.3s;
-}
-
-.compat-soul-symbol {
-  font-size: 2.5rem;
-  line-height: 1;
-  color: var(--accent);
-  opacity: 0.6;
-  text-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
-  animation: compatSymbolGlow 4s ease-in-out infinite;
-}
-
-.compat-soul-name {
-  font-family: var(--font);
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.02em;
-}
-
-.compat-soul-sign {
-  font-family: var(--font);
-  font-size: 0.625rem;
-  color: rgba(255, 255, 255, 0.25);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.compat-divider {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: var(--accent);
-  opacity: 0.25;
-  animation: compatDividerPulse 3s ease-in-out infinite;
-}
-
-/* Reveal button — styled like the summon button */
-
-.compat-reveal-btn {
-  display: block;
-  margin: 0 auto 32px;
-  padding: 14px 48px;
-  font-family: var(--font);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  animation: compatSlideUp 0.5s ease 0.5s both;
-}
-
-.compat-reveal-btn:hover {
-  background: rgba(201, 168, 76, 0.06);
-  border-color: rgba(201, 168, 76, 0.4);
-  box-shadow: 0 0 30px rgba(201, 168, 76, 0.06);
-}
-
-.compat-reveal-btn:active {
-  transform: scale(0.97);
-}
-
-/* ── Gazing State ──────────────────────────────── */
-
-.compat-gazing {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  gap: 28px;
+.compat-reading-container {
+  width: 100%;
+  text-align: center;
   animation: compatFadeIn 0.5s ease;
 }
-
-.compat-gazing-orb {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 40% 40%,
-    rgba(201, 168, 76, 0.25) 0%,
-    rgba(201, 168, 76, 0.08) 50%,
-    transparent 70%
-  );
-  border: 1px solid rgba(201, 168, 76, 0.15);
-  animation: compatOrbPulse 2s ease-in-out infinite;
-}
-
-.compat-gazing-text {
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.35);
-  letter-spacing: 0.02em;
-  animation: compatGazingText 2s ease-in-out infinite;
-}
-
-/* ── State 3: Reading Revealed ─────────────────── */
 
 .compat-tier {
   font-family: var(--font);
@@ -468,23 +430,35 @@
 }
 
 .compat-ask-btn {
-  padding: 12px 36px;
+  padding: 14px 48px;
   font-family: var(--font);
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--accent);
   background: transparent;
   border: 1px solid rgba(201, 168, 76, 0.2);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Subtle pulse like summon button */
+.compat-ask-btn::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgba(201, 168, 76, 0.08);
+  animation: compatBtnPulse 4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .compat-ask-btn:hover {
   background: rgba(201, 168, 76, 0.06);
   border-color: rgba(201, 168, 76, 0.4);
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.04);
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.06);
+  letter-spacing: 0.3em;
 }
 
 .compat-ask-btn:active {
@@ -514,17 +488,12 @@
   opacity: 0.6;
 }
 
-/* ── State 4: Question Mode ────────────────────── */
+/* ── Question Input (below eye) ───────────────── */
 
-.compat-question-header {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 400;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.02em;
-  margin-bottom: 28px;
-  animation: compatFadeIn 0.5s ease;
+.compat-input-container {
+  width: 100%;
+  max-width: 360px;
+  animation: compatSlideUp 0.4s ease;
 }
 
 .compat-question-form {
@@ -532,7 +501,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: compatFadeIn 0.4s ease 0.1s both;
 }
 
 .compat-question-row {
@@ -672,7 +640,13 @@
   background: rgba(201, 168, 76, 0.06);
 }
 
-/* ── State 5: Answer Shown ─────────────────────── */
+/* ── Answer Container (below eye) ─────────────── */
+
+.compat-answer-container {
+  width: 100%;
+  text-align: center;
+  animation: compatFadeIn 0.4s ease;
+}
 
 .compat-answer-verdict {
   font-family: var(--font);
@@ -753,59 +727,6 @@
   }
 }
 
-@keyframes compatSoulAppear {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes compatSymbolGlow {
-  0%, 100% {
-    text-shadow: 0 0 12px rgba(201, 168, 76, 0.1);
-    opacity: 0.6;
-  }
-  50% {
-    text-shadow: 0 0 24px rgba(201, 168, 76, 0.25);
-    opacity: 0.8;
-  }
-}
-
-@keyframes compatDividerPulse {
-  0%, 100% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@keyframes compatOrbPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.8;
-    box-shadow: 0 0 20px rgba(201, 168, 76, 0.1);
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
-    box-shadow: 0 0 40px rgba(201, 168, 76, 0.2);
-  }
-}
-
-@keyframes compatGazingText {
-  0%, 100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
 @keyframes compatTierAppear {
   from {
     opacity: 0;
@@ -838,23 +759,35 @@
   }
 }
 
+@keyframes compatBtnPulse {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
 /* ── Mobile ────────────────────────────────────── */
 
 @media (max-width: 640px) {
   .compat-view {
-    padding: 4px 0 40px;
+    gap: 24px;
+    padding: 0 0 40px;
   }
 
-  .compat-header {
-    font-size: 1.125rem;
+  .compat-pair-label {
+    gap: 12px;
   }
 
-  .compat-soul-symbol {
-    font-size: 2rem;
+  .compat-pair-symbol {
+    font-size: 1rem;
   }
 
-  .compat-pair {
-    gap: 20px;
+  .compat-pair-name {
+    font-size: 0.75rem;
   }
 
   .compat-verdict {
