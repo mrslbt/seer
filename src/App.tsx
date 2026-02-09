@@ -480,7 +480,7 @@ function App() {
 
         {/* === ORACLE TAB === */}
         {hasBirthData && activeTab === 'oracle' && (
-          <div className={`oracle-card${appState === 'gazing' || appState === 'summoning' ? ' oracle-card--processing' : ''}`}>
+          <div className={`oracle-card${appState === 'summoning' || appState === 'gazing' || appState === 'revealing' ? ' oracle-card--processing' : ''}`}>
             {/* Card inner glow */}
             <div className="oracle-card__glow" />
 
