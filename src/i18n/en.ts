@@ -39,6 +39,7 @@ export const en = {
   'form.errorCity': 'Select a city from suggestions',
 
   // ── Oracle ──
+  'oracle.acknowledge': 'I see your cosmic map, {name}. Now ask.',
   'oracle.sleeping': 'I sleep until summoned.',
   'oracle.summon': 'Summon',
   'oracle.askAgain': 'Ask Again',

@@ -728,14 +728,11 @@ function App() {
         {hasBirthData && (
           <>
             <div className="seer-core">
-              {/* Profile indicator */}
-              {seerPhase === 'open' && allProfiles.length > 1 && userProfile && activeTab === 'oracle' && (
-                <button
-                  className="profile-indicator"
-                  onClick={() => { playClick(); setSettingsView('settings'); }}
-                >
-                  {userProfile.birthData.name}
-                </button>
+              {/* Seer acknowledgment — always shown when eye is open */}
+              {seerPhase === 'open' && userProfile && (
+                <p className="seer-acknowledgment">
+                  {t('oracle.acknowledge', { name: userProfile.birthData.name })}
+                </p>
               )}
 
               {/* Contextual hint */}
@@ -986,7 +983,7 @@ function App() {
                 <div className="settings-row">
                   <span className="settings-row-label">{t('settings.language')}</span>
                   <div className="lang-switcher">
-                    {(['en', 'ja', 'vi'] as Language[]).map(l => (
+                    {(['en', 'ja'] as Language[]).map(l => (
                       <button key={l} className={`lang-btn ${lang === l ? 'lang-btn--active' : ''}`} onClick={() => { playClick(); setLang(l); }}>
                         {LANGUAGE_LABELS[l]}
                       </button>

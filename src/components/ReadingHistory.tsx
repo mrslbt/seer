@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Verdict } from '../types/astrology';
-import { getReadingsGroupedByDate, type ReadingRecord } from '../lib/readingHistory';
+import { getReadingsGroupedByDate, deleteReading, type ReadingRecord } from '../lib/readingHistory';
 import { getSeerVerdictColor } from '../lib/oracleResponse';
 import { useI18n } from '../i18n/I18nContext';
 import './ReadingHistory.css';
@@ -33,6 +33,11 @@ export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  const handleDelete = useCallback((id: string) => {
+    deleteReading(id);
+    setGroups(getReadingsGroupedByDate(profileId));
+  }, [profileId]);
 
   const verdictLabels: Record<Verdict, string> = {
     HARD_YES: t('history.yes'),
@@ -92,13 +97,25 @@ export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
                   >
                     <div className="history-card-top">
                       <span className="history-time">{formatTime(reading.timestamp)}</span>
-                      <span
-                        className="history-verdict-badge"
-                        style={{ color: getSeerVerdictColor(reading.verdict) }}
-                      >
-                        <span className="verdict-icon">{verdictIcons[reading.verdict]}</span>
-                        {verdictLabels[reading.verdict]}
-                      </span>
+                      <div className="history-card-right">
+                        <span
+                          className="history-verdict-badge"
+                          style={{ color: getSeerVerdictColor(reading.verdict) }}
+                        >
+                          <span className="verdict-icon">{verdictIcons[reading.verdict]}</span>
+                          {verdictLabels[reading.verdict]}
+                        </span>
+                        <button
+                          className="history-delete-btn"
+                          onClick={() => handleDelete(reading.id)}
+                          aria-label="Delete reading"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <p className="history-question">{reading.question}</p>
                     <p className="history-oracle-text" style={{ color: getSeerVerdictColor(reading.verdict) }}>

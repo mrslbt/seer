@@ -155,6 +155,17 @@ export function analyzePatterns(profileId?: string): ReadingPatterns {
 }
 
 /**
+ * Delete a single reading by ID
+ */
+export function deleteReading(id: string): void {
+  const history = getReadings();
+  const filtered = history.filter(r => r.id !== id);
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
+  } catch { /* storage full — silently fail */ }
+}
+
+/**
  * Clear all history
  */
 export function clearHistory(): void {
