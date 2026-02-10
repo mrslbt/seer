@@ -234,6 +234,28 @@ export async function callChartReadingLLM(
 }
 
 /**
+ * Chart question — ask the Seer about the natal chart (who you ARE)
+ * Only includes transits when the question is timing-related.
+ */
+export async function callChartQuestionLLM(
+  question: string,
+  questionMode: 'directional' | 'guidance',
+  profile: UserProfile,
+  report?: PersonalDailyReport | null,
+  isTimingQuestion?: boolean,
+  lang?: string,
+): Promise<LLMOracleResult> {
+  return callAPI({
+    type: 'chartQuestion',
+    question,
+    questionMode,
+    chartSummary: serializeChart(profile),
+    personName: profile.birthData.name || 'this person',
+    transitSummary: isTimingQuestion && report ? serializeTransits(report) : undefined,
+  }, lang);
+}
+
+/**
  * Follow-up question after any reading
  */
 export async function callFollowUpLLM(

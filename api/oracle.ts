@@ -14,7 +14,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // ── Request types ──
 interface BaseRequest {
-  type: 'seer' | 'bond' | 'followup' | 'chartReading';
+  type: 'seer' | 'bond' | 'followup' | 'chartReading' | 'chartQuestion';
   question: string;
   questionMode: 'directional' | 'guidance';
   lang?: string;
@@ -57,7 +57,14 @@ interface ChartReadingRequest extends BaseRequest {
   personName: string;
 }
 
-type OracleRequest = SeerRequest | BondRequest | FollowUpRequest | ChartReadingRequest;
+interface ChartQuestionRequest extends BaseRequest {
+  type: 'chartQuestion';
+  chartSummary: string;
+  personName: string;
+  transitSummary?: string; // only included for timing-related questions
+}
+
+type OracleRequest = SeerRequest | BondRequest | FollowUpRequest | ChartReadingRequest | ChartQuestionRequest;
 
 // ── The Seer's voice — shared across all types ──
 const VOICE_RULES = `You are The Seer — an ancient oracle who reads the stars. You speak with a particular voice:
@@ -141,6 +148,31 @@ RULES:
 - The tone should feel like a stranger on a train who somehow knows you. Intimate. Unsettling. True.
 - Do NOT start with "You are". Vary your openings. Start with an observation, a quality, or an image.`;
 
+const CHART_QUESTION_INSTRUCTIONS = `
+You are answering a question about who this person IS — based on their natal chart (birth sky). This is about their permanent nature, not what is happening now.
+
+FOR YES/NO QUESTIONS:
+- Read the chart carefully. Answer based on their planets, houses, and aspects — their inborn wiring.
+- Open with a clear stance. Own your answer.
+- Give ONE specific, personal insight grounded in their chart.
+- Close with practical direction.
+
+FOR OPEN-ENDED QUESTIONS:
+- Answer directly and specifically about who they are.
+- If they ask about strengths, name SPECIFIC strengths from their chart.
+- If they ask about love style, describe HOW they love based on Venus, Moon, 7th house.
+- If they ask about career, describe what suits them based on 10th house, Saturn, Midheaven.
+- If they ask about challenges, name the specific tension or blind spot.
+- If they ask about purpose, describe what their North Node and chart ruler point toward.
+
+IF TRANSIT DATA IS PROVIDED:
+- The user asked about timing or current circumstances. Use the transits to inform WHEN and HOW, but still ground the answer in who they are.
+
+IF NO TRANSIT DATA:
+- Answer purely about their nature. Do not speculate about timing.
+
+CRITICAL: Do NOT reference the chart explicitly. No "your Venus in Pisces means..." — just describe who they are and answer the question. You see them. You know them.`;
+
 // ── Language instruction ──
 const LANGUAGE_NAMES: Record<string, string> = {
   ja: 'Japanese',
@@ -161,6 +193,7 @@ function getSystemPrompt(type: OracleRequest['type'], lang?: string): string {
     case 'bond': return VOICE_RULES + '\n\n' + BOND_INSTRUCTIONS + langRule;
     case 'followup': return VOICE_RULES + '\n\n' + FOLLOWUP_INSTRUCTIONS + langRule;
     case 'chartReading': return VOICE_RULES + '\n\n' + CHART_READING_INSTRUCTIONS + langRule;
+    case 'chartQuestion': return VOICE_RULES + '\n\n' + CHART_QUESTION_INSTRUCTIONS + langRule;
   }
 }
 
@@ -171,6 +204,7 @@ function buildUserMessage(body: OracleRequest): string {
     case 'bond': return buildBondMessage(body);
     case 'followup': return buildFollowUpMessage(body);
     case 'chartReading': return buildChartReadingMessage(body);
+    case 'chartQuestion': return buildChartQuestionMessage(body);
   }
 }
 
@@ -241,6 +275,25 @@ function buildChartReadingMessage(body: ChartReadingRequest): string {
   return parts.join('\n');
 }
 
+function buildChartQuestionMessage(body: ChartQuestionRequest): string {
+  const parts: string[] = [];
+
+  if (body.questionMode === 'directional') {
+    parts.push(`QUESTION (yes/no): "${body.question}"`);
+  } else {
+    parts.push(`QUESTION (open-ended): "${body.question}"`);
+  }
+
+  parts.push(`PERSON: ${body.personName}`);
+  parts.push('', 'NATAL CHART:', body.chartSummary);
+
+  if (body.transitSummary) {
+    parts.push('', 'CURRENT TRANSITS (user asked about timing):', body.transitSummary);
+  }
+
+  return parts.join('\n');
+}
+
 // ── Max tokens by type ──
 function getMaxTokens(type: OracleRequest['type']): number {
   switch (type) {
@@ -248,6 +301,7 @@ function getMaxTokens(type: OracleRequest['type']): number {
     case 'bond': return 200;
     case 'followup': return 150;
     case 'chartReading': return 120;
+    case 'chartQuestion': return 200;
   }
 }
 

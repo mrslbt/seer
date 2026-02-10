@@ -967,6 +967,7 @@ function App() {
           <NatalChartView
             natalChart={userProfile.natalChart}
             userProfile={userProfile}
+            dailyReport={dailyReport}
             mode="inline"
           />
         )}

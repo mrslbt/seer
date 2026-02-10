@@ -169,6 +169,25 @@ export const ja: Record<TranslationKey, string> = {
   'sign.Aquarius': '独立的、先見的、型破り',
   'sign.Pisces': '共感的、夢見がち、スピリチュアル',
 
+  // ── チャート質問 ──
+  'chartQ.ask': 'チャートについて聞く',
+  'chartQ.askAnother': '別の質問をする',
+  'chartQ.backToChart': 'チャートに戻る',
+  'chartQ.placeholder': 'チャートについて予言者に聞く...',
+  'chartQ.orAsk': 'または星に聞く',
+  'chartQ.superpower': '私の特別な力は？',
+  'chartQ.loveStyle': '私の愛し方は？',
+  'chartQ.career': 'どんな仕事が向いている？',
+  'chartQ.purpose': '私の使命は？',
+  'chartQ.blind': '私の死角は？',
+  'chartQ.gift': '私の最大の才能は？',
+  'chartQ.shadow': '私の影の部分は？',
+  'chartQ.attract': '何を引き寄せる？',
+  'chartQ.lesson': '人生の教訓は？',
+  'chartQ.fear': '何を恐れている？',
+  'chartQ.charm': '何が私を魅力的にする？',
+  'chartQ.compatible': '相性の良い星座は？',
+
   // ── 相性 / 絆 ──
   'bonds.choose': '比較する魂を選ぶ',
   'bonds.addPrompt': '二人の間に何があるかを明らかにするために第二の魂を追加',

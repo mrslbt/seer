@@ -543,6 +543,297 @@
   text-overflow: ellipsis;
 }
 
+/* ---- Chart Question Section ---- */
+.chart-question-section {
+  margin-bottom: 28px;
+  animation: chartSlideUp 0.5s ease 0.2s both;
+}
+
+.chart-question-section--active {
+  margin-bottom: 32px;
+}
+
+/* "Ask about your chart" button */
+.chart-ask-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  background: rgba(201, 168, 76, 0.04);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: 10px;
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.chart-ask-btn:hover {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: rgba(201, 168, 76, 0.2);
+}
+
+.chart-ask-btn:active {
+  background: rgba(201, 168, 76, 0.12);
+}
+
+/* Question flow container */
+.chart-question-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: chartFadeIn 0.4s ease;
+}
+
+/* Eye container within chart question */
+.chart-question-eye {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Input area */
+.chart-question-input-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: chartSlideUp 0.3s ease;
+}
+
+.chart-question-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-question-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+.chart-question-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.chart-question-input:focus {
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+.chart-question-input.has-error {
+  border-color: var(--no, #8B4A4A);
+}
+
+.chart-question-ask-btn {
+  padding: 10px 16px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.chart-question-ask-btn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.18);
+  border-color: rgba(201, 168, 76, 0.35);
+}
+
+.chart-question-ask-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.chart-question-error {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  color: var(--no, #8B4A4A);
+  padding-left: 2px;
+}
+
+/* Suggested questions */
+.chart-question-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-question-divider {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.chart-question-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.chart-question-pill {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.chart-question-pill:hover {
+  background: rgba(201, 168, 76, 0.06);
+  border-color: rgba(201, 168, 76, 0.15);
+  color: var(--text);
+}
+
+.chart-question-pill:active {
+  background: rgba(201, 168, 76, 0.1);
+}
+
+/* Back link */
+.chart-question-back {
+  display: block;
+  margin: 0 auto;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.chart-question-back:hover {
+  color: var(--text-secondary);
+}
+
+/* Gazing state */
+.chart-question-gazing {
+  text-align: center;
+  animation: chartFadeIn 0.3s ease;
+}
+
+.chart-question-asked {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+/* Answer state */
+.chart-question-answer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: chartSlideUp 0.4s ease;
+}
+
+.chart-question-response {
+  width: 100%;
+  padding: 16px 18px;
+  background: rgba(201, 168, 76, 0.03);
+  border: 1px solid rgba(201, 168, 76, 0.06);
+  border-radius: 10px;
+  position: relative;
+}
+
+/* Gold left accent line */
+.chart-question-response::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(201, 168, 76, 0.4),
+    transparent
+  );
+  border-radius: 1px;
+}
+
+.chart-question-response-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Action buttons */
+.chart-question-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-question-action {
+  padding: 8px 16px;
+  background: rgba(201, 168, 76, 0.06);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.chart-question-action:hover {
+  background: rgba(201, 168, 76, 0.12);
+  border-color: rgba(201, 168, 76, 0.2);
+}
+
+.chart-question-action--secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.chart-question-action--secondary:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
 /* ---- Keyframes ---- */
 @keyframes chartFadeIn {
   from { opacity: 0; }
@@ -597,6 +888,16 @@
 
   .chart-house-meaning {
     display: none;
+  }
+
+  .chart-question-pill {
+    font-size: 0.625rem;
+    padding: 5px 10px;
+  }
+
+  .chart-question-eye {
+    width: 100px;
+    height: 100px;
   }
 }
 

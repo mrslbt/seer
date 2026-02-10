@@ -169,6 +169,25 @@ export const vi: Record<TranslationKey, string> = {
   'sign.Aquarius': 'độc lập, tầm nhìn xa, phi quy ước',
   'sign.Pisces': 'đồng cảm, mơ mộng, tâm linh',
 
+  // ── Câu hỏi bản đồ sao ──
+  'chartQ.ask': 'Hỏi về bản đồ sao',
+  'chartQ.askAnother': 'Hỏi câu khác',
+  'chartQ.backToChart': 'Quay lại bản đồ',
+  'chartQ.placeholder': 'Hỏi Nhà Tiên Tri về bản đồ sao...',
+  'chartQ.orAsk': 'hoặc hỏi các vì sao',
+  'chartQ.superpower': 'Siêu năng lực của tôi là gì?',
+  'chartQ.loveStyle': 'Tôi yêu như thế nào?',
+  'chartQ.career': 'Nghề nghiệp nào phù hợp?',
+  'chartQ.purpose': 'Mục đích sống của tôi là gì?',
+  'chartQ.blind': 'Điểm mù của tôi là gì?',
+  'chartQ.gift': 'Tài năng lớn nhất của tôi là gì?',
+  'chartQ.shadow': 'Mặt tối của tôi là gì?',
+  'chartQ.attract': 'Tôi thu hút điều gì?',
+  'chartQ.lesson': 'Bài học cuộc đời tôi là gì?',
+  'chartQ.fear': 'Tôi sợ điều gì?',
+  'chartQ.charm': 'Điều gì khiến tôi cuốn hút?',
+  'chartQ.compatible': 'Cung nào hợp với tôi nhất?',
+
   // ── Tương hợp / Kết nối ──
   'bonds.choose': 'Chọn một linh hồn để so sánh',
   'bonds.addPrompt': 'Thêm linh hồn thứ hai để khám phá điều giữa hai bạn',

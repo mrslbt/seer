@@ -167,6 +167,25 @@ export const en = {
   'sign.Aquarius': 'independent, visionary, unconventional',
   'sign.Pisces': 'empathetic, dreamy, spiritually attuned',
 
+  // ── Chart Questions ──
+  'chartQ.ask': 'Ask about your chart',
+  'chartQ.askAnother': 'Ask another',
+  'chartQ.backToChart': 'Back to chart',
+  'chartQ.placeholder': 'Ask the Seer about your chart...',
+  'chartQ.orAsk': 'or ask the stars',
+  'chartQ.superpower': 'What is my superpower?',
+  'chartQ.loveStyle': 'How do I love?',
+  'chartQ.career': 'What career suits me?',
+  'chartQ.purpose': 'What is my purpose?',
+  'chartQ.blind': 'What is my blind spot?',
+  'chartQ.gift': 'What is my biggest gift?',
+  'chartQ.shadow': 'What is my shadow side?',
+  'chartQ.attract': 'What do I attract?',
+  'chartQ.lesson': 'What is my life lesson?',
+  'chartQ.fear': 'What am I afraid of?',
+  'chartQ.charm': 'What makes me magnetic?',
+  'chartQ.compatible': 'What signs am I most compatible with?',
+
   // ── Compatibility / Bonds ──
   'bonds.choose': 'Choose a soul to compare',
   'bonds.addPrompt': 'Add a second soul to reveal what lies between you',
