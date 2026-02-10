@@ -1,0 +1,81 @@
+/* InlineTabs — compact text-only tabs below the eye */
+
+.inline-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.inline-tab {
+  position: relative;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.4;
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color 0.3s ease, opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inline-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.inline-tab--active {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.inline-tab--active::after {
+  width: 60%;
+}
+
+.inline-tab:hover:not(.inline-tab--active) {
+  opacity: 0.6;
+}
+
+.inline-tab:active {
+  transform: scale(0.95);
+}
+
+/* Transit alert dot */
+.inline-tab-alert {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: inlineTabPulse 2s ease-in-out infinite;
+}
+
+@keyframes inlineTabPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .inline-tab {
+    padding: 6px 10px;
+    font-size: 0.5rem;
+  }
+}

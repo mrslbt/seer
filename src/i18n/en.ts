@@ -186,6 +186,17 @@ export const en = {
   'chartQ.charm': 'What makes me magnetic?',
   'chartQ.compatible': 'What signs am I most compatible with?',
 
+  // ── Cosmos Questions ──
+  'cosmosQ.ask': 'Ask about your day',
+  'cosmosQ.placeholder': 'Ask the Seer about your cosmic day...',
+  'cosmosQ.orAsk': 'or ask about today',
+  'cosmosQ.focusToday': 'What should I focus on today?',
+  'cosmosQ.feelOff': 'Why do I feel off?',
+  'cosmosQ.loveToday': 'Is today good for love?',
+  'cosmosQ.avoidToday': 'What should I avoid today?',
+  'cosmosQ.bestFor': 'What is today best for?',
+  'cosmosQ.energy': 'What is strongest today?',
+
   // ── Compatibility / Bonds ──
   'bonds.choose': 'Choose a soul to compare',
   'bonds.addPrompt': 'Add a second soul to reveal what lies between you',

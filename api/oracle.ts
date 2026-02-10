@@ -14,7 +14,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // ── Request types ──
 interface BaseRequest {
-  type: 'seer' | 'bond' | 'followup' | 'chartReading' | 'chartQuestion';
+  type: 'seer' | 'bond' | 'followup' | 'chartReading' | 'chartQuestion' | 'cosmosQuestion';
   question: string;
   questionMode: 'directional' | 'guidance';
   lang?: string;
@@ -64,7 +64,16 @@ interface ChartQuestionRequest extends BaseRequest {
   transitSummary?: string; // only included for timing-related questions
 }
 
-type OracleRequest = SeerRequest | BondRequest | FollowUpRequest | ChartReadingRequest | ChartQuestionRequest;
+interface CosmosQuestionRequest extends BaseRequest {
+  type: 'cosmosQuestion';
+  chartSummary: string;
+  transitSummary: string;
+  categoryScores: string; // pre-serialized daily scores
+  moonPhase: string;
+  retrogrades: string[];
+}
+
+type OracleRequest = SeerRequest | BondRequest | FollowUpRequest | ChartReadingRequest | ChartQuestionRequest | CosmosQuestionRequest;
 
 // ── The Seer's voice — shared across all types ──
 const VOICE_RULES = `You are The Seer — an ancient oracle who reads the stars. You speak with a particular voice:
@@ -182,6 +191,32 @@ IF NO TRANSIT DATA:
 
 CRITICAL: Do NOT reference the chart explicitly. No "your Venus in Pisces means..." — just describe who they are and answer the question. You see them. You know them.`;
 
+const COSMOS_QUESTION_INSTRUCTIONS = `
+You are answering a question about TODAY — what this person's sky looks like right now. You have their natal chart and all active transits.
+
+This is about the CURRENT MOMENT. Unlike chart questions (which are about who they are), cosmos questions are about what is happening NOW and in the coming days.
+
+FOR YES/NO QUESTIONS:
+- Read the transit data carefully. Decide based on today's planetary weather for this person.
+- Supportive transits → yes. Harsh transits → not today. Mixed → say when it shifts.
+- Open with a clear stance about today specifically.
+- Give ONE concrete reason tied to what you see right now.
+- If the timing is bad, say when it gets better (use transit speed to estimate).
+
+FOR OPEN-ENDED QUESTIONS:
+- Answer about RIGHT NOW, today, this week.
+- If they ask what to focus on, name the specific area of life the transits are activating.
+- If they ask why they feel a certain way, name the transit causing it — but in oracle voice, not astrology lecture.
+- If they ask about love today, career today, etc. — answer based on the transiting planets hitting those houses.
+- Use the category scores to know which areas are hot and which are cold.
+- Moon phase matters. New moon = beginning. Full moon = clarity. Waning = release.
+
+RETROGRADES:
+- If relevant retrogrades are active, weave them into the answer naturally.
+- Mercury retrograde affects communication and plans. Venus retrograde affects relationships and values. Mars retrograde affects drive and conflict.
+
+CRITICAL: Do NOT list transits or scores. Do NOT say "your transits show" or "today's score is". Just answer as someone who can see what is happening around them right now.`;
+
 // ── Language instruction ──
 const LANGUAGE_NAMES: Record<string, string> = {
   ja: 'Japanese',
@@ -203,6 +238,7 @@ function getSystemPrompt(type: OracleRequest['type'], lang?: string): string {
     case 'followup': return VOICE_RULES + '\n\n' + FOLLOWUP_INSTRUCTIONS + langRule;
     case 'chartReading': return VOICE_RULES + '\n\n' + CHART_READING_INSTRUCTIONS + langRule;
     case 'chartQuestion': return VOICE_RULES + '\n\n' + CHART_QUESTION_INSTRUCTIONS + langRule;
+    case 'cosmosQuestion': return VOICE_RULES + '\n\n' + COSMOS_QUESTION_INSTRUCTIONS + langRule;
   }
 }
 
@@ -214,6 +250,7 @@ function buildUserMessage(body: OracleRequest): string {
     case 'followup': return buildFollowUpMessage(body);
     case 'chartReading': return buildChartReadingMessage(body);
     case 'chartQuestion': return buildChartQuestionMessage(body);
+    case 'cosmosQuestion': return buildCosmosQuestionMessage(body);
   }
 }
 
@@ -303,6 +340,25 @@ function buildChartQuestionMessage(body: ChartQuestionRequest): string {
   return parts.join('\n');
 }
 
+function buildCosmosQuestionMessage(body: CosmosQuestionRequest): string {
+  const parts: string[] = [];
+
+  if (body.questionMode === 'directional') {
+    parts.push(`QUESTION (yes/no): "${body.question}"`);
+  } else {
+    parts.push(`QUESTION (open-ended): "${body.question}"`);
+  }
+
+  parts.push('', 'NATAL CHART:', body.chartSummary);
+  parts.push('', 'ACTIVE TRANSITS TODAY:', body.transitSummary);
+
+  parts.push('', 'DAILY CATEGORY SCORES:', body.categoryScores);
+  parts.push(`MOON PHASE: ${body.moonPhase}`);
+  if (body.retrogrades.length > 0) parts.push(`RETROGRADES: ${body.retrogrades.join(', ')}`);
+
+  return parts.join('\n');
+}
+
 // ── Max tokens by type ──
 function getMaxTokens(type: OracleRequest['type']): number {
   switch (type) {
@@ -311,6 +367,7 @@ function getMaxTokens(type: OracleRequest['type']): number {
     case 'followup': return 150;
     case 'chartReading': return 120;
     case 'chartQuestion': return 200;
+    case 'cosmosQuestion': return 200;
   }
 }
 

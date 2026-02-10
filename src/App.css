@@ -107,7 +107,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 24px 88px;
+  padding: 24px 24px 48px;
   gap: 36px;
   position: relative;
   z-index: 1;
@@ -165,23 +165,101 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   Oracle Layout — invisible container for the eye page
+   Seer Core — persistent eye + tabs + question input
    ═══════════════════════════════════════════════════ */
 
-.oracle-card {
+.seer-core {
   position: relative;
   width: 100%;
   max-width: 380px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 28px;
+  gap: 16px;
 }
 
-/* Processing state — hold height while eye gazes */
-.oracle-card--processing {
-  min-height: 480px;
+/* Tab content — scrollable below the seer core */
+.tab-content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   Tab-specific suggested question pills
+   ═══════════════════════════════════════════════════ */
+
+.tab-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  animation: fadeIn 0.5s ease 0.2s both;
+}
+
+.tab-suggestions-divider {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-align: center;
+  user-select: none;
+}
+
+.tab-suggestions-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.tab-suggestion-pill {
+  padding: 6px 14px;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: var(--radius-full, 999px);
+  cursor: pointer;
+  transition: color 0.3s ease,
+              border-color 0.3s ease,
+              background 0.3s ease,
+              transform 0.15s ease;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-suggestion-pill:hover {
+  color: var(--accent);
+  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.tab-suggestion-pill:active {
+  transform: scale(0.96);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+/* No partner selected hint (bonds tab) */
+.seer-no-partner {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-style: italic;
+  color: rgba(201, 168, 76, 0.55);
+  text-align: center;
+  letter-spacing: 0.02em;
+  animation: fadeIn 0.6s ease;
 }
 
 /* Footer section — separated cosmic data */
@@ -1060,7 +1138,7 @@
 /* Mobile */
 @media (max-width: 480px) {
   .app-main {
-    padding: 20px 16px 76px;
+    padding: 20px 16px 40px;
     gap: 28px;
   }
 
@@ -1068,17 +1146,14 @@
     font-size: 2.5rem;
   }
 
-  .oracle-card {
+  .seer-core {
     max-width: 100%;
-    gap: 24px;
+    gap: 12px;
   }
 
-  .oracle-card--processing {
-    min-height: 460px;
-  }
-
-  .summon-btn {
-    padding: 14px 56px;
+  .tab-suggestion-pill {
+    font-size: 0.625rem;
+    padding: 5px 12px;
   }
 
   .modal {

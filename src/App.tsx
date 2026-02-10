@@ -4,7 +4,7 @@ import { generateAstroContext } from './lib/astroEngine';
 import { classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
 import { playClick, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
-import { callLLMOracle, callFollowUpLLM, type LLMOracleResult } from './lib/llmOracle';
+import { callLLMOracle, callFollowUpLLM, callChartQuestionLLM, callBondLLM, callCosmosQuestionLLM, type LLMOracleResult } from './lib/llmOracle';
 import { generateInsightArticle, generateFallbackArticle, getScoreLabel } from './lib/insightArticle';
 import type { InsightArticle } from './lib/insightArticle';
 import {
@@ -28,20 +28,61 @@ import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
 import { NatalChartView } from './components/NatalChartView';
 import { ProfileManager } from './components/ProfileManager';
-import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
+import { InlineTabs, type ActiveTab } from './components/InlineTabs';
 import { CompatibilityView } from './components/CompatibilityView';
 import { SeerIntro } from './components/SeerIntro';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 import { useI18n, LANGUAGE_LABELS, type Language } from './i18n/I18nContext';
+import type { TranslationKey } from './i18n/en';
+import type { UserProfile } from './types/userProfile';
+import type { SynastryReport } from './lib/synastry';
 
 import './App.css';
 
-type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'revealing';
+type SeerPhase = 'open' | 'gazing' | 'revealing';
 type SettingsView = 'hidden' | 'settings' | 'add' | 'edit';
+
+// ── Timing question detection (shared with chart) ──
+const TIMING_PATTERNS = [
+  /\bwhen\b/i, /\bright now\b/i, /\btoday\b/i, /\bthis week\b/i,
+  /\bthis month\b/i, /\bthis year\b/i, /\bcurrently\b/i, /\bsoon\b/i,
+  /\btiming\b/i, /\bready\b/i, /\bseason\b/i, /\bperiod\b/i,
+  /\bphase\b/i, /\bmoment\b/i, /\bnow\b/i,
+];
+
+function isTimingQuestion(question: string): boolean {
+  return TIMING_PATTERNS.some(p => p.test(question.toLowerCase().trim()));
+}
+
+// ── Suggested question keys per tab ──
+const CHART_QUESTION_KEYS: TranslationKey[] = [
+  'chartQ.superpower', 'chartQ.loveStyle', 'chartQ.career', 'chartQ.purpose',
+  'chartQ.blind', 'chartQ.gift', 'chartQ.shadow', 'chartQ.attract',
+  'chartQ.lesson', 'chartQ.fear', 'chartQ.charm', 'chartQ.compatible',
+];
+
+const COSMOS_QUESTION_KEYS: TranslationKey[] = [
+  'cosmosQ.focusToday', 'cosmosQ.feelOff', 'cosmosQ.loveToday',
+  'cosmosQ.avoidToday', 'cosmosQ.bestFor', 'cosmosQ.energy',
+];
+
+const BOND_QUESTION_KEYS: TranslationKey[] = [
+  'bondQ.together', 'bondQ.places', 'bondQ.fight', 'bondQ.challenge',
+  'bondQ.dates', 'bondQ.unique', 'bondQ.balance',
+  'bondQ.compatible', 'bondQ.chemistry', 'bondQ.last',
+  'bondQ.trust', 'bondQ.timing', 'bondQ.serious',
+];
+
+function getRandomKeys(keys: TranslationKey[], count: number): TranslationKey[] {
+  const shuffled = [...keys].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 function App() {
   const { lang, setLang, t } = useI18n();
-  const [appState, setAppState] = useState<AppState>('idle');
+
+  // ── Core state ──
+  const [seerPhase, setSeerPhase] = useState<SeerPhase>('open');
   const [activeTab, setActiveTab] = useState<ActiveTab>('oracle');
   const [questionText, setQuestionText] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
@@ -52,7 +93,7 @@ function App() {
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [, setOracleQuestionMode] = useState<'directional' | 'guidance'>('directional');
 
-  // Follow-up state (inline, like Bonds)
+  // Follow-up state (oracle tab only)
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
   const [followUpRound, setFollowUpRound] = useState(0);
@@ -76,6 +117,15 @@ function App() {
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const llmPromiseRef = useRef<Promise<LLMOracleResult> | null>(null);
 
+  // Bond partner state (lifted from CompatibilityView)
+  const [bondPartner, setBondPartner] = useState<UserProfile | null>(null);
+  const [bondSynastry, setBondSynastry] = useState<SynastryReport | null>(null);
+
+  // Tab-specific suggested question keys
+  const [chartSuggestionKeys] = useState(() => getRandomKeys(CHART_QUESTION_KEYS, 4));
+  const [cosmosSuggestionKeys] = useState(() => getRandomKeys(COSMOS_QUESTION_KEYS, 4));
+  const [bondSuggestionKeys] = useState(() => getRandomKeys(BOND_QUESTION_KEYS, 4));
+
   const {
     isLoading: cosmosLoading,
     error: cosmosError,
@@ -89,7 +139,6 @@ function App() {
     deleteProfile
   } = usePersonalCosmos();
 
-  // Derive hasBirthData and astroContext from userProfile
   const hasBirthData = userProfile !== null;
 
   const astroContext = useMemo(() => {
@@ -106,16 +155,15 @@ function App() {
     return generateAstroContext(oldBirthData, new Date());
   }, [userProfile]);
 
-  // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
 
-  // Handle intro completion
+  // ── Intro ──
   const handleIntroComplete = useCallback(() => {
     localStorage.setItem('seer_intro_seen', '1');
     setShowIntro(false);
   }, []);
 
-  // Show contextual hint for first tab visits
+  // ── Contextual hints ──
   const showHintOnce = useCallback((key: string, text: string) => {
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, '1');
@@ -124,17 +172,11 @@ function App() {
     hintTimeoutRef.current = setTimeout(() => setActiveHint(null), 4000);
   }, []);
 
-  // Trigger hints on tab/state changes
   useEffect(() => {
     if (!hasBirthData) return;
-    if (appState === 'awaiting_question') {
+    if (activeTab === 'oracle') {
       showHintOnce('seer_hint_summon', t('hint.oracle'));
-    }
-  }, [appState, hasBirthData, showHintOnce, t]);
-
-  useEffect(() => {
-    if (!hasBirthData) return;
-    if (activeTab === 'cosmos') {
+    } else if (activeTab === 'cosmos') {
       showHintOnce('seer_hint_cosmos', t('hint.cosmos'));
     } else if (activeTab === 'chart') {
       showHintOnce('seer_hint_chart', t('hint.chart'));
@@ -143,23 +185,14 @@ function App() {
     }
   }, [activeTab, hasBirthData, showHintOnce, t]);
 
-  // ---- Greeting (above the eye) ----
-  const seerAcknowledgment = useMemo(() => {
-    const name = userProfile?.birthData.name;
-    if (!name) return null;
-    return `I have your celestial map, ${name}. Now ask.`;
-  }, [userProfile]);
-
-  // ---- Cosmic Whisper (Feature 1) ----
+  // ── Cosmic data ──
   const cosmicWhisper = useMemo(() => {
     if (!dailyReport) return null;
     return getDailyWhisper(dailyReport, userProfile?.id);
   }, [dailyReport, userProfile?.id]);
 
-  // ---- Daily Cosmic Mood (Feature 2) ----
   const cosmicMoodScore = dailyReport?.overallScore ?? 5;
 
-  // ---- Cosmic Hint for idle screen ----
   const cosmicHint = useMemo(() => {
     if (!dailyReport) return null;
     const cats = dailyReport.categories;
@@ -169,20 +202,16 @@ function App() {
     const name = userProfile?.birthData.name;
     if (best[1].score >= 7) {
       const label = best[0].charAt(0).toUpperCase() + best[0].slice(1);
-      return name
-        ? `${name}, ${label.toLowerCase()} is strong today`
-        : `${label} is strong today (${best[1].score}/10)`;
+      return name ? `${name}, ${label.toLowerCase()} is strong today` : `${label} is strong today (${best[1].score}/10)`;
     }
     if (worst[1].score <= 3) {
       const label = worst[0].charAt(0).toUpperCase() + worst[0].slice(1);
-      return name
-        ? `${label} needs patience today, ${name}`
-        : `${label} needs patience today (${worst[1].score}/10)`;
+      return name ? `${label} needs patience today, ${name}` : `${label} needs patience today (${worst[1].score}/10)`;
     }
     return null;
   }, [dailyReport, userProfile]);
 
-  // ---- Transit Alerts (Feature 4) — dismiss after viewing cosmos tab ----
+  // ── Transit alerts ──
   const [cosmosSeenDate, setCosmosSeenDate] = useState<string | null>(
     () => localStorage.getItem('seer_cosmos_seen_date')
   );
@@ -194,7 +223,6 @@ function App() {
     return dailyReport.keyTransits.some(tr => tr.transit.isExact);
   }, [dailyReport, cosmosSeenDate]);
 
-  // Mark cosmos as seen when tab is visited
   useEffect(() => {
     if (activeTab === 'cosmos' && hasTransitAlert) {
       const today = new Date().toDateString();
@@ -203,10 +231,8 @@ function App() {
     }
   }, [activeTab, hasTransitAlert]);
 
-  // ---- Retrograde Countdown (Feature 7) ----
   const activeRetrogrades = dailyReport?.retrogrades ?? [];
 
-  // ---- Moon Phase Ritual (Feature 8) ----
   const isSpecialMoonPhase = useMemo(() => {
     if (!dailyReport) return null;
     const name = dailyReport.moonPhase.name;
@@ -214,40 +240,33 @@ function App() {
     return null;
   }, [dailyReport]);
 
-  // Handle birth data submission (from form — onboarding or add profile)
+  // ── Birth data ──
   const handleBirthDataSubmit = useCallback(async (data: BirthData, name: string) => {
     playClick();
     await setUserFromOldBirthData(data, name);
     setSettingsView('hidden');
   }, [setUserFromOldBirthData]);
 
-  // Get the profile being edited (as old BirthData format for the form)
   const editingProfile = useMemo(() => {
     if (!editingProfileId) return null;
     const profile = allProfiles.find(p => p.id === editingProfileId);
     if (!profile) return null;
     const bd = profile.birthData;
-    // Look up IANA timezone from cities database
     const cityData = getCity(bd.birthLocation.city, bd.birthLocation.country);
     const oldData: BirthData = {
-      date: bd.birthDate,
-      time: bd.birthTime,
-      city: bd.birthLocation.city,
-      country: bd.birthLocation.country,
-      latitude: bd.birthLocation.latitude,
-      longitude: bd.birthLocation.longitude,
+      date: bd.birthDate, time: bd.birthTime,
+      city: bd.birthLocation.city, country: bd.birthLocation.country,
+      latitude: bd.birthLocation.latitude, longitude: bd.birthLocation.longitude,
       timezone: cityData?.timezone ?? '',
     };
     return { oldData, name: bd.name };
   }, [editingProfileId, allProfiles]);
 
-  // Handle edit profile request
   const handleEditProfile = useCallback((profileId: string) => {
     setEditingProfileId(profileId);
     setSettingsView('edit');
   }, []);
 
-  // Handle edit profile submission
   const handleEditProfileSubmit = useCallback(async (data: BirthData, name: string) => {
     if (!editingProfileId) return;
     playClick();
@@ -256,20 +275,30 @@ function App() {
     setSettingsView('settings');
   }, [editingProfileId, updateProfile]);
 
-  // Summon the seer
-  const handleSummon = useCallback(() => {
-    if (!hasBirthData) return;
-    playClick();
-    setAppState('summoning');
-  }, [hasBirthData]);
+  // ══════════════════════════════════════════
+  // UNIFIED QUESTION FLOW
+  // ══════════════════════════════════════════
 
-  // Eye finished opening
-  const handleEyeOpenComplete = useCallback(() => {
-    playReveal();
-    setAppState('awaiting_question');
+  // Reset question state (shared across all tabs)
+  const resetQuestionState = useCallback(() => {
+    setOracleText('');
+    setOracleArticle(null);
+    setSubmittedQuestion('');
+    setQuestionText('');
+    setSelectedCategory(null);
+    setFollowUpText(null);
+    setFollowUpType(null);
+    setFollowUpRound(0);
+    setFollowUpLoading(false);
+    setShowFollowUps(false);
+    setShowArticle(false);
+    setContextualQuestions([]);
+    setQuestionError(null);
+    setSeerPhase('open');
+    llmPromiseRef.current = null;
   }, []);
 
-  // Submit question — classify silently, fire LLM call, go to gazing
+  // Submit question — routes to the correct LLM based on active tab
   const handleSubmitQuestion = useCallback(() => {
     const validation = validateQuestionInput(questionText);
     if (!validation.valid) {
@@ -283,37 +312,44 @@ function App() {
     const trimmed = questionText.trim();
     setSubmittedQuestion(trimmed);
 
-    const { category } = classifyQuestionWithConfidence(trimmed);
-    setSelectedCategory(category);
-
-    // Fire LLM call NOW — it runs during the gazing animation (~3s)
-    // LLM reads the chart data directly and decides the answer itself
-    if (userProfile && dailyReport) {
-      const questionMode = detectQuestionMode(trimmed);
-      llmPromiseRef.current = callLLMOracle(
-        trimmed, questionMode, category, userProfile, dailyReport, lang
-      );
-    } else {
-      llmPromiseRef.current = null;
+    // Route LLM call based on active tab
+    if (activeTab === 'oracle') {
+      const { category } = classifyQuestionWithConfidence(trimmed);
+      setSelectedCategory(category);
+      if (userProfile && dailyReport) {
+        const questionMode = detectQuestionMode(trimmed);
+        llmPromiseRef.current = callLLMOracle(trimmed, questionMode, category, userProfile, dailyReport, lang);
+      }
+    } else if (activeTab === 'cosmos') {
+      if (userProfile && dailyReport) {
+        const questionMode = detectQuestionMode(trimmed);
+        llmPromiseRef.current = callCosmosQuestionLLM(trimmed, questionMode, userProfile, dailyReport, lang);
+      }
+    } else if (activeTab === 'chart') {
+      if (userProfile) {
+        const questionMode = detectQuestionMode(trimmed);
+        const isTiming = isTimingQuestion(trimmed);
+        llmPromiseRef.current = callChartQuestionLLM(trimmed, questionMode, userProfile, dailyReport, isTiming, lang);
+      }
+    } else if (activeTab === 'bonds') {
+      if (userProfile && bondPartner && bondSynastry) {
+        const questionMode = detectQuestionMode(trimmed);
+        llmPromiseRef.current = callBondLLM(trimmed, questionMode, userProfile, bondPartner, bondSynastry, null, lang);
+      }
     }
 
-    setAppState('gazing');
-  }, [questionText, userProfile, dailyReport, lang]);
+    setSeerPhase('gazing');
+  }, [questionText, activeTab, userProfile, dailyReport, bondPartner, bondSynastry, lang]);
 
-  // Eye finished gazing - generate reading (async for LLM)
+  // Gaze complete — resolve the LLM answer
   const handleGazeComplete = useCallback(async () => {
-    if (!astroContext) return;
+    if (!astroContext && activeTab === 'oracle') return;
+    playReveal();
 
-    // LLM reads chart directly — verdict only used for template fallback
     const questionMode = detectQuestionMode(submittedQuestion);
     setOracleQuestionMode(questionMode);
 
-    const classified = classifyQuestionWithConfidence(submittedQuestion);
-    const category = selectedCategory ?? classified.category;
-    const verdict: Verdict = 'NEUTRAL';
-
-    // Try to get the LLM response (fired during gazing animation)
-    let response: string;
+    let response = '';
     let usedLLM = false;
 
     if (llmPromiseRef.current) {
@@ -322,144 +358,120 @@ function App() {
         if (llmResult.source === 'llm' && llmResult.text) {
           response = llmResult.text;
           usedLLM = true;
-        } else {
-          // LLM failed — fall back to templates
-          const readingPatterns = analyzePatterns(userProfile?.id);
-          response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
         }
       } catch {
-        const readingPatterns = analyzePatterns(userProfile?.id);
-        response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+        // fallback below
       }
       llmPromiseRef.current = null;
-    } else {
-      // No LLM call (no profile/report) — use templates
+    }
+
+    // Template fallback only for oracle tab
+    if (!response && activeTab === 'oracle') {
+      const classified = classifyQuestionWithConfidence(submittedQuestion);
+      const category = selectedCategory ?? classified.category;
       const readingPatterns = analyzePatterns(userProfile?.id);
-      response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+      response = generateOracleResponse('NEUTRAL' as Verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+    } else if (!response) {
+      response = 'The stars are silent on this. Ask again, or ask differently.';
     }
 
-    setAppState('revealing');
+    setSeerPhase('revealing');
     setOracleText(response);
-    setOracleVerdict(verdict);
-    setOracleCategory(category);
 
-    // Reset follow-up state for new reading
-    setFollowUpText(null);
-    setFollowUpType(null);
-    setFollowUpRound(0);
-    setFollowUpLoading(false);
-    setShowFollowUps(false);
-    setShowArticle(false);
+    // Oracle-specific: follow-ups, article, history
+    if (activeTab === 'oracle') {
+      const classified = classifyQuestionWithConfidence(submittedQuestion);
+      const category = selectedCategory ?? classified.category;
+      setOracleVerdict('NEUTRAL');
+      setOracleCategory(category);
 
-    // Generate contextual follow-up questions
-    const questions = generateFollowUpQuestions(verdict, category, dailyReport);
-    setContextualQuestions(questions);
-
-    if (dailyReport) {
-      setOracleArticle(generateInsightArticle(category, dailyReport));
-    } else if (astroContext) {
-      setOracleArticle(generateFallbackArticle(category, verdict, astroContext));
-    }
-
-    saveReading({
-      question: submittedQuestion,
-      verdict,
-      oracleText: response,
-      category,
-      moonPhase: dailyReport?.moonPhase.name,
-      overallScore: dailyReport?.overallScore,
-      profileId: userProfile?.id,
-    });
-
-    if (usedLLM) {
-      console.log('[Seer] LLM response used');
-    }
-
-    // Scroll answer into view after render
-    setTimeout(() => {
-      answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 400);
-  }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
-
-  // Header brand click — return to oracle tab
-  const handleBrandClick = useCallback(() => {
-    playClick();
-    setActiveTab('oracle');
-    if (appState !== 'idle') {
-      setAppState('idle');
-      setOracleText('');
-      setOracleArticle(null);
-      setSubmittedQuestion('');
-      setQuestionText('');
-      setSelectedCategory(null);
       setFollowUpText(null);
       setFollowUpType(null);
       setFollowUpRound(0);
       setFollowUpLoading(false);
       setShowFollowUps(false);
       setShowArticle(false);
-      setContextualQuestions([]);
+
+      const questions = generateFollowUpQuestions('NEUTRAL' as Verdict, category, dailyReport);
+      setContextualQuestions(questions);
+
+      if (dailyReport) {
+        setOracleArticle(generateInsightArticle(category, dailyReport));
+      } else if (astroContext) {
+        setOracleArticle(generateFallbackArticle(category, 'NEUTRAL' as Verdict, astroContext));
+      }
+
+      saveReading({
+        question: submittedQuestion, verdict: 'NEUTRAL', oracleText: response,
+        category, moonPhase: dailyReport?.moonPhase.name,
+        overallScore: dailyReport?.overallScore, profileId: userProfile?.id,
+      });
     }
-  }, [appState]);
 
-  // Dismiss reading
-  const handleDismiss = useCallback(() => {
-    setAppState('idle');
-    setOracleText('');
-    setOracleArticle(null);
-    setSubmittedQuestion('');
-    setQuestionText('');
-    setSelectedCategory(null);
-    setFollowUpText(null);
-    setFollowUpType(null);
-    setFollowUpRound(0);
-    setFollowUpLoading(false);
-    setShowFollowUps(false);
-    setShowArticle(false);
-    setContextualQuestions([]);
-  }, []);
+    if (usedLLM) console.log('[Seer] LLM response used');
 
-  // Ask again
-  const handleAskAgain = useCallback(() => {
-    playClick();
-    setOracleText('');
-    setOracleArticle(null);
-    setSubmittedQuestion('');
-    setQuestionText('');
-    setSelectedCategory(null);
-    setFollowUpText(null);
-    setFollowUpType(null);
-    setFollowUpRound(0);
-    setFollowUpLoading(false);
-    setShowFollowUps(false);
-    setShowArticle(false);
-    setContextualQuestions([]);
-    setAppState('awaiting_question');
-  }, []);
+    setTimeout(() => {
+      answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+  }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory, activeTab]);
 
-  // Select a suggested question
+  // Select suggested question — fires immediately
   const handleSuggestedSelect = useCallback((question: string) => {
     playClick();
     setQuestionText(question);
     setQuestionError(null);
     setSubmittedQuestion(question);
-    const { category } = classifyQuestionWithConfidence(question);
-    setSelectedCategory(category);
 
-    // Fire LLM call NOW — same as handleSubmitQuestion
-    if (userProfile && dailyReport) {
-      const questionMode = detectQuestionMode(question);
-      llmPromiseRef.current = callLLMOracle(
-        question, questionMode, category, userProfile, dailyReport, lang
-      );
-    } else {
-      llmPromiseRef.current = null;
+    // Route LLM call based on active tab
+    if (activeTab === 'oracle') {
+      const { category } = classifyQuestionWithConfidence(question);
+      setSelectedCategory(category);
+      if (userProfile && dailyReport) {
+        const questionMode = detectQuestionMode(question);
+        llmPromiseRef.current = callLLMOracle(question, questionMode, category, userProfile, dailyReport, lang);
+      }
+    } else if (activeTab === 'cosmos') {
+      if (userProfile && dailyReport) {
+        const questionMode = detectQuestionMode(question);
+        llmPromiseRef.current = callCosmosQuestionLLM(question, questionMode, userProfile, dailyReport, lang);
+      }
+    } else if (activeTab === 'chart') {
+      if (userProfile) {
+        const questionMode = detectQuestionMode(question);
+        const isTiming = isTimingQuestion(question);
+        llmPromiseRef.current = callChartQuestionLLM(question, questionMode, userProfile, dailyReport, isTiming, lang);
+      }
+    } else if (activeTab === 'bonds') {
+      if (userProfile && bondPartner && bondSynastry) {
+        const questionMode = detectQuestionMode(question);
+        llmPromiseRef.current = callBondLLM(question, questionMode, userProfile, bondPartner, bondSynastry, null, lang);
+      }
     }
 
-    setAppState('gazing');
-  }, [userProfile, dailyReport, lang]);
+    setSeerPhase('gazing');
+  }, [activeTab, userProfile, dailyReport, bondPartner, bondSynastry, lang]);
 
-  // Handle follow-up (static buttons) — async with LLM
+  // Ask again
+  const handleAskAgain = useCallback(() => {
+    playClick();
+    resetQuestionState();
+  }, [resetQuestionState]);
+
+  // Header brand click
+  const handleBrandClick = useCallback(() => {
+    playClick();
+    setActiveTab('oracle');
+    resetQuestionState();
+  }, [resetQuestionState]);
+
+  // Tab change handler — reset question state
+  const handleTabChange = useCallback((tab: ActiveTab) => {
+    if (tab === activeTab) return;
+    resetQuestionState();
+    setActiveTab(tab);
+  }, [activeTab, resetQuestionState]);
+
+  // ── Oracle follow-ups ──
   const handleFollowUp = useCallback(async (type: FollowUpType) => {
     const templateResponse = generateFollowUpResponse(type, oracleVerdict, oracleCategory, dailyReport);
     setFollowUpType(type);
@@ -469,9 +481,7 @@ function App() {
       setFollowUpLoading(true);
       try {
         const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
-        const llmResult = await callFollowUpLLM(
-          followUpQ, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang
-        );
+        const llmResult = await callFollowUpLLM(followUpQ, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang);
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
           setFollowUpLoading(false);
@@ -482,15 +492,11 @@ function App() {
       }
       setFollowUpLoading(false);
     }
-
     setFollowUpText(templateResponse);
   }, [oracleVerdict, oracleCategory, dailyReport, userProfile, submittedQuestion, oracleText, lang]);
 
-  // Handle contextual follow-up question tap — async with LLM
   const handleContextualQuestion = useCallback(async (question: FollowUpQuestion) => {
-    const templateResponse = generateContextualFollowUpResponse(
-      question.text, oracleVerdict, oracleCategory, dailyReport
-    );
+    const templateResponse = generateContextualFollowUpResponse(question.text, oracleVerdict, oracleCategory, dailyReport);
     setFollowUpType('contextual');
     setFollowUpRound(prev => prev + 1);
 
@@ -505,9 +511,7 @@ function App() {
     if (userProfile && dailyReport) {
       setFollowUpLoading(true);
       try {
-        const llmResult = await callFollowUpLLM(
-          question.text, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang
-        );
+        const llmResult = await callFollowUpLLM(question.text, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang);
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
           setFollowUpLoading(false);
@@ -518,38 +522,26 @@ function App() {
       }
       setFollowUpLoading(false);
     }
-
     setFollowUpText(templateResponse);
   }, [oracleVerdict, oracleCategory, dailyReport, followUpRound, userProfile, submittedQuestion, oracleText, lang]);
 
-  // Handle share — generate canvas image
+  // ── Share ──
   const handleShare = useCallback(async () => {
     const canvas = shareCanvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    const w = 600;
-    const h = 400;
-    canvas.width = w;
-    canvas.height = h;
-
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, w, h);
-
+    const w = 600; const h = 400;
+    canvas.width = w; canvas.height = h;
+    ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, w, h);
     const grad = ctx.createRadialGradient(w / 2, h / 2 - 20, 0, w / 2, h / 2, 250);
-    grad.addColorStop(0, 'rgba(201, 168, 76, 0.06)');
-    grad.addColorStop(1, 'transparent');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-
+    grad.addColorStop(0, 'rgba(201, 168, 76, 0.06)'); grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(201, 168, 76, 0.4)';
     ctx.font = '500 10px Inter, system-ui, sans-serif';
     ctx.letterSpacing = '4px';
     ctx.fillText('THE SEER', w / 2, 40);
-
     ctx.fillStyle = '#C9A84C';
     ctx.font = 'italic 22px "Instrument Serif", Georgia, serif';
     const words = oracleText.split(' ');
@@ -557,52 +549,36 @@ function App() {
     let currentLine = '\u201C';
     for (const word of words) {
       const test = currentLine + word + ' ';
-      if (ctx.measureText(test).width > w - 100) {
-        lines.push(currentLine);
-        currentLine = word + ' ';
-      } else {
-        currentLine = test;
-      }
+      if (ctx.measureText(test).width > w - 100) { lines.push(currentLine); currentLine = word + ' '; }
+      else { currentLine = test; }
     }
     currentLine = currentLine.trim() + '\u201D';
     lines.push(currentLine);
-
     const lineHeight = 34;
     const startY = h / 2 - (lines.length * lineHeight) / 2 + 20;
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], w / 2, startY + i * lineHeight);
-    }
-
+    for (let i = 0; i < lines.length; i++) { ctx.fillText(lines[i], w / 2, startY + i * lineHeight); }
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.font = '9px Inter, system-ui, sans-serif';
     ctx.fillText('hiseer.vercel.app', w / 2, h - 24);
-
     try {
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, 'image/png')
-      );
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (blob && navigator.share) {
         const file = new File([blob], 'seer-reading.png', { type: 'image/png' });
         await navigator.share({ files: [file] });
       } else if (blob) {
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         setShareToast(true);
         setTimeout(() => setShareToast(false), 2000);
       }
-    } catch {
-      // User cancelled share or clipboard failed
-    }
+    } catch { /* User cancelled */ }
   }, [oracleText]);
 
-  // Clear error when typing
+  // ── Misc handlers ──
   const handleQuestionChange = useCallback((value: string) => {
     setQuestionText(value);
     if (questionError) setQuestionError(null);
   }, [questionError]);
 
-  // Toggle mute
   const toggleMute = useCallback(() => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
@@ -610,54 +586,98 @@ function App() {
     if (!newMuted) playClick();
   }, [isMuted]);
 
-  // Tab change handler
-  const handleTabChange = useCallback((tab: ActiveTab) => {
-    setActiveTab(tab);
-  }, []);
-
-  // Profile switch handler
   const handleProfileSwitch = useCallback((profileId: string) => {
     switchProfile(profileId);
     setActiveTab('oracle');
-    // Reset app state if in the middle of something
-    if (appState !== 'idle') {
-      setAppState('idle');
-      setOracleText('');
-      setOracleArticle(null);
-      setSubmittedQuestion('');
-      setQuestionText('');
-      setSelectedCategory(null);
-      setFollowUpText(null);
-      setFollowUpType(null);
-      setFollowUpRound(0);
-      setFollowUpLoading(false);
-      setShowFollowUps(false);
-      setShowArticle(false);
-      setContextualQuestions([]);
-    }
-  }, [switchProfile, appState]);
+    resetQuestionState();
+    setBondPartner(null);
+    setBondSynastry(null);
+  }, [switchProfile, resetQuestionState]);
 
-  // Determine eye state
+  // ── Bond partner callbacks (from CompatibilityView) ──
+  const handlePartnerSelect = useCallback((partner: UserProfile, synastryReport: SynastryReport) => {
+    setBondPartner(partner);
+    setBondSynastry(synastryReport);
+  }, []);
+
+  const handlePartnerDeselect = useCallback(() => {
+    setBondPartner(null);
+    setBondSynastry(null);
+    resetQuestionState();
+  }, [resetQuestionState]);
+
+  // ── Eye state: always open, gazing, or revealing ──
   const getEyeState = (): 'closed' | 'opening' | 'open' | 'gazing' | 'revealing' => {
-    switch (appState) {
-      case 'idle': return 'closed';
-      case 'summoning': return 'opening';
-      case 'awaiting_question': return 'open';
+    switch (seerPhase) {
+      case 'open': return 'open';
       case 'gazing': return 'gazing';
-      case 'revealing': return 'open';
-      default: return 'closed';
+      case 'revealing': return 'revealing';
+      default: return 'open';
     }
   };
 
-  // Cosmic mood CSS class for eye glow
+  // Cosmic mood CSS class
   const cosmicMoodClass = cosmicMoodScore >= 8 ? 'mood-excellent'
     : cosmicMoodScore >= 6 ? 'mood-good'
     : cosmicMoodScore >= 4 ? 'mood-mixed'
     : 'mood-challenging';
 
+  // ── Placeholder by tab ──
+  const getPlaceholder = (): string | undefined => {
+    switch (activeTab) {
+      case 'cosmos': return t('cosmosQ.placeholder');
+      case 'chart': return t('chartQ.placeholder');
+      case 'bonds': return bondPartner ? t('bonds.placeholder') : undefined;
+      default: return undefined; // oracle uses rotating placeholders
+    }
+  };
+
+  // ── Whether question input should be visible ──
+  const isQuestionReady = activeTab !== 'bonds' || bondPartner !== null;
+
+  // ── Render suggested questions based on active tab ──
+  const renderSuggestedQuestions = () => {
+    if (activeTab === 'oracle') {
+      return <SuggestedQuestions onSelect={handleSuggestedSelect} />;
+    }
+
+    let keys: TranslationKey[] = [];
+    let dividerKey: TranslationKey = 'suggested.divider';
+
+    if (activeTab === 'cosmos') {
+      keys = cosmosSuggestionKeys;
+      dividerKey = 'cosmosQ.orAsk';
+    } else if (activeTab === 'chart') {
+      keys = chartSuggestionKeys;
+      dividerKey = 'chartQ.orAsk';
+    } else if (activeTab === 'bonds' && bondPartner) {
+      keys = bondSuggestionKeys;
+      dividerKey = 'bonds.orAsk';
+    }
+
+    if (keys.length === 0) return null;
+
+    return (
+      <div className="tab-suggestions">
+        <p className="tab-suggestions-divider">{t(dividerKey)}</p>
+        <div className="tab-suggestions-pills">
+          {keys.map(key => (
+            <button
+              key={key}
+              className="tab-suggestion-pill"
+              onClick={() => handleSuggestedSelect(t(key))}
+            >
+              {t(key)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app">
-      {/* Header — brand left, settings right */}
+      {/* Header */}
       <header className="app-header">
         {hasBirthData ? (
           <button className="header-brand" onClick={handleBrandClick}>{t('header.brand')}</button>
@@ -679,8 +699,8 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className={`app-main ${hasBirthData && (activeTab === 'cosmos' || activeTab === 'chart' || activeTab === 'bonds' || appState === 'revealing') ? 'app-main--scrollable' : ''}`}>
-        {/* First visit - intro screens then birth form */}
+      <main className="app-main app-main--scrollable">
+        {/* ── Onboarding ── */}
         {!hasBirthData && !cosmosLoading && showIntro && (
           <SeerIntro onComplete={handleIntroComplete} />
         )}
@@ -695,306 +715,249 @@ function App() {
             </div>
           </div>
         )}
-
-        {/* Loading indicator while cosmos engine initializes */}
         {!hasBirthData && cosmosLoading && (
           <p className="cosmos-status">{t('onboarding.loading')}</p>
         )}
-
-        {/* Cosmos error */}
         {hasBirthData && cosmosError && !cosmosLoading && (
           <p className="cosmos-status cosmos-status--warn">{t('onboarding.warnPrecision')}</p>
         )}
 
-        {/* === ORACLE TAB === */}
-        {hasBirthData && activeTab === 'oracle' && (
-          <div className={`oracle-card${appState === 'summoning' || appState === 'gazing' ? ' oracle-card--processing' : ''}`}>
+        {/* ══════════════════════════════════════════════
+            THE SEER CORE — persistent eye + tabs + question
+            ══════════════════════════════════════════════ */}
+        {hasBirthData && (
+          <>
+            <div className="seer-core">
+              {/* Profile indicator */}
+              {seerPhase === 'open' && allProfiles.length > 1 && userProfile && activeTab === 'oracle' && (
+                <button
+                  className="profile-indicator"
+                  onClick={() => { playClick(); setSettingsView('settings'); }}
+                >
+                  {userProfile.birthData.name}
+                </button>
+              )}
 
-            {/* Profile indicator — shown when multiple profiles exist */}
-            {appState === 'idle' && allProfiles.length > 1 && userProfile && (
-              <button
-                className="profile-indicator"
-                onClick={() => { playClick(); setSettingsView('settings'); }}
-              >
-                {userProfile.birthData.name}
-              </button>
-            )}
+              {/* Contextual hint */}
+              {activeHint && seerPhase === 'open' && (
+                <p className="contextual-hint">{activeHint}</p>
+              )}
 
-            {/* Cryptic acknowledgment — the Seer notes your presence */}
-            {appState === 'idle' && (
-              <p className="seer-acknowledgment">{t('oracle.sleeping')}</p>
-            )}
-            {appState === 'awaiting_question' && seerAcknowledgment && (
-              <p className="seer-acknowledgment">{seerAcknowledgment}</p>
-            )}
+              {/* The Eye — always present, always watching */}
+              <div className={`eye-section ${cosmicMoodClass}`}>
+                <SeerEye
+                  state={getEyeState()}
+                  onGazeComplete={handleGazeComplete}
+                />
+              </div>
 
-            {/* The Eye — with cosmic mood class */}
-            <div className={`eye-section ${cosmicMoodClass}`}>
-              <SeerEye
-                state={getEyeState()}
-                onOpenComplete={handleEyeOpenComplete}
-                onGazeComplete={handleGazeComplete}
+              {/* Inline Tabs — directly below the eye */}
+              <InlineTabs
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                hasTransitAlert={hasTransitAlert}
               />
+
+              {/* Submitted question while gazing */}
+              {seerPhase === 'gazing' && submittedQuestion && (
+                <p className="current-question">{'\u201C'}{submittedQuestion}{'\u201D'}</p>
+              )}
+
+              {/* Question input — visible when eye is open and question is ready */}
+              {seerPhase === 'open' && isQuestionReady && (
+                <div className="input-container">
+                  <QuestionInput
+                    value={questionText}
+                    onChange={handleQuestionChange}
+                    onSubmit={handleSubmitQuestion}
+                    disabled={false}
+                    error={questionError}
+                    customPlaceholder={getPlaceholder()}
+                  />
+                  {renderSuggestedQuestions()}
+                </div>
+              )}
+
+              {/* Bonds: no partner selected message */}
+              {seerPhase === 'open' && activeTab === 'bonds' && !bondPartner && (
+                <p className="seer-no-partner">{t('bonds.choose')}</p>
+              )}
+
+              {/* ── Answer Display (unified across all tabs) ── */}
+              {seerPhase === 'revealing' && oracleText && !showArticle && (
+                <div className="seer-answer-container" ref={answerRef}>
+                  <div className="seer-answer-text">
+                    <span className="seer-answer-quote">{'\u201C'}</span>
+                    {oracleText}
+                    <span className="seer-answer-quote">{'\u201D'}</span>
+                  </div>
+
+                  {/* Oracle-only: follow-ups */}
+                  {activeTab === 'oracle' && (
+                    <>
+                      {(followUpText || followUpLoading) && (
+                        <div className="seer-follow-up-response">
+                          <div className="seer-follow-up-label">
+                            {followUpType === 'when_change' ? t('oracle.timing') : t('oracle.deeperInsight')}
+                          </div>
+                          {followUpLoading ? (
+                            <p className="seer-follow-up-text seer-follow-up-text--loading">{t('oracle.deeper')}</p>
+                          ) : (
+                            <p className="seer-follow-up-text">{followUpText}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && !showFollowUps && (
+                        <button className="seer-learn-more" onClick={() => setShowFollowUps(true)}>
+                          {t('oracle.learnMore')}
+                        </button>
+                      )}
+
+                      {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && showFollowUps && (
+                        <div className="seer-follow-ups">
+                          {oracleArticle && !followUpText && (
+                            <button className="seer-follow-up-question" onClick={() => setShowArticle(true)}>
+                              <span className="seer-follow-up-question-icon">{'\u203A'}</span>
+                              <span className="seer-follow-up-question-text">{t('oracle.whyOracle')}</span>
+                            </button>
+                          )}
+                          {contextualQuestions.map((q, i) => (
+                            <button key={i} className="seer-follow-up-question" onClick={() => handleContextualQuestion(q)}>
+                              <span className="seer-follow-up-question-icon">{'\u203A'}</span>
+                              <span className="seer-follow-up-question-text">{q.text}</span>
+                            </button>
+                          ))}
+                          {followUpType !== 'when_change' && (
+                            <button className="seer-follow-up-question seer-follow-up-question--timing" onClick={() => handleFollowUp('when_change')}>
+                              <span className="seer-follow-up-question-icon">{'\u29D7'}</span>
+                              <span className="seer-follow-up-question-text">{t('oracle.whenChange')}</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {!(followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change')) && followUpRound > 0 && (
+                        <p className="seer-follow-up-exhausted">{t('oracle.exhausted')}</p>
+                      )}
+                    </>
+                  )}
+
+                  {/* Bottom actions */}
+                  <div className="seer-answer-actions">
+                    <button className="seer-ask-again-btn" onClick={handleAskAgain}>
+                      {t('oracle.askAgain')}
+                    </button>
+                    {activeTab === 'oracle' && (
+                      <button className="seer-share-icon" onClick={handleShare} aria-label="Share reading">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 10V2M8 2L5 5M8 2L11 5" />
+                          <path d="M3 9V13H13V9" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  {shareToast && <div className="seer-share-toast">{t('oracle.copied')}</div>}
+                  <canvas ref={shareCanvasRef} style={{ display: 'none' }} />
+                </div>
+              )}
+
+              {/* Article view (oracle only) */}
+              {seerPhase === 'revealing' && showArticle && oracleArticle && activeTab === 'oracle' && (
+                <div className="seer-article-container" ref={answerRef}>
+                  <div className="seer-article-header">
+                    <h2 className="seer-article-title" style={{ color: '#C9A84C' }}>{oracleArticle.title}</h2>
+                    <div className="seer-article-score">
+                      <span className="seer-article-score-value" style={{ color: '#C9A84C' }}>{oracleArticle.score}</span>
+                      <span className="seer-article-score-max">/10</span>
+                      <span className="seer-article-score-label">{getScoreLabel(oracleArticle.score)}</span>
+                    </div>
+                  </div>
+                  <div className="seer-article-body">
+                    {oracleArticle.sections.map((section, i) => (
+                      <div key={i} className="seer-article-section">
+                        <h3 className="seer-article-section-heading">{section.heading}</h3>
+                        <p className="seer-article-section-body">{section.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="seer-answer-actions">
+                    <button className="seer-ask-again-btn" onClick={() => setShowArticle(false)}>
+                      {t('general.back')}
+                    </button>
+                    <button className="seer-ask-again-btn" onClick={handleAskAgain}>
+                      {t('general.dismiss')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Submitted question while gazing */}
-            {appState === 'gazing' && (
-              <p className="current-question">{'\u201C'}{submittedQuestion}{'\u201D'}</p>
-            )}
-
-            {/* Summon button */}
-            {appState === 'idle' && (
-              <button className="summon-btn" onClick={handleSummon}>
-                {t('oracle.summon')}
-              </button>
-            )}
-
-            {/* Question input */}
-            {appState === 'awaiting_question' && (
-              <div className="input-container">
-                <QuestionInput
-                  value={questionText}
-                  onChange={handleQuestionChange}
-                  onSubmit={handleSubmitQuestion}
-                  disabled={false}
-                  error={questionError}
-                />
-                <SuggestedQuestions onSelect={handleSuggestedSelect} />
-              </div>
-            )}
-
-            {/* ── Inline Answer (like Bonds) — below eye ── */}
-            {appState === 'revealing' && oracleText && !showArticle && (
-              <div className="seer-answer-container" ref={answerRef}>
-                {/* Oracle prose — the main reading */}
-                <div className="seer-answer-text">
-                  <span className="seer-answer-quote">{'\u201C'}</span>
-                  {oracleText}
-                  <span className="seer-answer-quote">{'\u201D'}</span>
-                </div>
-
-                {/* Follow-up response area */}
-                {(followUpText || followUpLoading) && (
-                  <div className="seer-follow-up-response">
-                    <div className="seer-follow-up-label">
-                      {followUpType === 'when_change' ? t('oracle.timing') : t('oracle.deeperInsight')}
+            {/* ══════════════════════════════════════════════
+                TAB CONTENT — scrollable below the seer core
+                ══════════════════════════════════════════════ */}
+            <div className="tab-content">
+              {/* Oracle footer */}
+              {activeTab === 'oracle' && seerPhase === 'open' && !cosmosLoading && (
+                <div className="oracle-card__footer">
+                  {cosmicWhisper && <p className="cosmic-whisper">{cosmicWhisper}</p>}
+                  {cosmicHint && !cosmicWhisper && <p className="cosmic-hint">{cosmicHint}</p>}
+                  {activeRetrogrades.length > 0 && (
+                    <div className="retrograde-alert">
+                      {activeRetrogrades.map(r => (
+                        <span key={r.planet} className="retrograde-badge">
+                          {r.planet.charAt(0).toUpperCase() + r.planet.slice(1)} Rx
+                        </span>
+                      ))}
                     </div>
-                    {followUpLoading ? (
-                      <p className="seer-follow-up-text seer-follow-up-text--loading">{t('oracle.deeper')}</p>
-                    ) : (
-                      <p className="seer-follow-up-text">{followUpText}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* "Learn more" toggle */}
-                {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && !showFollowUps && (
-                  <button
-                    className="seer-learn-more"
-                    onClick={() => setShowFollowUps(true)}
-                  >
-                    {t('oracle.learnMore')}
-                  </button>
-                )}
-
-                {/* Follow-up questions (hidden until toggled) */}
-                {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && showFollowUps && (
-                  <div className="seer-follow-ups">
-                    {/* Article link */}
-                    {oracleArticle && !followUpText && (
-                      <button
-                        className="seer-follow-up-question"
-                        onClick={() => setShowArticle(true)}
-                      >
-                        <span className="seer-follow-up-question-icon">{'\u203A'}</span>
-                        <span className="seer-follow-up-question-text">{t('oracle.whyOracle')}</span>
-                      </button>
-                    )}
-
-                    {/* Contextual transit-aware questions */}
-                    {contextualQuestions.map((q, i) => (
-                      <button
-                        key={i}
-                        className="seer-follow-up-question"
-                        onClick={() => handleContextualQuestion(q)}
-                      >
-                        <span className="seer-follow-up-question-icon">{'\u203A'}</span>
-                        <span className="seer-follow-up-question-text">{q.text}</span>
-                      </button>
-                    ))}
-
-                    {/* "When Will This Change?" */}
-                    {followUpType !== 'when_change' && (
-                      <button
-                        className="seer-follow-up-question seer-follow-up-question--timing"
-                        onClick={() => handleFollowUp('when_change')}
-                      >
-                        <span className="seer-follow-up-question-icon">{'\u29D7'}</span>
-                        <span className="seer-follow-up-question-text">{t('oracle.whenChange')}</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Follow-ups exhausted */}
-                {!(followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change')) && followUpRound > 0 && (
-                  <p className="seer-follow-up-exhausted">{t('oracle.exhausted')}</p>
-                )}
-
-                {/* Bottom actions: Ask Again + Share */}
-                <div className="seer-answer-actions">
-                  <button className="seer-ask-again-btn" onClick={handleAskAgain}>
-                    {t('oracle.askAgain')}
-                  </button>
-
-                  <button
-                    className="seer-share-icon"
-                    onClick={handleShare}
-                    aria-label="Share reading"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M8 10V2M8 2L5 5M8 2L11 5" />
-                      <path d="M3 9V13H13V9" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Share toast */}
-                {shareToast && (
-                  <div className="seer-share-toast">{t('oracle.copied')}</div>
-                )}
-
-                {/* Hidden canvas for share card */}
-                <canvas ref={shareCanvasRef} style={{ display: 'none' }} />
-              </div>
-            )}
-
-            {/* ── Article view (inline, replaces answer) ── */}
-            {appState === 'revealing' && showArticle && oracleArticle && (
-              <div className="seer-article-container" ref={answerRef}>
-                <div className="seer-article-header">
-                  <h2 className="seer-article-title" style={{ color: '#C9A84C' }}>{oracleArticle.title}</h2>
-                  <div className="seer-article-score">
-                    <span className="seer-article-score-value" style={{ color: '#C9A84C' }}>{oracleArticle.score}</span>
-                    <span className="seer-article-score-max">/10</span>
-                    <span className="seer-article-score-label">{getScoreLabel(oracleArticle.score)}</span>
-                  </div>
-                </div>
-                <div className="seer-article-body">
-                  {oracleArticle.sections.map((section, i) => (
-                    <div key={i} className="seer-article-section">
-                      <h3 className="seer-article-section-heading">{section.heading}</h3>
-                      <p className="seer-article-section-body">{section.body}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="seer-answer-actions">
-                  <button className="seer-ask-again-btn" onClick={() => setShowArticle(false)}>
-                    {t('general.back')}
-                  </button>
-                  <button className="seer-ask-again-btn" onClick={handleDismiss}>
-                    {t('general.dismiss')}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Contextual hint */}
-            {activeHint && activeTab === 'oracle' && appState !== 'revealing' && (
-              <p className="contextual-hint">{activeHint}</p>
-            )}
-
-            {/* Cosmic footer — ambient data below the eye */}
-            {appState === 'idle' && !cosmosLoading && (
-              <div className="oracle-card__footer">
-                {/* Cosmic Whisper */}
-                {cosmicWhisper && (
-                  <p className="cosmic-whisper">{cosmicWhisper}</p>
-                )}
-
-                {/* Cosmic Hint — top category energy */}
-                {cosmicHint && !cosmicWhisper && (
-                  <p className="cosmic-hint">{cosmicHint}</p>
-                )}
-
-                {/* Retrograde Alert */}
-                {activeRetrogrades.length > 0 && (
-                  <div className="retrograde-alert">
-                    {activeRetrogrades.map(r => (
-                      <span key={r.planet} className="retrograde-badge">
-                        {r.planet.charAt(0).toUpperCase() + r.planet.slice(1)} Rx
+                  )}
+                  {isSpecialMoonPhase && (
+                    <div className="moon-ritual-hint">
+                      <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
+                      <span className="moon-ritual-text">
+                        {isSpecialMoonPhase === 'New Moon' ? t('ritual.newMoon') : t('ritual.fullMoon')}
                       </span>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
+              )}
 
-                {/* Moon Phase Ritual */}
-                {isSpecialMoonPhase && (
-                  <div className="moon-ritual-hint">
-                    <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
-                    <span className="moon-ritual-text">
-                      {isSpecialMoonPhase === 'New Moon'
-                        ? t('ritual.newMoon')
-                        : t('ritual.fullMoon')}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+              {/* Cosmos */}
+              {activeTab === 'cosmos' && dailyReport && (
+                <CosmicDashboard report={dailyReport} onRefresh={refreshDailyReport} mode="inline" />
+              )}
+              {activeTab === 'cosmos' && !dailyReport && (
+                <p className="cosmos-status">Loading cosmic data...</p>
+              )}
 
-        {/* === COSMOS TAB === */}
-        {hasBirthData && activeTab === 'cosmos' && activeHint && (
-          <p className="contextual-hint">{activeHint}</p>
-        )}
-        {hasBirthData && activeTab === 'cosmos' && dailyReport && (
-          <CosmicDashboard
-            report={dailyReport}
-            onRefresh={refreshDailyReport}
-            mode="inline"
-          />
-        )}
-        {hasBirthData && activeTab === 'cosmos' && !dailyReport && (
-          <p className="cosmos-status">Loading cosmic data...</p>
-        )}
+              {/* Chart */}
+              {activeTab === 'chart' && userProfile && (
+                <NatalChartView
+                  natalChart={userProfile.natalChart}
+                  userProfile={userProfile}
+                  dailyReport={dailyReport}
+                  mode="inline"
+                />
+              )}
 
-        {/* === CHART TAB === */}
-        {hasBirthData && activeTab === 'chart' && activeHint && (
-          <p className="contextual-hint">{activeHint}</p>
-        )}
-        {hasBirthData && activeTab === 'chart' && userProfile && (
-          <NatalChartView
-            natalChart={userProfile.natalChart}
-            userProfile={userProfile}
-            dailyReport={dailyReport}
-            mode="inline"
-          />
-        )}
-
-        {/* === BONDS TAB === */}
-        {hasBirthData && activeTab === 'bonds' && activeHint && (
-          <p className="contextual-hint">{activeHint}</p>
-        )}
-        {hasBirthData && activeTab === 'bonds' && userProfile && (
-          <CompatibilityView
-            activeProfile={userProfile}
-            allProfiles={allProfiles}
-            onAddProfile={() => setSettingsView('add')}
-          />
+              {/* Bonds */}
+              {activeTab === 'bonds' && userProfile && (
+                <CompatibilityView
+                  activeProfile={userProfile}
+                  allProfiles={allProfiles}
+                  onAddProfile={() => setSettingsView('add')}
+                  onPartnerSelect={handlePartnerSelect}
+                  onPartnerDeselect={handlePartnerDeselect}
+                  selectedPartner={bondPartner}
+                />
+              )}
+            </div>
+          </>
         )}
       </main>
 
-      {/* Bottom Tab Bar — always shown after onboarding */}
-      {hasBirthData && (
-        <BottomTabBar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          hasTransitAlert={hasTransitAlert}
-        />
-      )}
-
-      {/* Settings modal — consolidated */}
+      {/* Settings modal */}
       {settingsView !== 'hidden' && (
         <div className="modal-overlay" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -1010,7 +973,6 @@ function App() {
 
             {settingsView === 'settings' && (
               <div className="settings-content">
-                {/* Sound toggle */}
                 <div className="settings-row">
                   <span className="settings-row-label">{t('settings.sound')}</span>
                   <button
@@ -1021,28 +983,17 @@ function App() {
                     <span className="settings-toggle-knob" />
                   </button>
                 </div>
-
-                {/* Language switcher */}
                 <div className="settings-row">
                   <span className="settings-row-label">{t('settings.language')}</span>
                   <div className="lang-switcher">
                     {(['en', 'ja', 'vi'] as Language[]).map(l => (
-                      <button
-                        key={l}
-                        className={`lang-btn ${lang === l ? 'lang-btn--active' : ''}`}
-                        onClick={() => { playClick(); setLang(l); }}
-                      >
+                      <button key={l} className={`lang-btn ${lang === l ? 'lang-btn--active' : ''}`} onClick={() => { playClick(); setLang(l); }}>
                         {LANGUAGE_LABELS[l]}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                {/* Reading History link */}
-                <button
-                  className="settings-row settings-row--link"
-                  onClick={() => { playClick(); setShowHistory(true); }}
-                >
+                <button className="settings-row settings-row--link" onClick={() => { playClick(); setShowHistory(true); }}>
                   <span className="settings-row-label">{t('settings.history')}</span>
                   <span className="settings-row-chevron">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1050,8 +1001,6 @@ function App() {
                     </svg>
                   </span>
                 </button>
-
-                {/* Profiles section */}
                 <div className="settings-section">
                   <h3 className="settings-section-label">{t('settings.profiles')}</h3>
                   <ProfileManager
@@ -1086,8 +1035,6 @@ function App() {
       {showHistory && (
         <ReadingHistory onClose={() => setShowHistory(false)} profileId={userProfile?.id} />
       )}
-
-      {/* (OracleReading is now rendered inline inside oracle-card) */}
     </div>
   );
 }

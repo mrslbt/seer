@@ -256,6 +256,33 @@ export async function callChartQuestionLLM(
 }
 
 /**
+ * Cosmos question — ask the Seer about today's sky (what is happening NOW)
+ * Always includes full transit data and daily scores.
+ */
+export async function callCosmosQuestionLLM(
+  question: string,
+  questionMode: 'directional' | 'guidance',
+  profile: UserProfile,
+  report: PersonalDailyReport,
+  lang?: string,
+): Promise<LLMOracleResult> {
+  const categoryScores = Object.entries(report.categories)
+    .map(([key, cat]) => `${key}: ${cat.score}/10`)
+    .join(', ');
+
+  return callAPI({
+    type: 'cosmosQuestion',
+    question,
+    questionMode,
+    chartSummary: serializeChart(profile),
+    transitSummary: serializeTransits(report),
+    categoryScores,
+    moonPhase: report.moonPhase.name,
+    retrogrades: report.retrogrades.map(r => r.planet),
+  }, lang);
+}
+
+/**
  * Follow-up question after any reading
  */
 export async function callFollowUpLLM(

@@ -188,6 +188,17 @@ export const vi: Record<TranslationKey, string> = {
   'chartQ.charm': 'Điều gì khiến tôi cuốn hút?',
   'chartQ.compatible': 'Cung nào hợp với tôi nhất?',
 
+  // ── Câu hỏi vũ trụ ──
+  'cosmosQ.ask': 'Hỏi về ngày của bạn',
+  'cosmosQ.placeholder': 'Hỏi Nhà Tiên Tri về ngày vũ trụ...',
+  'cosmosQ.orAsk': 'hoặc hỏi về hôm nay',
+  'cosmosQ.focusToday': 'Hôm nay nên tập trung vào gì?',
+  'cosmosQ.feelOff': 'Tại sao tôi cảm thấy lạ?',
+  'cosmosQ.loveToday': 'Hôm nay có tốt cho tình yêu?',
+  'cosmosQ.avoidToday': 'Hôm nay nên tránh gì?',
+  'cosmosQ.bestFor': 'Hôm nay tốt nhất cho gì?',
+  'cosmosQ.energy': 'Điều gì mạnh nhất hôm nay?',
+
   // ── Tương hợp / Kết nối ──
   'bonds.choose': 'Chọn một linh hồn để so sánh',
   'bonds.addPrompt': 'Thêm linh hồn thứ hai để khám phá điều giữa hai bạn',

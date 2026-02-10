@@ -15,9 +15,10 @@ interface QuestionInputProps {
   onSubmit: () => void;
   disabled?: boolean;
   error?: string | null;
+  customPlaceholder?: string;
 }
 
-export function QuestionInput({ value, onChange, onSubmit, disabled, error }: QuestionInputProps) {
+export function QuestionInput({ value, onChange, onSubmit, disabled, error, customPlaceholder }: QuestionInputProps) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(
@@ -63,7 +64,7 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder={t(PLACEHOLDER_KEYS[placeholderIndex])}
+          placeholder={customPlaceholder || t(PLACEHOLDER_KEYS[placeholderIndex])}
           disabled={disabled}
           autoComplete="off"
           autoCorrect="off"

@@ -188,6 +188,17 @@ export const ja: Record<TranslationKey, string> = {
   'chartQ.charm': '何が私を魅力的にする？',
   'chartQ.compatible': '相性の良い星座は？',
 
+  // ── コスモス質問 ──
+  'cosmosQ.ask': '今日について聞く',
+  'cosmosQ.placeholder': '今日の宇宙天気について予言者に聞く...',
+  'cosmosQ.orAsk': 'または今日について聞く',
+  'cosmosQ.focusToday': '今日は何に集中すべき？',
+  'cosmosQ.feelOff': 'なぜ調子が悪い？',
+  'cosmosQ.loveToday': '今日は恋愛に良い日？',
+  'cosmosQ.avoidToday': '今日は何を避けるべき？',
+  'cosmosQ.bestFor': '今日は何に最適？',
+  'cosmosQ.energy': '今日最も強いものは？',
+
   // ── 相性 / 絆 ──
   'bonds.choose': '比較する魂を選ぶ',
   'bonds.addPrompt': '二人の間に何があるかを明らかにするために第二の魂を追加',

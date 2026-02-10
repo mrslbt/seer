@@ -84,30 +84,28 @@
   }
 }
 
-/* ── Eye Section ───────────────────────────────── */
+/* ── Summoning state ──────────────────────────── */
 
-.compat-eye-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-}
-
-/* ── Gazing question echo ──────────────────────── */
-
-.compat-current-question {
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
-  color: var(--text-muted);
-  font-style: italic;
+.compat-summoning {
+  padding: 20px;
   text-align: center;
-  max-width: 300px;
-  letter-spacing: 0.01em;
-  line-height: 1.5;
-  animation: compatFadeIn 0.3s ease;
+  animation: compatFadeIn 0.4s ease;
 }
 
-/* ── Profile Selection (below eye) ────────────── */
+.compat-summoning-text {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-style: italic;
+  color: rgba(201, 168, 76, 0.6);
+  animation: seerPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes seerPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+/* ── Profile Selection ───────────────────────── */
 
 .compat-profile-list {
   display: flex;
@@ -505,220 +503,7 @@
   opacity: 0.6;
 }
 
-/* ── Question Input (below eye) ───────────────── */
-
-.compat-input-container {
-  width: 100%;
-  max-width: 360px;
-  animation: compatSlideUp 0.4s ease;
-}
-
-.compat-question-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.compat-question-row {
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-}
-
-.compat-question-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
-  color: var(--text);
-  padding: 14px 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-style: italic;
-  outline: none;
-  transition: border-color 0.3s ease;
-  letter-spacing: 0.01em;
-  border-radius: 0;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.compat-question-input::-webkit-search-decoration,
-.compat-question-input::-webkit-search-cancel-button,
-.compat-question-input::-webkit-search-results-button,
-.compat-question-input::-webkit-search-results-decoration {
-  -webkit-appearance: none;
-  display: none;
-}
-
-.compat-question-input:focus {
-  border-color: rgba(201, 168, 76, 0.35);
-}
-
-.compat-question-input::placeholder {
-  color: var(--text-muted); opacity: 0.7;
-  font-style: italic;
-  font-family: var(--font-display);
-}
-
-.compat-question-input.has-error {
-  border-color: var(--no);
-}
-
-.compat-submit-btn {
-  padding: 10px 24px;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.compat-submit-btn:hover:not(:disabled) {
-  background: rgba(201, 168, 76, 0.06);
-  border-color: rgba(201, 168, 76, 0.4);
-}
-
-.compat-submit-btn:disabled {
-  opacity: 0.15;
-  cursor: default;
-}
-
-.compat-submit-btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.compat-input-error {
-  font-size: 0.6875rem;
-  color: var(--no);
-  letter-spacing: 0.02em;
-  text-align: left;
-  animation: compatFadeIn 0.2s ease;
-}
-
-/* Suggested questions */
-
-.compat-suggestions-divider {
-  text-align: center;
-  font-size: 0.6875rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--text-muted); opacity: 0.7;
-  margin: 24px 0 12px;
-  animation: compatFadeIn 0.4s ease 0.2s both;
-  user-select: none;
-}
-
-.compat-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 28px;
-  animation: compatFadeIn 0.5s ease 0.3s both;
-}
-
-.compat-suggestion-chip {
-  padding: 8px 18px;
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 400;
-  font-style: italic;
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.12);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: color 0.3s ease,
-              border-color 0.3s ease,
-              background 0.3s ease,
-              transform 0.15s ease;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compat-suggestion-chip:hover {
-  color: var(--accent);
-  border-color: rgba(201, 168, 76, 0.25);
-  background: rgba(201, 168, 76, 0.03);
-}
-
-.compat-suggestion-chip:active {
-  transform: scale(0.96);
-  background: rgba(201, 168, 76, 0.06);
-}
-
-/* ── Answer Container (below eye) ─────────────── */
-
-.compat-answer-container {
-  width: 100%;
-  text-align: center;
-  animation: compatFadeIn 0.4s ease;
-}
-
-.compat-answer-verdict {
-  font-family: var(--font);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  opacity: 0;
-  animation: compatTierAppear 0.5s ease 0.2s forwards;
-}
-
-.compat-answer-text {
-  font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: 400;
-  font-style: italic;
-  line-height: 1.6;
-  letter-spacing: 0.015em;
-  margin-bottom: 24px;
-  opacity: 0;
-  animation: compatTextReveal 1.2s ease 0.4s forwards;
-}
-
-.compat-answer-quote {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  line-height: 0;
-  vertical-align: -0.15em;
-  opacity: 0.25;
-  color: var(--accent);
-  display: inline;
-}
-
-.compat-transit-context {
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.45);
-  line-height: 1.6;
-  margin-bottom: 32px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  opacity: 0;
-  animation: compatSlideUp 0.5s ease 1.2s forwards;
-}
-
-.compat-answer-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  animation: compatSlideUp 0.5s ease 1.5s forwards;
-}
+/* Question input, suggestions, and answer display are now in App.tsx */
 
 /* ===============================================================
    Keyframes
@@ -811,28 +596,7 @@
     font-size: 1.125rem;
   }
 
-  .compat-answer-text {
-    font-size: 1.1875rem;
-  }
-
-  .compat-answer-quote {
-    font-size: 2rem;
-  }
-
   .compat-reading-paragraph {
     font-size: 0.875rem;
-  }
-
-  .compat-question-input {
-    font-size: 16px; /* prevent iOS zoom */
-  }
-
-  .compat-suggestion-chip {
-    font-size: 0.75rem;
-    padding: 7px 14px;
-  }
-
-  .compat-suggestions {
-    gap: 6px;
   }
 }
