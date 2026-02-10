@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Verdict, QuestionCategory } from '../types/astrology';
 import type { UserProfile } from '../types/userProfile';
-import { getSeerVerdictColor } from '../lib/oracleResponse';
 import type { InsightArticle } from '../lib/insightArticle';
 import { getScoreLabel } from '../lib/insightArticle';
 import {
@@ -30,15 +29,16 @@ interface OracleReadingProps {
 
 export function OracleReading({
   oracleText, verdict, category, article, dailyReport,
-  userProfile, questionText, questionMode = 'directional', onAskAgain, onDismiss
+  userProfile, questionText, questionMode: _questionMode = 'directional', onAskAgain, onDismiss
 }: OracleReadingProps) {
-  // Guidance mode uses neutral gold — not verdict color
-  const color = questionMode === 'guidance' ? '#C9A84C' : getSeerVerdictColor(verdict);
+  // Pure LLM — always gold accent, no verdict-based coloring
+  const color = '#C9A84C';
   const [showArticle, setShowArticle] = useState(false);
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
   const [followUpRound, setFollowUpRound] = useState(0);
   const [followUpLoading, setFollowUpLoading] = useState(false);
+  const [showFollowUps, setShowFollowUps] = useState(false);
   const [contextualQuestions, setContextualQuestions] = useState<FollowUpQuestion[]>([]);
   const [shareToast, setShareToast] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -163,14 +163,6 @@ export function OracleReading({
     ctx.letterSpacing = '4px';
     ctx.fillText('THE SEER', w / 2, 40);
 
-    const verdictLabelsCanvas: Record<Verdict, string> = {
-      HARD_YES: 'YES', SOFT_YES: 'LEANING YES', NEUTRAL: 'UNCERTAIN',
-      SOFT_NO: 'LEANING NO', HARD_NO: 'NO', UNCLEAR: 'UNCLEAR',
-    };
-    ctx.fillStyle = color;
-    ctx.font = '500 11px Inter, system-ui, sans-serif';
-    ctx.fillText(verdictLabelsCanvas[verdict], w / 2, 70);
-
     ctx.fillStyle = color;
     ctx.font = 'italic 22px "Instrument Serif", Georgia, serif';
     const words = oracleText.split(' ');
@@ -252,49 +244,28 @@ export function OracleReading({
   }
 
   // ---- Reading view ----
-  const verdictLabels: Record<Verdict, string> = {
-    HARD_YES: 'Yes',
-    SOFT_YES: 'Leaning Yes',
-    NEUTRAL: 'Uncertain',
-    SOFT_NO: 'Leaning No',
-    HARD_NO: 'No',
-    UNCLEAR: 'Unclear',
-  };
-
   const hasFollowUps = followUpRound < 2 && (
     contextualQuestions.length > 0 || followUpType !== 'when_change'
   );
 
   return (
-    <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading">
+    <div className="oracle-overlay" role="dialog" aria-modal="true" aria-label="Oracle Reading" onClick={onDismiss}>
       <div className="oracle-reading" onClick={(e) => e.stopPropagation()}>
 
-        {/* Dismiss button */}
+        {/* Dismiss button — fixed position for reliable click target */}
         <button className="oracle-dismiss" onClick={onDismiss} aria-label="Close reading">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
 
-        {/* Verdict label — show "Insight" for guidance mode, verdict for directional */}
-        <div className="verdict-label" style={{ color }}>
-          {questionMode === 'guidance' ? 'Insight' : verdictLabels[verdict]}
-        </div>
-
-        {/* Oracle prose */}
+        {/* Oracle prose — the main reading */}
         <div className="oracle-text" style={{ color }}>
           <span className="oracle-quote oracle-quote--open">{'\u201C'}</span>
           {oracleText}
           <span className="oracle-quote oracle-quote--close">{'\u201D'}</span>
         </div>
-
-        {/* Inline "why?" link — subtle, not a primary action */}
-        {article && !followUpText && (
-          <button className="oracle-why-link" onClick={() => setShowArticle(true)}>
-            Why does the oracle say this?
-          </button>
-        )}
 
         {/* Follow-up response area */}
         {(followUpText || followUpLoading) && (
@@ -310,9 +281,30 @@ export function OracleReading({
           </div>
         )}
 
-        {/* ── Follow-up section: vertical stack of questions ── */}
-        {hasFollowUps && (
+        {/* "Learn more" toggle — reveals follow-up questions */}
+        {hasFollowUps && !showFollowUps && (
+          <button
+            className="oracle-learn-more"
+            onClick={() => setShowFollowUps(true)}
+          >
+            Learn more
+          </button>
+        )}
+
+        {/* ── Follow-up section: vertical stack of questions (hidden until toggled) ── */}
+        {hasFollowUps && showFollowUps && (
           <div className="oracle-follow-ups">
+            {/* Inline "why?" link */}
+            {article && !followUpText && (
+              <button
+                className="follow-up-question"
+                onClick={() => setShowArticle(true)}
+              >
+                <span className="follow-up-question-icon">{'\u203A'}</span>
+                <span className="follow-up-question-text">Why does the oracle say this?</span>
+              </button>
+            )}
+
             {/* Contextual transit-aware questions */}
             {contextualQuestions.map((q, i) => (
               <button
@@ -354,7 +346,6 @@ export function OracleReading({
             onClick={handleShare}
             aria-label="Share reading"
           >
-            {/* Simple share arrow */}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 10V2M8 2L5 5M8 2L11 5" />
               <path d="M3 9V13H13V9" />

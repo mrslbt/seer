@@ -48,41 +48,34 @@
 
 /* ── Dismiss button ──────────────────────────── */
 .oracle-dismiss {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 32px;
-  height: 32px;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
-  background: transparent;
-  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
   opacity: 0;
-  animation: actionsAppear 0.4s ease 2.5s forwards;
+  animation: actionsAppear 0.4s ease 2s forwards;
+  z-index: 1010;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .oracle-dismiss:hover {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .oracle-dismiss:active {
   transform: scale(0.9);
-}
-
-/* ── Verdict label ─────────────────────────────── */
-.verdict-label {
-  font-family: var(--font);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  opacity: 0;
-  animation: verdictAppear 0.5s ease 0.3s forwards;
 }
 
 /* ── Oracle prose ──────────────────────────────── */
@@ -135,6 +128,33 @@
 
 .oracle-why-link:active {
   opacity: 0.6;
+}
+
+/* ── "Learn more" toggle ─────────────────────── */
+.oracle-learn-more {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.35);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  animation: actionsAppear 0.6s ease 1.8s both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.oracle-learn-more:hover {
+  color: rgba(201, 168, 76, 0.65);
+}
+
+.oracle-learn-more:active {
+  opacity: 0.5;
 }
 
 /* ── Follow-up response ────────────────────────── */
@@ -507,17 +527,6 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     filter: blur(0);
-  }
-}
-
-@keyframes verdictAppear {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 0.7;
-    transform: translateY(0);
   }
 }
 

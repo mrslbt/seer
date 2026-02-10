@@ -1,15 +1,14 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { BirthData, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
-import { scoreDecision, classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
-import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
+import { classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
+import { playClick, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
 import { callLLMOracle, type LLMOracleResult } from './lib/llmOracle';
 import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
 import type { InsightArticle } from './lib/insightArticle';
 
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
-import { scorePersonalDecision } from './lib/personalScoreDecision';
 import { getDailyWhisper } from './lib/cosmicWhisper';
 import { saveReading, analyzePatterns } from './lib/readingHistory';
 
@@ -267,15 +266,11 @@ function App() {
     setSelectedCategory(category);
 
     // Fire LLM call NOW — it runs during the gazing animation (~3s)
+    // Pure LLM — no verdict scoring. The LLM reads the chart directly.
     if (userProfile && dailyReport) {
       const questionMode = detectQuestionMode(trimmed);
-      let verdict: Verdict = 'NEUTRAL';
-      if (questionMode === 'directional') {
-        const scoring = scorePersonalDecision(trimmed, dailyReport, category);
-        verdict = scoring.verdict;
-      }
       llmPromiseRef.current = callLLMOracle(
-        trimmed, questionMode, category, verdict, userProfile, dailyReport
+        trimmed, questionMode, category, 'NEUTRAL', userProfile, dailyReport
       );
     } else {
       llmPromiseRef.current = null;
@@ -288,25 +283,14 @@ function App() {
   const handleGazeComplete = useCallback(async () => {
     if (!astroContext) return;
 
+    // Pure LLM approach — no verdict scoring.
+    // The LLM reads the chart and answers the question directly.
     const questionMode = detectQuestionMode(submittedQuestion);
     setOracleQuestionMode(questionMode);
 
-    let verdict: Verdict;
-    let category: QuestionCategory;
-
-    if (questionMode === 'guidance') {
-      const classified = classifyQuestionWithConfidence(submittedQuestion);
-      category = selectedCategory ?? classified.category;
-      verdict = 'NEUTRAL';
-    } else if (dailyReport && userProfile) {
-      const personalScoring = scorePersonalDecision(submittedQuestion, dailyReport, selectedCategory ?? undefined);
-      verdict = personalScoring.verdict;
-      category = personalScoring.category;
-    } else {
-      const scoring = scoreDecision(submittedQuestion, astroContext, selectedCategory ?? undefined);
-      verdict = scoring.verdict;
-      category = scoring.category;
-    }
+    const classified = classifyQuestionWithConfidence(submittedQuestion);
+    const category = selectedCategory ?? classified.category;
+    const verdict: Verdict = 'NEUTRAL'; // verdict no longer drives the response
 
     // Try to get the LLM response (fired during gazing animation)
     let response: string;
@@ -354,13 +338,6 @@ function App() {
       overallScore: dailyReport?.overallScore,
       profileId: userProfile?.id,
     });
-
-    // No verdict sound for guidance mode
-    if (questionMode !== 'guidance') {
-      setTimeout(() => {
-        playVerdictSound(verdict);
-      }, 300);
-    }
 
     if (usedLLM) {
       console.log('[Seer] LLM response used');

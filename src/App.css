@@ -32,8 +32,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
   z-index: 50;
   pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.92) 50%,
+    rgba(0, 0, 0, 0.7) 75%,
+    transparent 100%
+  );
 }
 
 .app-header > * {
