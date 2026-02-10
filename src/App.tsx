@@ -285,11 +285,11 @@ function App() {
     setSelectedCategory(category);
 
     // Fire LLM call NOW — it runs during the gazing animation (~3s)
-    // Pure LLM — no verdict scoring. The LLM reads the chart directly.
+    // LLM reads the chart data directly and decides the answer itself
     if (userProfile && dailyReport) {
       const questionMode = detectQuestionMode(trimmed);
       llmPromiseRef.current = callLLMOracle(
-        trimmed, questionMode, category, 'NEUTRAL', userProfile, dailyReport
+        trimmed, questionMode, category, userProfile, dailyReport
       );
     } else {
       llmPromiseRef.current = null;
@@ -302,14 +302,13 @@ function App() {
   const handleGazeComplete = useCallback(async () => {
     if (!astroContext) return;
 
-    // Pure LLM approach — no verdict scoring.
-    // The LLM reads the chart and answers the question directly.
+    // LLM reads chart directly — verdict only used for template fallback
     const questionMode = detectQuestionMode(submittedQuestion);
     setOracleQuestionMode(questionMode);
 
     const classified = classifyQuestionWithConfidence(submittedQuestion);
     const category = selectedCategory ?? classified.category;
-    const verdict: Verdict = 'NEUTRAL'; // verdict no longer drives the response
+    const verdict: Verdict = 'NEUTRAL';
 
     // Try to get the LLM response (fired during gazing animation)
     let response: string;
@@ -449,7 +448,7 @@ function App() {
     if (userProfile && dailyReport) {
       const questionMode = detectQuestionMode(question);
       llmPromiseRef.current = callLLMOracle(
-        question, questionMode, category, 'NEUTRAL', userProfile, dailyReport
+        question, questionMode, category, userProfile, dailyReport
       );
     } else {
       llmPromiseRef.current = null;
@@ -469,7 +468,7 @@ function App() {
       try {
         const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
         const llmResult = await callFollowUpLLM(
-          followUpQ, submittedQuestion, oracleText, oracleCategory, oracleVerdict, userProfile, dailyReport
+          followUpQ, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -505,7 +504,7 @@ function App() {
       setFollowUpLoading(true);
       try {
         const llmResult = await callFollowUpLLM(
-          question.text, submittedQuestion, oracleText, oracleCategory, oracleVerdict, userProfile, dailyReport
+          question.text, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);

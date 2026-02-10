@@ -227,14 +227,9 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     const qMode = detectQuestionMode(trimmed);
 
     if (partner && report) {
-      // For directional questions, compute verdict from template system to pass to LLM
-      let verdict: string | undefined;
-      if (qMode === 'directional') {
-        const templateAnswer = answerRelationshipQuestion(trimmed, activeProfile, partner, report);
-        verdict = templateAnswer.verdict;
-      }
+      // LLM reads the synastry data directly and decides the answer itself
       llmPromiseRef.current = callBondLLM(
-        trimmed, qMode, activeProfile, partner, report, todaysBond, verdict
+        trimmed, qMode, activeProfile, partner, report, todaysBond
       );
     } else {
       llmPromiseRef.current = null;
@@ -258,13 +253,9 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     const qMode = detectQuestionMode(trimmed);
 
     if (partner && report) {
-      let verdict: string | undefined;
-      if (qMode === 'directional') {
-        const templateAnswer = answerRelationshipQuestion(trimmed, activeProfile, partner, report);
-        verdict = templateAnswer.verdict;
-      }
+      // LLM reads the synastry data directly
       llmPromiseRef.current = callBondLLM(
-        trimmed, qMode, activeProfile, partner, report, todaysBond, verdict
+        trimmed, qMode, activeProfile, partner, report, todaysBond
       );
     } else {
       llmPromiseRef.current = null;

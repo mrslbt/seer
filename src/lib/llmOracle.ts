@@ -13,7 +13,7 @@ import type { UserProfile, Planet } from '../types/userProfile';
 import type { PersonalDailyReport } from './personalDailyReport';
 import type { SynastryReport } from './synastry';
 import type { TodaysBondData } from '../components/TodaysBond';
-import type { QuestionCategory, Verdict } from '../types/astrology';
+import type { QuestionCategory } from '../types/astrology';
 import { HOUSE_MEANINGS } from './personalDailyReport';
 
 // ── Result type shared across all callers ──
@@ -170,7 +170,6 @@ export async function callLLMOracle(
   question: string,
   questionMode: 'directional' | 'guidance',
   category: QuestionCategory,
-  verdict: Verdict,
   profile: UserProfile,
   report: PersonalDailyReport,
 ): Promise<LLMOracleResult> {
@@ -182,7 +181,6 @@ export async function callLLMOracle(
     question,
     questionMode,
     category,
-    verdict: questionMode === 'directional' ? verdict : undefined,
     chartSummary: serializeChart(profile),
     transitSummary: serializeTransits(report),
     categoryScore: cat.score,
@@ -203,7 +201,6 @@ export async function callBondLLM(
   profile2: UserProfile,
   synastryReport: SynastryReport,
   todaysBond?: TodaysBondData | null,
-  verdict?: string,
 ): Promise<LLMOracleResult> {
   return callAPI({
     type: 'bond',
@@ -215,7 +212,6 @@ export async function callBondLLM(
     chart2Summary: serializeChart(profile2),
     synastryData: serializeSynastry(synastryReport),
     todaysBondData: todaysBond ? serializeTodaysBond(todaysBond) : undefined,
-    verdict,
   });
 }
 
@@ -227,7 +223,6 @@ export async function callFollowUpLLM(
   originalQuestion: string,
   originalAnswer: string,
   category: QuestionCategory,
-  verdict: Verdict,
   profile: UserProfile,
   report: PersonalDailyReport,
 ): Promise<LLMOracleResult> {
@@ -238,7 +233,6 @@ export async function callFollowUpLLM(
     originalQuestion,
     originalAnswer,
     category,
-    verdict,
     chartSummary: serializeChart(profile),
     transitSummary: serializeTransits(report),
   });

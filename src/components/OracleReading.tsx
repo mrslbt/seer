@@ -81,7 +81,7 @@ export function OracleReading({
       try {
         const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
         const llmResult = await callFollowUpLLM(
-          followUpQ, questionText, oracleText, category, verdict, userProfile, dailyReport
+          followUpQ, questionText, oracleText, category, userProfile, dailyReport
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -119,7 +119,7 @@ export function OracleReading({
       setFollowUpLoading(true);
       try {
         const llmResult = await callFollowUpLLM(
-          question.text, questionText, oracleText, category, verdict, userProfile, dailyReport
+          question.text, questionText, oracleText, category, userProfile, dailyReport
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);

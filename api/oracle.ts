@@ -22,7 +22,6 @@ interface BaseRequest {
 interface SeerRequest extends BaseRequest {
   type: 'seer';
   category: string;
-  verdict?: string;
   chartSummary: string;
   transitSummary: string;
   categoryScore: number;
@@ -40,7 +39,6 @@ interface BondRequest extends BaseRequest {
   chart2Summary: string;
   synastryData: string; // pre-serialized synastry
   todaysBondData?: string; // pre-serialized daily bond
-  verdict?: string;
 }
 
 interface FollowUpRequest extends BaseRequest {
@@ -48,7 +46,6 @@ interface FollowUpRequest extends BaseRequest {
   originalQuestion: string;
   originalAnswer: string;
   category: string;
-  verdict?: string;
   chartSummary: string;
   transitSummary: string;
 }
@@ -76,9 +73,10 @@ const SEER_INSTRUCTIONS = `
 You read the person's natal chart and current transits to answer their question. Every answer must be grounded in the actual chart data provided.
 
 FOR YES/NO QUESTIONS:
-- Read the chart AND the question carefully. Answer what they actually asked.
-- "Can I..." and "Is it possible..." questions deserve nuanced answers. A difficult chart doesn't mean "no" — it means "yes, but here is what stands in your way" or "not yet."
-- Open with a clear stance — yes, no, not yet, not like this, yes but not how you expect. Use your judgment based on chart AND question.
+- Read the chart data carefully. YOU decide the answer based on what you see in their planets, houses, transits, and aspects.
+- Weigh the evidence. Supportive transits, strong dignities, favorable houses → lean yes. Harsh aspects, retrogrades in key planets, difficult transits → lean no. Mixed signals → say so honestly.
+- Open with a clear stance — yes, no, not yet, not like this, yes but not how you expect. Own your answer. Be direct.
+- "Can I..." and "Is it possible..." questions deserve nuance. Hard transits don't mean "no" — they mean "yes, but here is what stands in your way" or "not yet."
 - Give ONE specific, personal insight. Not generic advice. Name the thing you see — a pattern, a tendency, a blind spot, a strength.
 - Close with practical direction — what to do, not what to feel.
 
@@ -96,7 +94,8 @@ const BOND_INSTRUCTIONS = `
 You are reading the bond between TWO people. You will receive both natal charts and their synastry (cross-chart compatibility) data.
 
 RESPONSE RULES FOR DIRECTIONAL (YES/NO) BOND QUESTIONS:
-- Honor the verdict provided. Open with a clear stance about the relationship.
+- Read the synastry data carefully. YOU decide the answer based on their compatibility, cross-aspects, and element harmony.
+- Open with a clear stance about the relationship. Own your answer.
 - Give ONE insight grounded in how their charts interact. Not a list.
 - Close with practical relationship direction.
 
@@ -167,7 +166,6 @@ function buildBondMessage(body: BondRequest): string {
 
   if (body.questionMode === 'directional') {
     parts.push(`QUESTION (yes/no): "${body.question}"`);
-    if (body.verdict) parts.push(`VERDICT: ${body.verdict}`);
   } else {
     parts.push(`QUESTION (open-ended): "${body.question}"`);
   }
@@ -193,7 +191,6 @@ function buildFollowUpMessage(body: FollowUpRequest): string {
   parts.push(`YOUR PREVIOUS ANSWER: "${body.originalAnswer}"`);
   parts.push(`THE USER ASKS: "${body.question}"`);
 
-  if (body.verdict) parts.push(`VERDICT: ${body.verdict}`);
   parts.push(`CATEGORY: ${body.category}`);
 
   parts.push('', 'NATAL CHART:', body.chartSummary);
