@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius);
@@ -25,6 +25,7 @@
   color: rgba(255, 255, 255, 0.7);
   width: 100%;
   text-align: left;
+  min-height: 56px;
 }
 
 .profile-item:hover {
@@ -81,8 +82,8 @@
 }
 
 .profile-edit {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,15 +106,15 @@
 }
 
 .profile-delete {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.35);
-  font-size: 1rem;
+  font-size: 1.125rem;
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.2s ease;
@@ -127,9 +128,9 @@
 
 /* Add Profile button */
 .profile-add-btn {
-  padding: 12px 20px;
+  padding: 16px 20px;
   font-family: var(--font);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -139,6 +140,7 @@
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 52px;
 }
 
 .profile-add-btn:hover {

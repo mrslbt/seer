@@ -31,14 +31,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding: 14px 20px;
+  padding-top: max(14px, calc(env(safe-area-inset-top, 0px) + 6px));
   z-index: 50;
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.6) 60%,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.7) 40%,
+    rgba(0, 0, 0, 0.25) 75%,
     transparent 100%
   );
 }
@@ -79,8 +80,8 @@
 }
 
 .header-settings-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,7 +226,7 @@
 }
 
 .tab-suggestion-pill {
-  padding: 8px 18px;
+  padding: 10px 20px;
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 400;
@@ -424,12 +425,12 @@
 }
 
 .close-btn {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -617,7 +618,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border);
   width: 100%;
   background: transparent;
@@ -625,6 +626,7 @@
   border-right: none;
   border-top: none;
   color: var(--text);
+  min-height: 56px;
 }
 
 .settings-row--link {
@@ -691,14 +693,14 @@
 
 .lang-btn {
   font-family: var(--font);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--text-muted);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  padding: 4px 10px;
+  border-radius: 6px;
+  padding: 8px 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -840,9 +842,9 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 16px 18px;
   font-family: var(--font-display);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-style: italic;
   text-align: left;
   color: rgba(255, 255, 255, 0.6);
@@ -930,9 +932,9 @@
 }
 
 .seer-ask-again-btn {
-  padding: 10px 28px;
+  padding: 12px 32px;
   font-family: var(--font);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -954,8 +956,8 @@
 }
 
 .seer-share-icon {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1151,7 +1153,11 @@
 @media (max-width: 480px) {
   .app-main {
     padding: 20px 16px 40px;
-    gap: 28px;
+    gap: 24px;
+  }
+
+  .app-main--scrollable {
+    padding-top: 60px;
   }
 
   .title-seer {
@@ -1160,21 +1166,44 @@
 
   .seer-core {
     max-width: 100%;
-    gap: 12px;
+    gap: 14px;
+  }
+
+  .tab-content {
+    max-width: 100%;
   }
 
   .tab-suggestion-pill {
-    font-size: 0.75rem;
-    padding: 7px 14px;
+    font-size: 0.8125rem;
+    padding: 10px 18px;
+  }
+
+  .tab-suggestions-pills {
+    gap: 8px;
   }
 
   .modal {
     max-width: 100%;
-    border-radius: 12px;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    align-self: flex-end;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
   }
 
   .modal-header {
-    padding: 16px 20px;
+    padding: 20px 24px;
+  }
+
+  .settings-row {
+    padding: 18px 24px;
+  }
+
+  .settings-row-label {
+    font-size: 0.9375rem;
   }
 
   .seer-answer-text {
@@ -1186,12 +1215,18 @@
   }
 
   .seer-follow-up-question {
-    padding: 12px 14px;
-    font-size: 0.8125rem;
+    padding: 16px 16px;
+    font-size: 0.875rem;
+  }
+
+  .seer-follow-up-question-icon {
+    font-size: 1.125rem;
+    width: 20px;
   }
 
   .seer-answer-actions {
     margin-top: 32px;
+    gap: 20px;
   }
 
   .seer-article-title {
@@ -1200,5 +1235,24 @@
 
   .seer-article-score-value {
     font-size: 1.75rem;
+  }
+
+  .summon-btn {
+    padding: 18px 64px;
+    font-size: 0.75rem;
+  }
+
+  .header-brand {
+    font-size: 1.1875rem;
+  }
+
+  .seer-acknowledgment {
+    font-size: 1rem;
+    padding: 0 8px;
+  }
+
+  .cosmic-whisper {
+    font-size: 0.875rem;
+    max-width: 300px;
   }
 }

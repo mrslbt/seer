@@ -114,11 +114,15 @@
   }
 
   .selector-glyph {
-    padding: 7px 10px;
-    min-width: 48px;
+    padding: 10px 12px;
+    min-width: 52px;
   }
 
   .glyph-icon {
-    font-size: 1rem;
+    font-size: 1.125rem;
+  }
+
+  .glyph-label {
+    font-size: 0.5625rem;
   }
 }

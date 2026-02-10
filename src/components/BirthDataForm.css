@@ -41,12 +41,13 @@
   border: none;
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  padding: 12px 0;
+  padding: 14px 0;
   font-family: var(--font);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
   border-radius: 0;
+  min-height: 48px;
 }
 
 .field-input:focus {
@@ -89,18 +90,19 @@
 .field-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   margin-top: 4px;
+  padding: 8px 0;
 }
 
 .field-toggle input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border: 1px solid var(--border-hover);
-  border-radius: 3px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   position: relative;
@@ -115,12 +117,12 @@
 .field-toggle input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
-  left: 3px;
-  top: 1px;
-  width: 5px;
-  height: 8px;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
   border: solid var(--bg);
-  border-width: 0 1.5px 1.5px 0;
+  border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
@@ -152,12 +154,15 @@
 }
 
 .suggestion {
-  padding: 12px 0;
+  padding: 14px 4px;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   border-bottom: 1px solid var(--border);
   transition: color 0.15s;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
 }
 
 .suggestion:hover {
@@ -181,15 +186,16 @@
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent-dim);
-  padding: 14px;
+  padding: 16px;
   font-family: var(--font);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 8px;
+  min-height: 52px;
 }
 
 .submit-btn:hover {

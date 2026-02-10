@@ -52,12 +52,12 @@
 }
 
 .dashboard-close {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.125rem;
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -95,12 +95,12 @@
 }
 
 .dashboard-refresh {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -450,9 +450,10 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
-  margin-bottom: 24px;
+  padding: 10px 0;
+  margin-bottom: 16px;
   transition: color 0.2s;
+  min-height: 44px;
 }
 
 .detail-back:hover {
@@ -629,7 +630,7 @@
   }
 
   .category-card {
-    padding: 12px;
+    padding: 14px;
   }
 
   .category-score {

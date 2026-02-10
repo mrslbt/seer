@@ -22,7 +22,7 @@
 /* ── Chip ────────────────────────────────────────── */
 
 .suggestion-chip {
-  padding: 8px 18px;
+  padding: 10px 20px;
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 400;
@@ -78,11 +78,11 @@
 
 @media (max-width: 480px) {
   .suggested-questions {
-    gap: 6px;
+    gap: 8px;
   }
 
   .suggestion-chip {
-    font-size: 0.75rem;
-    padding: 7px 14px;
+    font-size: 0.8125rem;
+    padding: 10px 18px;
   }
 }
