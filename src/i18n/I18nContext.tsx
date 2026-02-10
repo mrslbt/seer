@@ -1,16 +1,15 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { en, ja, vi } from './index';
+import { en, ja } from './index';
 import type { TranslationKey } from './en';
 
-export type Language = 'en' | 'ja' | 'vi';
+export type Language = 'en' | 'ja';
 
 export const LANGUAGE_LABELS: Record<Language, string> = {
   en: 'EN',
   ja: 'JA',
-  vi: 'VI',
 };
 
-const translations: Record<Language, Record<TranslationKey, string>> = { en, ja, vi };
+const translations: Record<Language, Record<TranslationKey, string>> = { en, ja };
 
 interface I18nContextType {
   lang: Language;
@@ -29,7 +28,7 @@ const STORAGE_KEY = 'seer-lang';
 function getSavedLang(): Language {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'en' || saved === 'ja' || saved === 'vi') return saved;
+    if (saved === 'en' || saved === 'ja') return saved;
   } catch {}
   return 'en';
 }

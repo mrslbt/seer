@@ -125,7 +125,7 @@ RULES:
 // ── Language instruction ──
 const LANGUAGE_NAMES: Record<string, string> = {
   ja: 'Japanese',
-  vi: 'Vietnamese',
+  // vi: 'Vietnamese', // available for future use
 };
 
 function getLanguageInstruction(lang?: string): string {
