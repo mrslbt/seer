@@ -41,7 +41,8 @@ export const vi: Record<TranslationKey, string> = {
   'form.errorCity': 'Chọn thành phố từ gợi ý',
 
   // ── Oracle ──
-  'oracle.acknowledge': 'Ta thấy bản đồ vũ trụ của {name}. Hãy hỏi đi.',
+  'oracle.acknowledge': 'Ta thấy ngươi, {name}.',
+  'oracle.acknowledgeAction': 'Hãy hỏi đi.',
   'oracle.sleeping': 'Ta ngủ cho đến khi được triệu hồi.',
   'oracle.summon': 'Triệu hồi',
   'oracle.askAgain': 'Hỏi lại',

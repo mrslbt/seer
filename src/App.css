@@ -303,17 +303,30 @@
 }
 
 
-/* Seer acknowledgment — cryptic, oracle noting your presence */
+/* Seer acknowledgment — two-line greeting */
 .seer-acknowledgment {
+  text-align: center;
+  animation: acknowledgmentAppear 1.4s ease;
+}
+
+.seer-acknowledgment-line {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-style: italic;
   color: var(--accent);
   opacity: 0.88;
   letter-spacing: 0.02em;
-  text-align: center;
   line-height: 1.4;
-  animation: acknowledgmentAppear 1.4s ease;
+}
+
+.seer-acknowledgment-action {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
 }
 
 @keyframes acknowledgmentAppear {
@@ -1282,8 +1295,15 @@
   }
 
   .seer-acknowledgment {
-    font-size: 1.125rem;
     padding: 0 8px;
+  }
+
+  .seer-acknowledgment-line {
+    font-size: 1.125rem;
+  }
+
+  .seer-acknowledgment-action {
+    font-size: 0.9375rem;
   }
 
   .cosmic-whisper {

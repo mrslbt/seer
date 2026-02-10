@@ -735,9 +735,10 @@ function App() {
             <div className="seer-core">
               {/* Seer acknowledgment — always shown when eye is open */}
               {seerPhase === 'open' && userProfile && (
-                <p className="seer-acknowledgment">
-                  {t('oracle.acknowledge', { name: userProfile.birthData.name })}
-                </p>
+                <div className="seer-acknowledgment">
+                  <p className="seer-acknowledgment-line">{t('oracle.acknowledge', { name: userProfile.birthData.name })}</p>
+                  <p className="seer-acknowledgment-action">{t('oracle.acknowledgeAction')}</p>
+                </div>
               )}
 
               {/* Contextual hint */}

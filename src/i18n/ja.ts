@@ -41,7 +41,8 @@ export const ja: Record<TranslationKey, string> = {
   'form.errorCity': '候補から都市を選択してください',
 
   // ── オラクル ──
-  'oracle.acknowledge': '{name}の星図が見える。さあ、聞きなさい。',
+  'oracle.acknowledge': '{name}、見えているよ。',
+  'oracle.acknowledgeAction': 'さあ、聞きなさい。',
   'oracle.sleeping': '呼び出されるまで眠る。',
   'oracle.summon': '召喚',
   'oracle.askAgain': 'もう一度聞く',
