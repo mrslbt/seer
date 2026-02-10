@@ -560,6 +560,112 @@ const TEMPLATES: Record<Verdict, Record<QuestionCategory, OracleTemplate[]>> = {
   },
 };
 
+// ---- Guidance openers (for open-ended / "what/how/where" questions) ----
+const GUIDANCE_OPENERS: Partial<Record<keyof PersonalDailyReport['categories'], string[]>> = {
+  love: [
+    'The heart has its own map today.',
+    'Love moves through your chart in a particular way right now.',
+    'The stars illuminate the emotional landscape.',
+  ],
+  career: [
+    'Your professional sky has a clear shape right now.',
+    'The stars outline a professional direction.',
+    'Your chart points toward something specific about work.',
+  ],
+  money: [
+    'The financial currents in your chart are readable today.',
+    'Your chart speaks clearly about resources right now.',
+    'The stars have something specific to say about your finances.',
+  ],
+  social: [
+    'Your social sky has a clear pattern.',
+    'The stars illuminate your connections right now.',
+    'Your chart shows where your people are.',
+  ],
+  health: [
+    'Your body and the stars are having a conversation.',
+    'The chart speaks clearly about vitality today.',
+    'Your physical energy has a clear shape right now.',
+  ],
+  decisions: [
+    'The stars reveal more than they hide today.',
+    'Your chart has a clear opinion on this.',
+    'The sky shows you what matters right now.',
+  ],
+  creativity: [
+    'Creative energy has a specific direction in your chart.',
+    'The stars show where inspiration lives today.',
+    'Your creative channel is clearly lit right now.',
+  ],
+  spiritual: [
+    'The inner world speaks clearly today.',
+    'Your chart illuminates the unseen.',
+    'The spiritual sky opens in a specific direction.',
+  ],
+};
+
+/**
+ * Build a guidance-style response for open-ended questions.
+ * No yes/no verdict — instead, offers insight based on transit data.
+ */
+function buildGuidanceResponse(
+  category: QuestionCategory,
+  reportCategory: keyof PersonalDailyReport['categories'],
+  report: PersonalDailyReport,
+  patterns?: ReadingPatterns | null,
+): string {
+  const cat = report.categories[reportCategory];
+  const parts: string[] = [];
+
+  // 1. Opener — category-specific, not verdict-based
+  const openerPool = GUIDANCE_OPENERS[reportCategory] ?? GUIDANCE_OPENERS.decisions!;
+  parts.push(pick(openerPool));
+
+  // 2. Transit insight — what's actually happening in their chart
+  const transitInsight = buildTransitInsight(category, reportCategory, report);
+  if (transitInsight) {
+    parts.push(transitInsight);
+  }
+
+  // 3. GoodFor/BadFor — the actual guidance meat
+  const goodFor = cat.goodFor.filter(g => g.length > 0);
+  const badFor = cat.badFor.filter(b => b.length > 0);
+
+  if (goodFor.length > 0 && badFor.length > 0) {
+    parts.push(`Today favors ${goodFor.slice(0, 2).join(' and ')}. Be careful with ${badFor.slice(0, 2).join(' and ')}.`);
+  } else if (goodFor.length > 0) {
+    parts.push(`The sky opens for ${goodFor.slice(0, 3).join(', ')}. Lean into that.`);
+  } else if (badFor.length > 0) {
+    parts.push(`Watch out for ${badFor.slice(0, 2).join(' and ')} today. The sky asks for patience there.`);
+  }
+
+  // 4. Score-based overall direction
+  if (cat.score >= 7) {
+    parts.push('The energy is strong. Trust what comes to you.');
+  } else if (cat.score <= 3) {
+    parts.push('The energy is low here. Small steps, not leaps.');
+  }
+
+  // 5. Category-specific advice from the report
+  if (cat.advice && cat.advice.length > 0) {
+    parts.push(cat.advice);
+  }
+
+  // 6. Extras (retrograde/moon)
+  const extras = buildExtras(category, report);
+  if (extras && parts.join(' ').length < 350) {
+    parts.push(extras);
+  }
+
+  // 7. Session memory
+  const sessionMemory = buildSessionMemory('NEUTRAL', category, patterns);
+  if (sessionMemory && parts.join(' ').length < 420) {
+    parts.push(sessionMemory);
+  }
+
+  return parts.join(' ');
+}
+
 // ---- Utility ----
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -579,6 +685,8 @@ function ordinal(n: number): string {
  * Generate an oracle response from a verdict and category.
  * When a daily report is available, weaves in actual transit data.
  * Falls back to static templates when report is null.
+ *
+ * questionMode: 'guidance' skips the verdict and builds an insight-based response.
  */
 export function generateOracleResponse(
   verdict: Verdict,
@@ -586,7 +694,13 @@ export function generateOracleResponse(
   report?: PersonalDailyReport | null,
   _question?: string,
   patterns?: ReadingPatterns | null,
+  questionMode?: 'directional' | 'guidance',
 ): string {
+  // --- Guidance mode: open-ended insight, no yes/no ---
+  if (questionMode === 'guidance' && report) {
+    const reportCategory = CATEGORY_MAP[category];
+    return buildGuidanceResponse(category, reportCategory, report, patterns);
+  }
   // --- Fallback path: no report, use static templates ---
   if (!report) {
     const categoryTemplates = TEMPLATES[verdict]?.[category];

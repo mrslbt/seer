@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { BirthData, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
-import { scoreDecision, classifyQuestionWithConfidence } from './lib/scoreDecision';
+import { scoreDecision, classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
 import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
 import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
@@ -43,6 +43,7 @@ function App() {
   const [oracleVerdict, setOracleVerdict] = useState<Verdict>('NEUTRAL');
   const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
+  const [oracleQuestionMode, setOracleQuestionMode] = useState<'directional' | 'guidance'>('directional');
   const [isMuted, setIsMuted] = useState(false);
   const [settingsView, setSettingsView] = useState<SettingsView>('hidden');
   const [showHistory, setShowHistory] = useState(false);
@@ -303,7 +304,9 @@ function App() {
     }
 
     const readingPatterns = analyzePatterns(userProfile?.id);
-    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns);
+    const questionMode = detectQuestionMode(submittedQuestion);
+    setOracleQuestionMode(questionMode);
+    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
     setOracleText(response);
     setOracleVerdict(verdict);
     setOracleCategory(category);
@@ -724,6 +727,7 @@ function App() {
           article={oracleArticle}
           dailyReport={dailyReport}
           questionText={submittedQuestion}
+          questionMode={oracleQuestionMode}
           onAskAgain={handleAskAgain}
           onDismiss={handleDismiss}
         />

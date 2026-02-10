@@ -67,6 +67,40 @@ const ZODIAC_GLYPHS: Record<ZodiacSign, string> = {
   Pisces: '\u2653',
 };
 
+// What each planet represents (plain English for non-astrologers)
+const PLANET_MEANING: Record<Planet, string> = {
+  sun: 'Your core identity',
+  moon: 'Your emotions and inner world',
+  mercury: 'How you think and communicate',
+  venus: 'How you love and what you value',
+  mars: 'Your drive and how you take action',
+  jupiter: 'Where you find luck and growth',
+  saturn: 'Your discipline and life lessons',
+  uranus: 'Where you break the rules',
+  neptune: 'Your dreams and intuition',
+  pluto: 'Your deepest transformation',
+  ascendant: 'How the world sees you',
+  midheaven: 'Your public image and career path',
+  northNode: "Your soul's direction",
+  chiron: 'Your deepest wound and healing gift',
+};
+
+// Sign qualities (one-line descriptor)
+const SIGN_QUALITY: Record<string, string> = {
+  Aries: 'bold, direct, action-driven',
+  Taurus: 'steady, sensual, grounded',
+  Gemini: 'curious, adaptable, expressive',
+  Cancer: 'nurturing, intuitive, protective',
+  Leo: 'confident, creative, warm',
+  Virgo: 'precise, practical, devoted',
+  Libra: 'harmonious, fair, relationship-oriented',
+  Scorpio: 'intense, transformative, deep',
+  Sagittarius: 'adventurous, philosophical, free',
+  Capricorn: 'ambitious, disciplined, strategic',
+  Aquarius: 'independent, visionary, unconventional',
+  Pisces: 'empathetic, dreamy, spiritually attuned',
+};
+
 // Display order: luminaries, personal, social, outer, points
 const PLANET_ORDER: Planet[] = [
   'sun', 'moon', 'mercury', 'venus', 'mars',
@@ -135,13 +169,18 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
               if (!pos) return null;
               return (
                 <div key={key} className="chart-point">
-                  <span className="chart-point-glyph">{PLANET_GLYPHS[key]}</span>
-                  <span className="chart-point-name">{PLANET_NAMES[key]}</span>
-                  <span className="chart-point-sign">
-                    <span className="zodiac-glyph">{ZODIAC_GLYPHS[pos.sign]}</span>
-                    {pos.sign}
-                  </span>
-                  <span className="chart-point-degree">{formatDegree(pos.degree)}</span>
+                  <div className="chart-point-top">
+                    <span className="chart-point-glyph">{PLANET_GLYPHS[key]}</span>
+                    <span className="chart-point-name">{PLANET_NAMES[key]}</span>
+                    <span className="chart-point-sign">
+                      <span className="zodiac-glyph">{ZODIAC_GLYPHS[pos.sign]}</span>
+                      {pos.sign}
+                    </span>
+                    <span className="chart-point-degree">{formatDegree(pos.degree)}</span>
+                  </div>
+                  <div className="chart-point-interp">
+                    {PLANET_MEANING[key]}: {SIGN_QUALITY[pos.sign] || pos.sign.toLowerCase()}
+                  </div>
                 </div>
               );
             })}
@@ -158,20 +197,25 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
               const house = getHouse(pos);
               return (
                 <div key={key} className="chart-planet-row">
-                  <div className="chart-planet-left">
-                    <span className="chart-planet-glyph">{PLANET_GLYPHS[key]}</span>
-                    <span className="chart-planet-name">{PLANET_NAMES[key]}</span>
+                  <div className="chart-planet-top">
+                    <div className="chart-planet-left">
+                      <span className="chart-planet-glyph">{PLANET_GLYPHS[key]}</span>
+                      <span className="chart-planet-name">{PLANET_NAMES[key]}</span>
+                    </div>
+                    <div className="chart-planet-right">
+                      <span className="chart-planet-sign">
+                        <span className="zodiac-glyph">{ZODIAC_GLYPHS[pos.sign]}</span>
+                        {pos.sign}
+                      </span>
+                      <span className="chart-planet-degree">{formatDegree(pos.degree)}</span>
+                      {pos.isRetrograde && <span className="chart-rx">Rx</span>}
+                      {house && (
+                        <span className="chart-planet-house">{ordinal(house)} house</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="chart-planet-right">
-                    <span className="chart-planet-sign">
-                      <span className="zodiac-glyph">{ZODIAC_GLYPHS[pos.sign]}</span>
-                      {pos.sign}
-                    </span>
-                    <span className="chart-planet-degree">{formatDegree(pos.degree)}</span>
-                    {pos.isRetrograde && <span className="chart-rx">Rx</span>}
-                    {house && (
-                      <span className="chart-planet-house">{ordinal(house)} house</span>
-                    )}
+                  <div className="chart-planet-interp">
+                    {PLANET_MEANING[key]}: {SIGN_QUALITY[pos.sign] || pos.sign.toLowerCase()}
                   </div>
                 </div>
               );

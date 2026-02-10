@@ -186,6 +186,32 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
           </div>
         )}
 
+        {/* Upcoming Transits — what's coming */}
+        {(() => {
+          const upcoming = report.keyTransits
+            .filter(t => t.timing?.isApplying && t.timing?.daysUntilExact != null && t.timing.daysUntilExact > 0)
+            .sort((a, b) => (a.timing?.daysUntilExact ?? 99) - (b.timing?.daysUntilExact ?? 99))
+            .slice(0, 4);
+          return upcoming.length > 0 ? (
+            <div className="dashboard-section">
+              <h3 className="section-label">Coming Up</h3>
+              {upcoming.map((t, i) => {
+                const days = t.timing!.daysUntilExact!;
+                const dayLabel = days === 1 ? 'tomorrow' : `in ${days} days`;
+                return (
+                  <div key={i} className="upcoming-row">
+                    <span className="upcoming-when">{dayLabel}</span>
+                    <span className="upcoming-text">{t.interpretation}</span>
+                    <span className={`transit-impact transit-impact--${t.impact}`}>
+                      {t.impact === 'positive' ? '↑' : t.impact === 'negative' ? '↓' : '↔'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null;
+        })()}
+
         {/* Retrogrades */}
         {report.retrogrades.length > 0 && (
           <div className="dashboard-section">

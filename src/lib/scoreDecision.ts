@@ -131,6 +131,51 @@ const DAY_RULER_BONUS: Record<string, Record<QuestionCategory, number>> = {
 };
 
 /**
+ * Question type — directional (yes/no) vs guidance (open-ended)
+ */
+export type QuestionMode = 'directional' | 'guidance';
+
+/**
+ * Detect if a question is yes/no (directional) or open-ended (guidance).
+ * Guidance questions start with what/where/how/why/tell me/describe/explain.
+ * Directional questions start with should/will/is/am/can/do/would/could.
+ */
+export function detectQuestionMode(question: string): QuestionMode {
+  const q = question.toLowerCase().trim();
+
+  // Guidance patterns — user wants insight, not yes/no
+  const guidancePatterns = [
+    /^what\b/,
+    /^where\b/,
+    /^how\b/,
+    /^why\b/,
+    /^which\b/,
+    /^tell me\b/,
+    /^describe\b/,
+    /^explain\b/,
+    /\bwhat kind\b/,
+    /\bwhat type\b/,
+    /\bwhat should i focus\b/,
+    /\bwhat energy\b/,
+    /\bwhat.*blocking\b/,
+    /\bwhat.*missing\b/,
+    /\bwhat.*holding.*back\b/,
+    /\bwhat.*need to know\b/,
+    /\bhow do i\b/,
+    /\bhow can i\b/,
+    /\bhow should i\b/,
+    /\bwhere should\b/,
+    /\bwhere would\b/,
+  ];
+
+  for (const pattern of guidancePatterns) {
+    if (pattern.test(q)) return 'guidance';
+  }
+
+  return 'directional';
+}
+
+/**
  * Action polarity - whether a question is about pushing forward or pulling back
  * This helps differentiate "should I work extra" vs "should I rest"
  */

@@ -24,6 +24,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
     initialData?.date ? formatLocalDate(initialData.date) : ''
   );
   const [timeStr, setTimeStr] = useState(initialData?.time || '12:00');
+  const [timeUnknown, setTimeUnknown] = useState(false);
   const [cityQuery, setCityQuery] = useState(
     initialData ? `${initialData.city}, ${initialData.country}` : ''
   );
@@ -154,13 +155,28 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
 
       <div className="form-field">
         <label className="field-label">Time of Birth</label>
-        <input
-          type="time"
-          className="field-input"
-          value={timeStr}
-          onChange={(e) => setTimeStr(e.target.value)}
-        />
-        <span className="field-hint">If unknown, use 12:00</span>
+        {!timeUnknown && (
+          <input
+            type="time"
+            className="field-input"
+            value={timeStr}
+            onChange={(e) => setTimeStr(e.target.value)}
+          />
+        )}
+        <label className="field-toggle">
+          <input
+            type="checkbox"
+            checked={timeUnknown}
+            onChange={(e) => {
+              setTimeUnknown(e.target.checked);
+              if (e.target.checked) setTimeStr('12:00');
+            }}
+          />
+          <span className="field-toggle-text">I don't know my birth time</span>
+        </label>
+        {timeUnknown && (
+          <span className="field-hint">Noon will be used. Rising sign and houses may be less accurate, but readings still work.</span>
+        )}
       </div>
 
       <div className="form-field">

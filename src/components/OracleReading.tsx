@@ -20,13 +20,14 @@ interface OracleReadingProps {
   article: InsightArticle | null;
   dailyReport: PersonalDailyReport | null;
   questionText: string;
+  questionMode?: 'directional' | 'guidance';
   onAskAgain: () => void;
   onDismiss: () => void;
 }
 
 export function OracleReading({
   oracleText, verdict, category, article, dailyReport,
-  questionText: _questionText, onAskAgain, onDismiss
+  questionText: _questionText, questionMode = 'directional', onAskAgain, onDismiss
 }: OracleReadingProps) {
   const color = getSeerVerdictColor(verdict);
   const [showArticle, setShowArticle] = useState(false);
@@ -230,9 +231,9 @@ export function OracleReading({
           </svg>
         </button>
 
-        {/* Verdict label */}
+        {/* Verdict label — show "Insight" for guidance mode, verdict for directional */}
         <div className="verdict-label" style={{ color }}>
-          {verdictLabels[verdict]}
+          {questionMode === 'guidance' ? 'Insight' : verdictLabels[verdict]}
         </div>
 
         {/* Oracle prose */}

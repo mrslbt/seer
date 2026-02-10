@@ -64,11 +64,20 @@ export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
   // Creativity — calling and purpose
   { text: 'Should I start something new?', category: 'creativity' },
   { text: 'Is inspiration near?', category: 'creativity' },
+  { text: 'What creative energy is available to me?', category: 'creativity' },
 
   // Spiritual — intuition and signs
   { text: 'Should I trust my gut?', category: 'spiritual' },
   { text: 'What am I not seeing?', category: 'spiritual' },
   { text: 'Is the universe sending a sign?', category: 'spiritual' },
+  { text: 'What energy should I focus on today?', category: 'spiritual' },
+
+  // Open-ended guidance questions (what/how/where)
+  { text: 'What is blocking me in love?', category: 'love' },
+  { text: 'How should I approach my career right now?', category: 'career' },
+  { text: 'What does my financial energy look like?', category: 'money' },
+  { text: 'How can I improve my health today?', category: 'health' },
+  { text: 'What do I need to know right now?', category: 'decisions' },
 ];
 
 /**

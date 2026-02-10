@@ -130,12 +130,27 @@
 
 .chart-point {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 12px;
   background: rgba(201, 168, 76, 0.04);
   border: 1px solid rgba(201, 168, 76, 0.08);
   border-radius: 8px;
+}
+
+.chart-point-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-point-interp {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.4);
+  padding-left: 38px;
 }
 
 .chart-point-glyph {
@@ -179,15 +194,30 @@
 
 .chart-planet-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
   border-radius: 6px;
   transition: background 0.2s;
 }
 
 .chart-planet-row:nth-child(odd) {
   background: rgba(255, 255, 255, 0.015);
+}
+
+.chart-planet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chart-planet-interp {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.35);
+  padding-left: 34px;
 }
 
 .chart-planet-left {
