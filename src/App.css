@@ -284,7 +284,7 @@
 /* Seer acknowledgment — cryptic, oracle noting your presence */
 .seer-acknowledgment {
   font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-size: 1.25rem;
   font-style: italic;
   color: var(--accent);
   opacity: 0.88;
@@ -1260,7 +1260,7 @@
   }
 
   .seer-acknowledgment {
-    font-size: 1rem;
+    font-size: 1.125rem;
     padding: 0 8px;
   }
 

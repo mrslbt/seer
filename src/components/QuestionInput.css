@@ -47,6 +47,7 @@
 
 .question-input::placeholder {
   color: var(--text-muted);
+  opacity: 0.55;
   font-style: italic;
   font-family: var(--font-display);
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
