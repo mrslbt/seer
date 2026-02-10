@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Verdict, QuestionCategory } from '../types/astrology';
+import type { UserProfile } from '../types/userProfile';
 import { getSeerVerdictColor } from '../lib/oracleResponse';
 import type { InsightArticle } from '../lib/insightArticle';
 import { getScoreLabel } from '../lib/insightArticle';
@@ -10,6 +11,7 @@ import {
   type FollowUpType,
   type FollowUpQuestion,
 } from '../lib/followUpResponse';
+import { callFollowUpLLM } from '../lib/llmOracle';
 import type { PersonalDailyReport } from '../lib/personalDailyReport';
 import './OracleReading.css';
 
@@ -19,6 +21,7 @@ interface OracleReadingProps {
   category: QuestionCategory;
   article: InsightArticle | null;
   dailyReport: PersonalDailyReport | null;
+  userProfile?: UserProfile;
   questionText: string;
   questionMode?: 'directional' | 'guidance';
   onAskAgain: () => void;
@@ -27,7 +30,7 @@ interface OracleReadingProps {
 
 export function OracleReading({
   oracleText, verdict, category, article, dailyReport,
-  questionText: _questionText, questionMode = 'directional', onAskAgain, onDismiss
+  userProfile, questionText, questionMode = 'directional', onAskAgain, onDismiss
 }: OracleReadingProps) {
   // Guidance mode uses neutral gold — not verdict color
   const color = questionMode === 'guidance' ? '#C9A84C' : getSeerVerdictColor(verdict);
@@ -35,6 +38,7 @@ export function OracleReading({
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
   const [followUpRound, setFollowUpRound] = useState(0);
+  const [followUpLoading, setFollowUpLoading] = useState(false);
   const [contextualQuestions, setContextualQuestions] = useState<FollowUpQuestion[]>([]);
   const [shareToast, setShareToast] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -64,20 +68,41 @@ export function OracleReading({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Handle follow-up (static buttons)
-  const handleFollowUp = useCallback((type: FollowUpType) => {
-    const response = generateFollowUpResponse(type, verdict, category, dailyReport);
-    setFollowUpText(response);
+  // Handle follow-up (static buttons) — async with LLM
+  const handleFollowUp = useCallback(async (type: FollowUpType) => {
+    // Template fallback — always computed
+    const templateResponse = generateFollowUpResponse(type, verdict, category, dailyReport);
     setFollowUpType(type);
     setFollowUpRound(prev => prev + 1);
-  }, [verdict, category, dailyReport]);
 
-  // Handle contextual follow-up question tap
-  const handleContextualQuestion = useCallback((question: FollowUpQuestion) => {
-    const response = generateContextualFollowUpResponse(
+    // Try LLM for follow-ups
+    if (userProfile && dailyReport) {
+      setFollowUpLoading(true);
+      try {
+        const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
+        const llmResult = await callFollowUpLLM(
+          followUpQ, questionText, oracleText, category, verdict, userProfile, dailyReport
+        );
+        if (llmResult.source === 'llm' && llmResult.text) {
+          setFollowUpText(llmResult.text);
+          setFollowUpLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Follow-up LLM failed, using template:', err);
+      }
+      setFollowUpLoading(false);
+    }
+
+    setFollowUpText(templateResponse);
+  }, [verdict, category, dailyReport, userProfile, questionText, oracleText]);
+
+  // Handle contextual follow-up question tap — async with LLM
+  const handleContextualQuestion = useCallback(async (question: FollowUpQuestion) => {
+    // Template fallback — always computed
+    const templateResponse = generateContextualFollowUpResponse(
       question.text, verdict, category, dailyReport
     );
-    setFollowUpText(response);
     setFollowUpType('contextual');
     setFollowUpRound(prev => prev + 1);
 
@@ -88,7 +113,27 @@ export function OracleReading({
     } else {
       setContextualQuestions([]);
     }
-  }, [verdict, category, dailyReport, followUpRound]);
+
+    // Try LLM for contextual follow-ups
+    if (userProfile && dailyReport) {
+      setFollowUpLoading(true);
+      try {
+        const llmResult = await callFollowUpLLM(
+          question.text, questionText, oracleText, category, verdict, userProfile, dailyReport
+        );
+        if (llmResult.source === 'llm' && llmResult.text) {
+          setFollowUpText(llmResult.text);
+          setFollowUpLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Contextual follow-up LLM failed, using template:', err);
+      }
+      setFollowUpLoading(false);
+    }
+
+    setFollowUpText(templateResponse);
+  }, [verdict, category, dailyReport, followUpRound, userProfile, questionText, oracleText]);
 
   // Handle share — generate canvas image
   const handleShare = useCallback(async () => {
@@ -252,12 +297,16 @@ export function OracleReading({
         )}
 
         {/* Follow-up response area */}
-        {followUpText && (
+        {(followUpText || followUpLoading) && (
           <div className="follow-up-response" style={{ color }}>
             <div className="follow-up-label">
               {followUpType === 'when_change' ? 'Timing' : 'Deeper Insight'}
             </div>
-            <p className="follow-up-text">{followUpText}</p>
+            {followUpLoading ? (
+              <p className="follow-up-text follow-up-text--loading">The oracle peers deeper...</p>
+            ) : (
+              <p className="follow-up-text">{followUpText}</p>
+            )}
           </div>
         )}
 

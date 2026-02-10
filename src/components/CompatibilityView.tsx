@@ -20,6 +20,9 @@ import { ZODIAC_SYMBOLS } from '../lib/astroEngine';
 import { playClick, playReveal } from '../lib/sounds';
 import { SeerEye } from './SeerEye';
 import { validateQuestionInput } from './QuestionInput';
+import { detectQuestionMode } from '../lib/scoreDecision';
+import { callBondLLM } from '../lib/llmOracle';
+import type { LLMOracleResult } from '../lib/llmOracle';
 import './CompatibilityView.css';
 
 // ============================================
@@ -45,13 +48,21 @@ type BondPhase =
 // ============================================
 
 const RELATIONSHIP_QUESTIONS = [
+  // Open-ended (guidance)
+  'What brings us together?',
+  'What places would we enjoy?',
+  'What might we fight about?',
+  'What is our biggest challenge?',
+  'What kind of dates suit us?',
+  'What makes this bond unique?',
+  'How do we balance each other?',
+  // Directional (yes/no)
   'Are we truly compatible?',
   'Is there real chemistry between us?',
   'Will this last?',
   'Can I trust them?',
   'Is now the right time?',
   'Are they serious about me?',
-  'Will we fight a lot?',
 ];
 
 function getRandomQuestions(count: number): string[] {
@@ -73,8 +84,10 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [suggestions] = useState(() => getRandomQuestions(4));
   const [todaysBond, setTodaysBond] = useState<TodaysBondData | null>(null); // null until computed
+  const [bondQuestionMode, setBondQuestionMode] = useState<'directional' | 'guidance'>('directional');
   const inputRef = useRef<HTMLInputElement>(null);
   const readingRef = useRef<HTMLDivElement>(null);
+  const llmPromiseRef = useRef<Promise<LLMOracleResult> | null>(null);
 
   // Others = all profiles minus active
   const others = allProfiles.filter(p => p.id !== activeProfile.id);
@@ -129,11 +142,47 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
   }, [partner, activeProfile]);
 
   // ---- Eye finished gazing → generate answer ----
-  const handleGazeComplete = useCallback(() => {
+  const handleGazeComplete = useCallback(async () => {
     if (!partner || !report) return;
     playReveal();
-    const a = answerRelationshipQuestion(question, activeProfile, partner, report);
-    setAnswer(a);
+
+    const trimmed = question.trim();
+    const qMode = detectQuestionMode(trimmed);
+    setBondQuestionMode(qMode);
+
+    // Template fallback — always computed
+    const templateAnswer = answerRelationshipQuestion(trimmed, activeProfile, partner, report);
+
+    // Try LLM first
+    if (llmPromiseRef.current) {
+      try {
+        const llmResult = await llmPromiseRef.current;
+        llmPromiseRef.current = null;
+
+        if (llmResult.source === 'llm' && llmResult.text) {
+          // LLM succeeded — use its text, but keep template verdict for directional
+          if (qMode === 'guidance') {
+            setAnswer({
+              verdict: 'uncertain', // not shown for guidance
+              response: llmResult.text,
+            });
+          } else {
+            setAnswer({
+              verdict: templateAnswer.verdict,
+              response: llmResult.text,
+            });
+          }
+          setPhase('answered');
+          return;
+        }
+      } catch (err) {
+        console.warn('Bond LLM failed, using template:', err);
+        llmPromiseRef.current = null;
+      }
+    }
+
+    // Fallback to template
+    setAnswer(templateAnswer);
     setPhase('answered');
   }, [partner, report, question, activeProfile]);
 
@@ -172,8 +221,27 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
 
     setQuestionError(null);
     playClick();
+
+    // Fire LLM call NOW — it runs during the gazing animation (~3s)
+    const trimmed = question.trim();
+    const qMode = detectQuestionMode(trimmed);
+
+    if (partner && report) {
+      // For directional questions, compute verdict from template system to pass to LLM
+      let verdict: string | undefined;
+      if (qMode === 'directional') {
+        const templateAnswer = answerRelationshipQuestion(trimmed, activeProfile, partner, report);
+        verdict = templateAnswer.verdict;
+      }
+      llmPromiseRef.current = callBondLLM(
+        trimmed, qMode, activeProfile, partner, report, todaysBond, verdict
+      );
+    } else {
+      llmPromiseRef.current = null;
+    }
+
     setPhase('gazing');
-  }, [phase, question]);
+  }, [phase, question, partner, report, activeProfile, todaysBond]);
 
   // ---- Select suggested question ----
   const handleSuggestedQuestion = useCallback((q: string) => {
@@ -184,8 +252,26 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     if (!validation.valid) return;
 
     playClick();
+
+    // Fire LLM call NOW — same pattern as handleSubmitQuestion
+    const trimmed = q.trim();
+    const qMode = detectQuestionMode(trimmed);
+
+    if (partner && report) {
+      let verdict: string | undefined;
+      if (qMode === 'directional') {
+        const templateAnswer = answerRelationshipQuestion(trimmed, activeProfile, partner, report);
+        verdict = templateAnswer.verdict;
+      }
+      llmPromiseRef.current = callBondLLM(
+        trimmed, qMode, activeProfile, partner, report, todaysBond, verdict
+      );
+    } else {
+      llmPromiseRef.current = null;
+    }
+
     setPhase('gazing');
-  }, [phase]);
+  }, [phase, partner, report, activeProfile, todaysBond]);
 
   // ---- Input handlers ----
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -446,15 +532,20 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
       )}
 
       {/* ---- Phase: Answer shown (below eye) ---- */}
-      {phase === 'answered' && answer && (
+      {phase === 'answered' && answer && (() => {
+        const isGuidance = bondQuestionMode === 'guidance';
+        const answerColor = isGuidance ? '#C9A84C' : getCompatibilityVerdictColor(answer.verdict);
+        return (
         <div className="compat-answer-container">
-          {/* Verdict */}
-          <div className="compat-answer-verdict" style={{ color: getCompatibilityVerdictColor(answer.verdict) }}>
-            {getCompatibilityVerdictText(answer.verdict)}
-          </div>
+          {/* Verdict — skip for guidance (open-ended) questions */}
+          {!isGuidance && (
+            <div className="compat-answer-verdict" style={{ color: answerColor }}>
+              {getCompatibilityVerdictText(answer.verdict)}
+            </div>
+          )}
 
           {/* Response */}
-          <div className="compat-answer-text" style={{ color: getCompatibilityVerdictColor(answer.verdict) }}>
+          <div className="compat-answer-text" style={{ color: answerColor }}>
             <span className="compat-answer-quote">{'\u201C'}</span>
             {answer.response}
             <span className="compat-answer-quote">{'\u201D'}</span>
@@ -478,7 +569,8 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
             </button>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

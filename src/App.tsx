@@ -26,7 +26,6 @@ import { ProfileManager } from './components/ProfileManager';
 import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
 import { CompatibilityView } from './components/CompatibilityView';
 import { SeerIntro } from './components/SeerIntro';
-import { FirstGlimpse } from './components/FirstGlimpse';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
 
 import './App.css';
@@ -53,10 +52,8 @@ function App() {
 
   // Onboarding state
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('seer_intro_seen'));
-  const [showFirstGlimpse, setShowFirstGlimpse] = useState(false);
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevHadBirthData = useRef(false);
   const llmPromiseRef = useRef<Promise<LLMOracleResult> | null>(null);
 
   const {
@@ -92,24 +89,10 @@ function App() {
   // Auto-refresh dashboard data every 30 minutes while Cosmos tab is active
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
 
-  // Trigger FirstGlimpse when user submits birth data for the first time
-  useEffect(() => {
-    if (hasBirthData && !prevHadBirthData.current && !localStorage.getItem('seer_first_glimpse_seen')) {
-      setShowFirstGlimpse(true);
-    }
-    prevHadBirthData.current = hasBirthData;
-  }, [hasBirthData]);
-
   // Handle intro completion
   const handleIntroComplete = useCallback(() => {
     localStorage.setItem('seer_intro_seen', '1');
     setShowIntro(false);
-  }, []);
-
-  // Handle first glimpse completion
-  const handleFirstGlimpseEnter = useCallback(() => {
-    localStorage.setItem('seer_first_glimpse_seen', '1');
-    setShowFirstGlimpse(false);
   }, []);
 
   // Show contextual hint for first tab visits
@@ -760,16 +743,6 @@ function App() {
         <ReadingHistory onClose={() => setShowHistory(false)} profileId={userProfile?.id} />
       )}
 
-      {/* First Glimpse overlay — personality reveal after first profile */}
-      {showFirstGlimpse && userProfile && (
-        <FirstGlimpse
-          sunSign={userProfile.natalChart.sun.sign}
-          moonSign={userProfile.natalChart.moon.sign}
-          risingSign={userProfile.natalChart.ascendant?.sign}
-          onEnter={handleFirstGlimpseEnter}
-        />
-      )}
-
       {/* Oracle reading overlay */}
       {appState === 'revealing' && oracleText && (
         <OracleReading
@@ -778,6 +751,7 @@ function App() {
           category={oracleCategory}
           article={oracleArticle}
           dailyReport={dailyReport}
+          userProfile={userProfile ?? undefined}
           questionText={submittedQuestion}
           questionMode={oracleQuestionMode}
           onAskAgain={handleAskAgain}

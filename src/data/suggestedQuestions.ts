@@ -78,6 +78,18 @@ export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
   { text: 'What does my financial energy look like?', category: 'money' },
   { text: 'How can I improve my health today?', category: 'health' },
   { text: 'What do I need to know right now?', category: 'decisions' },
+
+  // Personality & self-discovery — what makes the LLM shine
+  { text: 'What is my charm?', category: 'love' },
+  { text: 'What are my attractive points?', category: 'love' },
+  { text: 'What job should I get?', category: 'career' },
+  { text: 'What is my spiritual gift?', category: 'spiritual' },
+  { text: 'What kind of places would I feel at home?', category: 'decisions' },
+  { text: 'What is my hidden strength?', category: 'decisions' },
+  { text: 'What kind of people am I drawn to?', category: 'social' },
+  { text: 'Where does my creativity come from?', category: 'creativity' },
+  { text: 'What should I focus on this week?', category: 'decisions' },
+  { text: 'What am I naturally gifted at?', category: 'career' },
 ];
 
 /**

@@ -163,6 +163,16 @@
   opacity: 0.85;
 }
 
+.follow-up-text--loading {
+  animation: followUpPulse 1.5s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+@keyframes followUpPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
 /* ── Follow-up questions (vertical list) ───────── */
 .oracle-follow-ups {
   display: flex;
