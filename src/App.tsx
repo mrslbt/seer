@@ -4,9 +4,16 @@ import { generateAstroContext } from './lib/astroEngine';
 import { classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
 import { playClick, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
-import { callLLMOracle, type LLMOracleResult } from './lib/llmOracle';
-import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
+import { callLLMOracle, callFollowUpLLM, type LLMOracleResult } from './lib/llmOracle';
+import { generateInsightArticle, generateFallbackArticle, getScoreLabel } from './lib/insightArticle';
 import type { InsightArticle } from './lib/insightArticle';
+import {
+  generateFollowUpResponse,
+  generateFollowUpQuestions,
+  generateContextualFollowUpResponse,
+  type FollowUpType,
+  type FollowUpQuestion,
+} from './lib/followUpResponse';
 
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
 import { getDailyWhisper } from './lib/cosmicWhisper';
@@ -16,7 +23,6 @@ import { BirthDataForm } from './components/BirthDataForm';
 import { getCity } from './lib/cities';
 import { QuestionInput, validateQuestionInput } from './components/QuestionInput';
 import { SeerEye } from './components/SeerEye';
-import { OracleReading } from './components/OracleReading';
 import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { CosmicDashboard } from './components/CosmicDashboard';
 import { ReadingHistory } from './components/ReadingHistory';
@@ -42,7 +48,20 @@ function App() {
   const [oracleVerdict, setOracleVerdict] = useState<Verdict>('NEUTRAL');
   const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
-  const [oracleQuestionMode, setOracleQuestionMode] = useState<'directional' | 'guidance'>('directional');
+  const [, setOracleQuestionMode] = useState<'directional' | 'guidance'>('directional');
+
+  // Follow-up state (inline, like Bonds)
+  const [followUpText, setFollowUpText] = useState<string | null>(null);
+  const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);
+  const [followUpRound, setFollowUpRound] = useState(0);
+  const [followUpLoading, setFollowUpLoading] = useState(false);
+  const [showFollowUps, setShowFollowUps] = useState(false);
+  const [contextualQuestions, setContextualQuestions] = useState<FollowUpQuestion[]>([]);
+  const [showArticle, setShowArticle] = useState(false);
+  const answerRef = useRef<HTMLDivElement>(null);
+  const shareCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [shareToast, setShareToast] = useState(false);
+
   const [isMuted, setIsMuted] = useState(false);
   const [settingsView, setSettingsView] = useState<SettingsView>('hidden');
   const [showHistory, setShowHistory] = useState(false);
@@ -323,6 +342,18 @@ function App() {
     setOracleVerdict(verdict);
     setOracleCategory(category);
 
+    // Reset follow-up state for new reading
+    setFollowUpText(null);
+    setFollowUpType(null);
+    setFollowUpRound(0);
+    setFollowUpLoading(false);
+    setShowFollowUps(false);
+    setShowArticle(false);
+
+    // Generate contextual follow-up questions
+    const questions = generateFollowUpQuestions(verdict, category, dailyReport);
+    setContextualQuestions(questions);
+
     if (dailyReport) {
       setOracleArticle(generateInsightArticle(category, dailyReport));
     } else if (astroContext) {
@@ -342,6 +373,11 @@ function App() {
     if (usedLLM) {
       console.log('[Seer] LLM response used');
     }
+
+    // Scroll answer into view after render
+    setTimeout(() => {
+      answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
   }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
   // Header brand click — return to oracle tab
@@ -355,6 +391,13 @@ function App() {
       setSubmittedQuestion('');
       setQuestionText('');
       setSelectedCategory(null);
+      setFollowUpText(null);
+      setFollowUpType(null);
+      setFollowUpRound(0);
+      setFollowUpLoading(false);
+      setShowFollowUps(false);
+      setShowArticle(false);
+      setContextualQuestions([]);
     }
   }, [appState]);
 
@@ -366,6 +409,13 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
+    setFollowUpText(null);
+    setFollowUpType(null);
+    setFollowUpRound(0);
+    setFollowUpLoading(false);
+    setShowFollowUps(false);
+    setShowArticle(false);
+    setContextualQuestions([]);
   }, []);
 
   // Ask again
@@ -376,6 +426,13 @@ function App() {
     setSubmittedQuestion('');
     setQuestionText('');
     setSelectedCategory(null);
+    setFollowUpText(null);
+    setFollowUpType(null);
+    setFollowUpRound(0);
+    setFollowUpLoading(false);
+    setShowFollowUps(false);
+    setShowArticle(false);
+    setContextualQuestions([]);
     setAppState('awaiting_question');
   }, []);
 
@@ -387,8 +444,156 @@ function App() {
     setSubmittedQuestion(question);
     const { category } = classifyQuestionWithConfidence(question);
     setSelectedCategory(category);
+
+    // Fire LLM call NOW — same as handleSubmitQuestion
+    if (userProfile && dailyReport) {
+      const questionMode = detectQuestionMode(question);
+      llmPromiseRef.current = callLLMOracle(
+        question, questionMode, category, 'NEUTRAL', userProfile, dailyReport
+      );
+    } else {
+      llmPromiseRef.current = null;
+    }
+
     setAppState('gazing');
-  }, []);
+  }, [userProfile, dailyReport]);
+
+  // Handle follow-up (static buttons) — async with LLM
+  const handleFollowUp = useCallback(async (type: FollowUpType) => {
+    const templateResponse = generateFollowUpResponse(type, oracleVerdict, oracleCategory, dailyReport);
+    setFollowUpType(type);
+    setFollowUpRound(prev => prev + 1);
+
+    if (userProfile && dailyReport) {
+      setFollowUpLoading(true);
+      try {
+        const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
+        const llmResult = await callFollowUpLLM(
+          followUpQ, submittedQuestion, oracleText, oracleCategory, oracleVerdict, userProfile, dailyReport
+        );
+        if (llmResult.source === 'llm' && llmResult.text) {
+          setFollowUpText(llmResult.text);
+          setFollowUpLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Follow-up LLM failed, using template:', err);
+      }
+      setFollowUpLoading(false);
+    }
+
+    setFollowUpText(templateResponse);
+  }, [oracleVerdict, oracleCategory, dailyReport, userProfile, submittedQuestion, oracleText]);
+
+  // Handle contextual follow-up question tap — async with LLM
+  const handleContextualQuestion = useCallback(async (question: FollowUpQuestion) => {
+    const templateResponse = generateContextualFollowUpResponse(
+      question.text, oracleVerdict, oracleCategory, dailyReport
+    );
+    setFollowUpType('contextual');
+    setFollowUpRound(prev => prev + 1);
+
+    if (followUpRound < 1) {
+      const nextQuestions = generateFollowUpQuestions(oracleVerdict, oracleCategory, dailyReport)
+        .filter(q => q.text !== question.text);
+      setContextualQuestions(nextQuestions.slice(0, 2));
+    } else {
+      setContextualQuestions([]);
+    }
+
+    if (userProfile && dailyReport) {
+      setFollowUpLoading(true);
+      try {
+        const llmResult = await callFollowUpLLM(
+          question.text, submittedQuestion, oracleText, oracleCategory, oracleVerdict, userProfile, dailyReport
+        );
+        if (llmResult.source === 'llm' && llmResult.text) {
+          setFollowUpText(llmResult.text);
+          setFollowUpLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Contextual follow-up LLM failed, using template:', err);
+      }
+      setFollowUpLoading(false);
+    }
+
+    setFollowUpText(templateResponse);
+  }, [oracleVerdict, oracleCategory, dailyReport, followUpRound, userProfile, submittedQuestion, oracleText]);
+
+  // Handle share — generate canvas image
+  const handleShare = useCallback(async () => {
+    const canvas = shareCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = 600;
+    const h = 400;
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, w, h);
+
+    const grad = ctx.createRadialGradient(w / 2, h / 2 - 20, 0, w / 2, h / 2, 250);
+    grad.addColorStop(0, 'rgba(201, 168, 76, 0.06)');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(201, 168, 76, 0.4)';
+    ctx.font = '500 10px Inter, system-ui, sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('THE SEER', w / 2, 40);
+
+    ctx.fillStyle = '#C9A84C';
+    ctx.font = 'italic 22px "Instrument Serif", Georgia, serif';
+    const words = oracleText.split(' ');
+    const lines: string[] = [];
+    let currentLine = '\u201C';
+    for (const word of words) {
+      const test = currentLine + word + ' ';
+      if (ctx.measureText(test).width > w - 100) {
+        lines.push(currentLine);
+        currentLine = word + ' ';
+      } else {
+        currentLine = test;
+      }
+    }
+    currentLine = currentLine.trim() + '\u201D';
+    lines.push(currentLine);
+
+    const lineHeight = 34;
+    const startY = h / 2 - (lines.length * lineHeight) / 2 + 20;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], w / 2, startY + i * lineHeight);
+    }
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.font = '9px Inter, system-ui, sans-serif';
+    ctx.fillText('hiseer.vercel.app', w / 2, h - 24);
+
+    try {
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png')
+      );
+      if (blob && navigator.share) {
+        const file = new File([blob], 'seer-reading.png', { type: 'image/png' });
+        await navigator.share({ files: [file] });
+      } else if (blob) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        setShareToast(true);
+        setTimeout(() => setShareToast(false), 2000);
+      }
+    } catch {
+      // User cancelled share or clipboard failed
+    }
+  }, [oracleText]);
 
   // Clear error when typing
   const handleQuestionChange = useCallback((value: string) => {
@@ -421,6 +626,13 @@ function App() {
       setSubmittedQuestion('');
       setQuestionText('');
       setSelectedCategory(null);
+      setFollowUpText(null);
+      setFollowUpType(null);
+      setFollowUpRound(0);
+      setFollowUpLoading(false);
+      setShowFollowUps(false);
+      setShowArticle(false);
+      setContextualQuestions([]);
     }
   }, [switchProfile, appState]);
 
@@ -466,7 +678,7 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className={`app-main ${hasBirthData && (activeTab === 'cosmos' || activeTab === 'chart' || activeTab === 'bonds') ? 'app-main--scrollable' : ''}`}>
+      <main className={`app-main ${hasBirthData && (activeTab === 'cosmos' || activeTab === 'chart' || activeTab === 'bonds' || appState === 'revealing') ? 'app-main--scrollable' : ''}`}>
         {/* First visit - intro screens then birth form */}
         {!hasBirthData && !cosmosLoading && showIntro && (
           <SeerIntro onComplete={handleIntroComplete} />
@@ -495,7 +707,7 @@ function App() {
 
         {/* === ORACLE TAB === */}
         {hasBirthData && activeTab === 'oracle' && (
-          <div className={`oracle-card${appState === 'summoning' || appState === 'gazing' || appState === 'revealing' ? ' oracle-card--processing' : ''}`}>
+          <div className={`oracle-card${appState === 'summoning' || appState === 'gazing' ? ' oracle-card--processing' : ''}`}>
 
             {/* Profile indicator — shown when multiple profiles exist */}
             {appState === 'idle' && allProfiles.length > 1 && userProfile && (
@@ -526,7 +738,7 @@ function App() {
 
             {/* Submitted question while gazing */}
             {appState === 'gazing' && (
-              <p className="current-question">"{submittedQuestion}"</p>
+              <p className="current-question">{'\u201C'}{submittedQuestion}{'\u201D'}</p>
             )}
 
             {/* Summon button */}
@@ -550,8 +762,144 @@ function App() {
               </div>
             )}
 
+            {/* ── Inline Answer (like Bonds) — below eye ── */}
+            {appState === 'revealing' && oracleText && !showArticle && (
+              <div className="seer-answer-container" ref={answerRef}>
+                {/* Oracle prose — the main reading */}
+                <div className="seer-answer-text">
+                  <span className="seer-answer-quote">{'\u201C'}</span>
+                  {oracleText}
+                  <span className="seer-answer-quote">{'\u201D'}</span>
+                </div>
+
+                {/* Follow-up response area */}
+                {(followUpText || followUpLoading) && (
+                  <div className="seer-follow-up-response">
+                    <div className="seer-follow-up-label">
+                      {followUpType === 'when_change' ? 'Timing' : 'Deeper Insight'}
+                    </div>
+                    {followUpLoading ? (
+                      <p className="seer-follow-up-text seer-follow-up-text--loading">The oracle peers deeper...</p>
+                    ) : (
+                      <p className="seer-follow-up-text">{followUpText}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* "Learn more" toggle */}
+                {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && !showFollowUps && (
+                  <button
+                    className="seer-learn-more"
+                    onClick={() => setShowFollowUps(true)}
+                  >
+                    Learn more
+                  </button>
+                )}
+
+                {/* Follow-up questions (hidden until toggled) */}
+                {followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change') && showFollowUps && (
+                  <div className="seer-follow-ups">
+                    {/* Article link */}
+                    {oracleArticle && !followUpText && (
+                      <button
+                        className="seer-follow-up-question"
+                        onClick={() => setShowArticle(true)}
+                      >
+                        <span className="seer-follow-up-question-icon">{'\u203A'}</span>
+                        <span className="seer-follow-up-question-text">Why does the oracle say this?</span>
+                      </button>
+                    )}
+
+                    {/* Contextual transit-aware questions */}
+                    {contextualQuestions.map((q, i) => (
+                      <button
+                        key={i}
+                        className="seer-follow-up-question"
+                        onClick={() => handleContextualQuestion(q)}
+                      >
+                        <span className="seer-follow-up-question-icon">{'\u203A'}</span>
+                        <span className="seer-follow-up-question-text">{q.text}</span>
+                      </button>
+                    ))}
+
+                    {/* "When Will This Change?" */}
+                    {followUpType !== 'when_change' && (
+                      <button
+                        className="seer-follow-up-question seer-follow-up-question--timing"
+                        onClick={() => handleFollowUp('when_change')}
+                      >
+                        <span className="seer-follow-up-question-icon">{'\u29D7'}</span>
+                        <span className="seer-follow-up-question-text">When will this change?</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Follow-ups exhausted */}
+                {!(followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change')) && followUpRound > 0 && (
+                  <p className="seer-follow-up-exhausted">The oracle has spoken. Ask again for a new reading.</p>
+                )}
+
+                {/* Bottom actions: Ask Again + Share */}
+                <div className="seer-answer-actions">
+                  <button className="seer-ask-again-btn" onClick={handleAskAgain}>
+                    Ask Again
+                  </button>
+
+                  <button
+                    className="seer-share-icon"
+                    onClick={handleShare}
+                    aria-label="Share reading"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 10V2M8 2L5 5M8 2L11 5" />
+                      <path d="M3 9V13H13V9" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Share toast */}
+                {shareToast && (
+                  <div className="seer-share-toast">Copied to clipboard</div>
+                )}
+
+                {/* Hidden canvas for share card */}
+                <canvas ref={shareCanvasRef} style={{ display: 'none' }} />
+              </div>
+            )}
+
+            {/* ── Article view (inline, replaces answer) ── */}
+            {appState === 'revealing' && showArticle && oracleArticle && (
+              <div className="seer-article-container" ref={answerRef}>
+                <div className="seer-article-header">
+                  <h2 className="seer-article-title" style={{ color: '#C9A84C' }}>{oracleArticle.title}</h2>
+                  <div className="seer-article-score">
+                    <span className="seer-article-score-value" style={{ color: '#C9A84C' }}>{oracleArticle.score}</span>
+                    <span className="seer-article-score-max">/10</span>
+                    <span className="seer-article-score-label">{getScoreLabel(oracleArticle.score)}</span>
+                  </div>
+                </div>
+                <div className="seer-article-body">
+                  {oracleArticle.sections.map((section, i) => (
+                    <div key={i} className="seer-article-section">
+                      <h3 className="seer-article-section-heading">{section.heading}</h3>
+                      <p className="seer-article-section-body">{section.body}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="seer-answer-actions">
+                  <button className="seer-ask-again-btn" onClick={() => setShowArticle(false)}>
+                    Back
+                  </button>
+                  <button className="seer-ask-again-btn" onClick={handleDismiss}>
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Contextual hint */}
-            {activeHint && activeTab === 'oracle' && (
+            {activeHint && activeTab === 'oracle' && appState !== 'revealing' && (
               <p className="contextual-hint">{activeHint}</p>
             )}
 
@@ -634,8 +982,8 @@ function App() {
         )}
       </main>
 
-      {/* Bottom Tab Bar — only shown after onboarding, hidden during reveal */}
-      {hasBirthData && appState !== 'revealing' && (
+      {/* Bottom Tab Bar — always shown after onboarding */}
+      {hasBirthData && (
         <BottomTabBar
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -720,21 +1068,7 @@ function App() {
         <ReadingHistory onClose={() => setShowHistory(false)} profileId={userProfile?.id} />
       )}
 
-      {/* Oracle reading overlay */}
-      {appState === 'revealing' && oracleText && (
-        <OracleReading
-          oracleText={oracleText}
-          verdict={oracleVerdict}
-          category={oracleCategory}
-          article={oracleArticle}
-          dailyReport={dailyReport}
-          userProfile={userProfile ?? undefined}
-          questionText={submittedQuestion}
-          questionMode={oracleQuestionMode}
-          onAskAgain={handleAskAgain}
-          onDismiss={handleDismiss}
-        />
-      )}
+      {/* (OracleReading is now rendered inline inside oracle-card) */}
     </div>
   );
 }

@@ -620,15 +620,11 @@ export function SeerEye({ state, onOpenComplete, onGazeComplete }: SeerEyeProps)
         </svg>
       </div>
 
-      {internalState === 'gazing' && (
+      {internalState === 'gazing' && !canSkipGaze && (
         <div className="gaze-status">
-          {canSkipGaze ? (
-            <span className="gaze-skip-hint">tap to reveal</span>
-          ) : (
-            <span className="gaze-dots">
-              <span>.</span><span>.</span><span>.</span>
-            </span>
-          )}
+          <span className="gaze-dots">
+            <span>.</span><span>.</span><span>.</span>
+          </span>
         </div>
       )}
     </div>
