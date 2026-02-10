@@ -29,7 +29,8 @@ export function OracleReading({
   oracleText, verdict, category, article, dailyReport,
   questionText: _questionText, questionMode = 'directional', onAskAgain, onDismiss
 }: OracleReadingProps) {
-  const color = getSeerVerdictColor(verdict);
+  // Guidance mode uses neutral gold — not verdict color
+  const color = questionMode === 'guidance' ? '#C9A84C' : getSeerVerdictColor(verdict);
   const [showArticle, setShowArticle] = useState(false);
   const [followUpText, setFollowUpText] = useState<string | null>(null);
   const [followUpType, setFollowUpType] = useState<FollowUpType | null>(null);

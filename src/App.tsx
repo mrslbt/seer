@@ -290,10 +290,19 @@ function App() {
 
     setAppState('revealing');
 
+    const questionMode = detectQuestionMode(submittedQuestion);
+    setOracleQuestionMode(questionMode);
+
     let verdict: Verdict;
     let category: QuestionCategory;
 
-    if (dailyReport && userProfile) {
+    if (questionMode === 'guidance') {
+      // Guidance mode: skip the yes/no verdict pipeline entirely.
+      // We only need the category to know which life area to read from.
+      const classified = classifyQuestionWithConfidence(submittedQuestion);
+      category = selectedCategory ?? classified.category;
+      verdict = 'NEUTRAL'; // placeholder — not shown in UI
+    } else if (dailyReport && userProfile) {
       const personalScoring = scorePersonalDecision(submittedQuestion, dailyReport, selectedCategory ?? undefined);
       verdict = personalScoring.verdict;
       category = personalScoring.category;
@@ -304,8 +313,6 @@ function App() {
     }
 
     const readingPatterns = analyzePatterns(userProfile?.id);
-    const questionMode = detectQuestionMode(submittedQuestion);
-    setOracleQuestionMode(questionMode);
     const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
     setOracleText(response);
     setOracleVerdict(verdict);
@@ -327,9 +334,12 @@ function App() {
       profileId: userProfile?.id,
     });
 
-    setTimeout(() => {
-      playVerdictSound(verdict);
-    }, 300);
+    // No verdict sound for guidance mode — it's not a yes/no
+    if (questionMode !== 'guidance') {
+      setTimeout(() => {
+        playVerdictSound(verdict);
+      }, 300);
+    }
   }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
   // Header brand click — return to oracle tab

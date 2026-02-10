@@ -560,110 +560,225 @@ const TEMPLATES: Record<Verdict, Record<QuestionCategory, OracleTemplate[]>> = {
   },
 };
 
-// ---- Guidance openers (for open-ended / "what/how/where" questions) ----
-const GUIDANCE_OPENERS: Partial<Record<keyof PersonalDailyReport['categories'], string[]>> = {
-  love: [
-    'The heart has its own map today.',
-    'Love moves through your chart in a particular way right now.',
-    'The stars illuminate the emotional landscape.',
-  ],
-  career: [
-    'Your professional sky has a clear shape right now.',
-    'The stars outline a professional direction.',
-    'Your chart points toward something specific about work.',
-  ],
-  money: [
-    'The financial currents in your chart are readable today.',
-    'Your chart speaks clearly about resources right now.',
-    'The stars have something specific to say about your finances.',
-  ],
-  social: [
-    'Your social sky has a clear pattern.',
-    'The stars illuminate your connections right now.',
-    'Your chart shows where your people are.',
-  ],
-  health: [
-    'Your body and the stars are having a conversation.',
-    'The chart speaks clearly about vitality today.',
-    'Your physical energy has a clear shape right now.',
-  ],
-  decisions: [
-    'The stars reveal more than they hide today.',
-    'Your chart has a clear opinion on this.',
-    'The sky shows you what matters right now.',
-  ],
-  creativity: [
-    'Creative energy has a specific direction in your chart.',
-    'The stars show where inspiration lives today.',
-    'Your creative channel is clearly lit right now.',
-  ],
-  spiritual: [
-    'The inner world speaks clearly today.',
-    'Your chart illuminates the unseen.',
-    'The spiritual sky opens in a specific direction.',
-  ],
+// ---- Guidance: house-based answer seeds ----
+// When a transit is in a specific house, these give concrete, tangible answers
+// instead of abstract "energy" talk.
+const HOUSE_GUIDANCE: Record<number, {
+  places: string;
+  focus: string;
+  blocking: string;
+  general: string;
+}> = {
+  1: {
+    places: 'Places where you can be fully yourself. No performance, no mask. Somewhere you walk in and your body relaxes.',
+    focus: 'Your own presence. How you carry yourself. The version of you that shows up when no one is watching.',
+    blocking: 'You are getting in your own way. The obstacle wears your face.',
+    general: 'This is about identity. Who you are becoming, not who you were.',
+  },
+  2: {
+    places: 'Somewhere that feels like yours. Owned, earned, built by your hands. A space with weight and texture.',
+    focus: 'What you already have. Your resources, your talents, the things you undervalue.',
+    blocking: 'A disconnect between what you value and what you chase. The two need to match.',
+    general: 'This is about worth. Not just money. What you bring to the table.',
+  },
+  3: {
+    places: 'Your neighborhood. Familiar streets, local spots, the cafe where they know your order. Closeness, not distance.',
+    focus: 'Conversations you have been putting off. Words that need to be said or written.',
+    blocking: 'Scattered thoughts. Too many inputs, not enough processing. Simplify.',
+    general: 'This is about communication and your immediate world.',
+  },
+  4: {
+    places: 'Home. Not a concept of home. The physical space where you sleep, eat, and let your guard down.',
+    focus: 'Your roots. Family patterns, emotional foundations, the ground beneath you.',
+    blocking: 'Old family patterns running in the background. You inherited something that needs examining.',
+    general: 'This is about your emotional foundation and private life.',
+  },
+  5: {
+    places: 'Anywhere you play. Studios, stages, date spots, places where joy is the point and productivity is not.',
+    focus: 'What makes you feel alive. Not useful. Alive. Follow that thread.',
+    blocking: 'You forgot how to play. Everything became serious. Let something be fun again.',
+    general: 'This is about creativity, pleasure, and self-expression.',
+  },
+  6: {
+    places: 'Structured spaces. The gym, the office, anywhere with routine and rhythm. You thrive inside a system right now.',
+    focus: 'Your daily habits. The small things you do repeatedly shape everything else.',
+    blocking: 'Neglecting the basics. Sleep, food, movement. The foundation is cracking.',
+    general: 'This is about health, daily work, and service.',
+  },
+  7: {
+    places: 'Wherever the other person is. A partner, a collaborator, a mirror. You find yourself through someone else right now.',
+    focus: 'Your closest relationships. What you give, what you receive, and whether the balance is honest.',
+    blocking: 'Expecting from others what you will not give yourself. The mirror shows both sides.',
+    general: 'This is about partnership and one-on-one relationships.',
+  },
+  8: {
+    places: 'Somewhere private and intense. Therapy rooms, deep conversations at 2am, places where pretending is impossible.',
+    focus: 'What you share with others. Intimacy, trust, vulnerability. The stuff that scares you.',
+    blocking: 'Control. You are gripping too tightly. Let something die so something else can grow.',
+    general: 'This is about transformation, shared resources, and deep bonds.',
+  },
+  9: {
+    places: 'Far from home. Unfamiliar landscapes, foreign cities, universities, temples. Somewhere that stretches your worldview.',
+    focus: 'The bigger picture. Your beliefs, your philosophy, the story you tell about what life means.',
+    blocking: 'A narrow lens. You are looking at this from too close. Step back. Way back.',
+    general: 'This is about meaning, travel, and expanding beyond the familiar.',
+  },
+  10: {
+    places: 'Public spaces. Offices, stages, boardrooms, anywhere your reputation precedes you. Where the world sees your work.',
+    focus: 'Your legacy. What you are building that will outlast this moment.',
+    blocking: 'Ambition without direction. You are climbing, but check the ladder is on the right wall.',
+    general: 'This is about career, public image, and long-term direction.',
+  },
+  11: {
+    places: 'In community. Groups, movements, networks of people who share your vision. You belong in a collective right now.',
+    focus: 'Your hopes. Not plans. Hopes. The future you actually want, not the safe one.',
+    blocking: 'Isolation. You are trying to do this alone. That is the problem.',
+    general: 'This is about community, friendship, and your vision for the future.',
+  },
+  12: {
+    places: 'Quiet places. Water, solitude, retreats, anywhere the noise stops. Your answers come in silence, not crowds.',
+    focus: 'What is hidden. Dreams, intuition, the things you feel but cannot name. Go inward.',
+    blocking: 'Something unconscious is running the show. You cannot fight what you cannot see. Slow down and look.',
+    general: 'This is about the unconscious, solitude, and spiritual surrender.',
+  },
 };
+
+// Detect what kind of guidance the user is seeking from their question
+type GuidanceIntent = 'places' | 'focus' | 'blocking' | 'feeling' | 'general';
+
+function detectGuidanceIntent(question: string): GuidanceIntent {
+  const q = question.toLowerCase();
+  if (/\b(where|place|places|location|city|live|move|travel|go|environment|space|spaces|home|feel at home)\b/.test(q)) return 'places';
+  if (/\b(block|blocking|holding.*back|stuck|obstacle|prevent|stop|resist|can'?t|cannot|struggle|wrong)\b/.test(q)) return 'blocking';
+  if (/\b(focus|priorit|concentrate|direct|channel|lean into|work on|pay attention|emphasize)\b/.test(q)) return 'focus';
+  if (/\b(feel|feeling|vibe|mood|emotion|sense|experience|going through)\b/.test(q)) return 'feeling';
+  return 'general';
+}
 
 /**
  * Build a guidance-style response for open-ended questions.
- * No yes/no verdict — instead, offers insight based on transit data.
+ *
+ * Architecture: Mirror → Evidence → Direction
+ * 1. Mirror: acknowledge what they asked (not a generic opener)
+ * 2. Evidence: cite ONE dominant transit + house as the reason
+ * 3. Direction: give a specific, grounded answer connected to the question
+ *
+ * The question text directly shapes the response.
  */
 function buildGuidanceResponse(
   category: QuestionCategory,
   reportCategory: keyof PersonalDailyReport['categories'],
   report: PersonalDailyReport,
+  question: string,
   patterns?: ReadingPatterns | null,
 ): string {
   const cat = report.categories[reportCategory];
-  const parts: string[] = [];
+  const intent = detectGuidanceIntent(question);
 
-  // 1. Opener — category-specific, not verdict-based
-  const openerPool = GUIDANCE_OPENERS[reportCategory] ?? GUIDANCE_OPENERS.decisions!;
-  parts.push(pick(openerPool));
+  // Find the single strongest transit for this category
+  const dominantTransit = report.keyTransits.find(t =>
+    t.affectedCategories.includes(category) ||
+    t.affectedCategories.includes(reportCategory as QuestionCategory)
+  );
 
-  // 2. Transit insight — what's actually happening in their chart
-  const transitInsight = buildTransitInsight(category, reportCategory, report);
-  if (transitInsight) {
-    parts.push(transitInsight);
+  // ── 1. MIRROR — acknowledge what they asked ──
+  let mirror: string;
+  if (intent === 'places') {
+    mirror = 'Your chart actually points somewhere specific on this.';
+  } else if (intent === 'blocking') {
+    mirror = 'Your chart shows where the resistance lives.';
+  } else if (intent === 'focus') {
+    mirror = 'The stars have a clear answer about where your attention belongs.';
+  } else if (intent === 'feeling') {
+    mirror = cat.score >= 6
+      ? 'There is a current moving through your chart right now. You are probably already feeling it.'
+      : 'Something heavy sits in your chart today. That weight you feel is real.';
+  } else {
+    mirror = 'The sky speaks to this directly.';
   }
 
-  // 3. GoodFor/BadFor — the actual guidance meat
-  const goodFor = cat.goodFor.filter(g => g.length > 0);
-  const badFor = cat.badFor.filter(b => b.length > 0);
+  // ── 2. EVIDENCE — one transit, woven into meaning ──
+  let evidence = '';
+  const house = dominantTransit?.transit.transitHouse;
 
-  if (goodFor.length > 0 && badFor.length > 0) {
-    parts.push(`Today favors ${goodFor.slice(0, 2).join(' and ')}. Be careful with ${badFor.slice(0, 2).join(' and ')}.`);
-  } else if (goodFor.length > 0) {
-    parts.push(`The sky opens for ${goodFor.slice(0, 3).join(', ')}. Lean into that.`);
-  } else if (badFor.length > 0) {
-    parts.push(`Watch out for ${badFor.slice(0, 2).join(' and ')} today. The sky asks for patience there.`);
+  if (dominantTransit) {
+    const tp = PLANET_NAME[dominantTransit.transit.transitPlanet] || capitalize(dominantTransit.transit.transitPlanet);
+    const np = PLANET_NAME[dominantTransit.transit.natalPlanet] || capitalize(dominantTransit.transit.natalPlanet);
+    const impact = dominantTransit.impact;
+
+    // Use planet flavor if available, otherwise build from aspect
+    const flavor = PLANET_FLAVOR[dominantTransit.transit.transitPlanet]?.[category]
+      ?? PLANET_FLAVOR[dominantTransit.transit.transitPlanet]?.[reportCategory];
+
+    if (flavor) {
+      evidence = impact === 'negative' ? flavor.negative : flavor.positive;
+    } else {
+      // Build a clean transit sentence without template fragments
+      const verb = impact === 'positive' ? 'supports' : impact === 'negative' ? 'presses against' : 'activates';
+      evidence = `${tp} ${verb} your natal ${np} right now.`;
+    }
   }
 
-  // 4. Score-based overall direction
-  if (cat.score >= 7) {
-    parts.push('The energy is strong. Trust what comes to you.');
-  } else if (cat.score <= 3) {
-    parts.push('The energy is low here. Small steps, not leaps.');
+  // ── 3. DIRECTION — the actual answer, grounded in house + intent ──
+  let direction = '';
+
+  if (house && HOUSE_GUIDANCE[house]) {
+    const houseData = HOUSE_GUIDANCE[house];
+    if (intent === 'places') {
+      direction = houseData.places;
+    } else if (intent === 'blocking') {
+      direction = houseData.blocking;
+    } else if (intent === 'focus') {
+      direction = houseData.focus;
+    } else {
+      direction = houseData.general;
+    }
+  } else {
+    // No house data — fall back to category goodFor/badFor
+    const goodFor = cat.goodFor.filter(g => g.length > 0);
+    const badFor = cat.badFor.filter(b => b.length > 0);
+
+    if (intent === 'blocking' && badFor.length > 0) {
+      direction = `The tension sits around ${badFor.slice(0, 2).join(' and ')}. That is where to look.`;
+    } else if (intent === 'focus' && goodFor.length > 0) {
+      direction = `Your energy moves best toward ${goodFor.slice(0, 2).join(' and ')} right now.`;
+    } else if (goodFor.length > 0 && badFor.length > 0) {
+      direction = `Today leans toward ${goodFor[0]}. Step carefully around ${badFor[0]}.`;
+    } else if (goodFor.length > 0) {
+      direction = `The path opens toward ${goodFor.slice(0, 2).join(' and ')}.`;
+    } else if (cat.score >= 7) {
+      direction = 'The energy here is strong. Trust what pulls you.';
+    } else if (cat.score <= 3) {
+      direction = 'The energy is quiet. Wait for it to shift before you move.';
+    } else {
+      direction = 'The sky is not pushing you in any direction. The choice is genuinely yours.';
+    }
   }
 
-  // 5. Category-specific advice from the report
-  if (cat.advice && cat.advice.length > 0) {
-    parts.push(cat.advice);
-  }
+  // ── 4. CLOSE — one extra line if space allows ──
+  let close = '';
 
-  // 6. Extras (retrograde/moon)
-  const extras = buildExtras(category, report);
-  if (extras && parts.join(' ').length < 350) {
-    parts.push(extras);
-  }
-
-  // 7. Session memory
+  // Session memory (repeat category awareness)
   const sessionMemory = buildSessionMemory('NEUTRAL', category, patterns);
-  if (sessionMemory && parts.join(' ').length < 420) {
-    parts.push(sessionMemory);
+  if (sessionMemory) {
+    close = sessionMemory;
+  } else {
+    // Moon/retrograde note if relevant and short
+    const moonName = report.moonPhase.name;
+    if (moonName === 'New Moon') {
+      close = 'The New Moon favors beginning. Not finishing.';
+    } else if (moonName === 'Full Moon') {
+      close = 'The Full Moon illuminates. What you see now is what is really there.';
+    }
   }
 
-  return parts.join(' ');
+  // ── Assemble: 3-5 sentences, flowing narrative ──
+  let response = mirror;
+  if (evidence) response += ' ' + evidence;
+  if (direction) response += ' ' + direction;
+  if (close && response.length < 380) response += ' ' + close;
+
+  return response;
 }
 
 // ---- Utility ----
@@ -692,14 +807,14 @@ export function generateOracleResponse(
   verdict: Verdict,
   category: QuestionCategory,
   report?: PersonalDailyReport | null,
-  _question?: string,
+  question?: string,
   patterns?: ReadingPatterns | null,
   questionMode?: 'directional' | 'guidance',
 ): string {
   // --- Guidance mode: open-ended insight, no yes/no ---
   if (questionMode === 'guidance' && report) {
     const reportCategory = CATEGORY_MAP[category];
-    return buildGuidanceResponse(category, reportCategory, report, patterns);
+    return buildGuidanceResponse(category, reportCategory, report, question || '', patterns);
   }
   // --- Fallback path: no report, use static templates ---
   if (!report) {
