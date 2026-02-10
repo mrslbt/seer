@@ -291,14 +291,14 @@ function App() {
     if (userProfile && dailyReport) {
       const questionMode = detectQuestionMode(trimmed);
       llmPromiseRef.current = callLLMOracle(
-        trimmed, questionMode, category, userProfile, dailyReport
+        trimmed, questionMode, category, userProfile, dailyReport, lang
       );
     } else {
       llmPromiseRef.current = null;
     }
 
     setAppState('gazing');
-  }, [questionText, userProfile, dailyReport]);
+  }, [questionText, userProfile, dailyReport, lang]);
 
   // Eye finished gazing - generate reading (async for LLM)
   const handleGazeComplete = useCallback(async () => {
@@ -450,14 +450,14 @@ function App() {
     if (userProfile && dailyReport) {
       const questionMode = detectQuestionMode(question);
       llmPromiseRef.current = callLLMOracle(
-        question, questionMode, category, userProfile, dailyReport
+        question, questionMode, category, userProfile, dailyReport, lang
       );
     } else {
       llmPromiseRef.current = null;
     }
 
     setAppState('gazing');
-  }, [userProfile, dailyReport]);
+  }, [userProfile, dailyReport, lang]);
 
   // Handle follow-up (static buttons) — async with LLM
   const handleFollowUp = useCallback(async (type: FollowUpType) => {
@@ -470,7 +470,7 @@ function App() {
       try {
         const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
         const llmResult = await callFollowUpLLM(
-          followUpQ, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport
+          followUpQ, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -484,7 +484,7 @@ function App() {
     }
 
     setFollowUpText(templateResponse);
-  }, [oracleVerdict, oracleCategory, dailyReport, userProfile, submittedQuestion, oracleText]);
+  }, [oracleVerdict, oracleCategory, dailyReport, userProfile, submittedQuestion, oracleText, lang]);
 
   // Handle contextual follow-up question tap — async with LLM
   const handleContextualQuestion = useCallback(async (question: FollowUpQuestion) => {
@@ -506,7 +506,7 @@ function App() {
       setFollowUpLoading(true);
       try {
         const llmResult = await callFollowUpLLM(
-          question.text, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport
+          question.text, submittedQuestion, oracleText, oracleCategory, userProfile, dailyReport, lang
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -520,7 +520,7 @@ function App() {
     }
 
     setFollowUpText(templateResponse);
-  }, [oracleVerdict, oracleCategory, dailyReport, followUpRound, userProfile, submittedQuestion, oracleText]);
+  }, [oracleVerdict, oracleCategory, dailyReport, followUpRound, userProfile, submittedQuestion, oracleText, lang]);
 
   // Handle share — generate canvas image
   const handleShare = useCallback(async () => {

@@ -10,86 +10,87 @@
  */
 
 import type { QuestionCategory } from '../types/astrology';
+import type { TranslationKey } from '../i18n/en';
 
 export interface SuggestedQuestion {
-  text: string;
+  key: TranslationKey;
   category: QuestionCategory;
 }
 
 export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
   // Love — the #1 reason people consult oracles
-  { text: 'Is this love real?', category: 'love' },
-  { text: 'Should I walk away?', category: 'love' },
-  { text: 'Will they come back?', category: 'love' },
-  { text: 'Am I holding on too long?', category: 'love' },
+  { key: 'sq.loveReal', category: 'love' },
+  { key: 'sq.walkAway', category: 'love' },
+  { key: 'sq.comeBack', category: 'love' },
+  { key: 'sq.holdingOn', category: 'love' },
 
   // Career — stakes, not scheduling
-  { text: 'Should I take the risk?', category: 'career' },
-  { text: 'Am I wasting my potential?', category: 'career' },
-  { text: 'Is this the right move?', category: 'career' },
+  { key: 'sq.takeRisk', category: 'career' },
+  { key: 'sq.wastingPotential', category: 'career' },
+  { key: 'sq.rightMove', category: 'career' },
 
   // Money — fortune and risk
-  { text: 'Is this the wrong bet?', category: 'money' },
-  { text: 'Should I invest now?', category: 'money' },
-  { text: 'Will this pay off?', category: 'money' },
+  { key: 'sq.wrongBet', category: 'money' },
+  { key: 'sq.investNow', category: 'money' },
+  { key: 'sq.payOff', category: 'money' },
 
   // Communication — truth and vulnerability
-  { text: 'Should I say what I feel?', category: 'communication' },
-  { text: 'Is it time to tell the truth?', category: 'communication' },
-  { text: 'Will they understand?', category: 'communication' },
+  { key: 'sq.sayFeel', category: 'communication' },
+  { key: 'sq.tellTruth', category: 'communication' },
+  { key: 'sq.willUnderstand', category: 'communication' },
 
   // Conflict — confrontation and resolution
-  { text: 'Am I being deceived?', category: 'conflict' },
-  { text: 'Is this fight worth it?', category: 'conflict' },
-  { text: 'Should I stand my ground?', category: 'conflict' },
+  { key: 'sq.deceived', category: 'conflict' },
+  { key: 'sq.fightWorth', category: 'conflict' },
+  { key: 'sq.standGround', category: 'conflict' },
 
   // Timing — the oracle's domain
-  { text: 'Is it time?', category: 'timing' },
-  { text: 'Should I wait longer?', category: 'timing' },
-  { text: 'Will this pass?', category: 'timing' },
+  { key: 'sq.isItTime', category: 'timing' },
+  { key: 'sq.waitLonger', category: 'timing' },
+  { key: 'sq.willPass', category: 'timing' },
 
   // Health — vitality, not gym routines
-  { text: 'Should I rest or push forward?', category: 'health' },
-  { text: 'Is my body telling me something?', category: 'health' },
+  { key: 'sq.restOrPush', category: 'health' },
+  { key: 'sq.bodyTelling', category: 'health' },
 
   // Social — bonds, not parties
-  { text: 'Can I trust them?', category: 'social' },
-  { text: 'Will this friendship survive?', category: 'social' },
+  { key: 'sq.canTrust', category: 'social' },
+  { key: 'sq.friendshipSurvive', category: 'social' },
 
   // Decisions — crossroads
-  { text: 'Should I take the leap?', category: 'decisions' },
-  { text: 'Is this the right path?', category: 'decisions' },
-  { text: 'Am I making a mistake?', category: 'decisions' },
+  { key: 'sq.takeLeap', category: 'decisions' },
+  { key: 'sq.rightPath', category: 'decisions' },
+  { key: 'sq.makingMistake', category: 'decisions' },
 
   // Creativity — calling and purpose
-  { text: 'Should I start something new?', category: 'creativity' },
-  { text: 'Is inspiration near?', category: 'creativity' },
-  { text: 'What creative energy is available to me?', category: 'creativity' },
+  { key: 'sq.startNew', category: 'creativity' },
+  { key: 'sq.inspirationNear', category: 'creativity' },
+  { key: 'sq.creativeEnergy', category: 'creativity' },
 
   // Spiritual — intuition and signs
-  { text: 'Should I trust my gut?', category: 'spiritual' },
-  { text: 'What am I not seeing?', category: 'spiritual' },
-  { text: 'Is the universe sending a sign?', category: 'spiritual' },
-  { text: 'What energy should I focus on today?', category: 'spiritual' },
+  { key: 'sq.trustGut', category: 'spiritual' },
+  { key: 'sq.notSeeing', category: 'spiritual' },
+  { key: 'sq.universeSign', category: 'spiritual' },
+  { key: 'sq.focusToday', category: 'spiritual' },
 
   // Open-ended guidance questions (what/how/where)
-  { text: 'What is blocking me in love?', category: 'love' },
-  { text: 'How should I approach my career right now?', category: 'career' },
-  { text: 'What does my financial energy look like?', category: 'money' },
-  { text: 'How can I improve my health today?', category: 'health' },
-  { text: 'What do I need to know right now?', category: 'decisions' },
+  { key: 'sq.blockingLove', category: 'love' },
+  { key: 'sq.approachCareer', category: 'career' },
+  { key: 'sq.financialEnergy', category: 'money' },
+  { key: 'sq.improveHealth', category: 'health' },
+  { key: 'sq.needToKnow', category: 'decisions' },
 
   // Personality & self-discovery — what makes the LLM shine
-  { text: 'What is my charm?', category: 'love' },
-  { text: 'What are my attractive points?', category: 'love' },
-  { text: 'What job should I get?', category: 'career' },
-  { text: 'What is my spiritual gift?', category: 'spiritual' },
-  { text: 'What kind of places would I feel at home?', category: 'decisions' },
-  { text: 'What is my hidden strength?', category: 'decisions' },
-  { text: 'What kind of people am I drawn to?', category: 'social' },
-  { text: 'Where does my creativity come from?', category: 'creativity' },
-  { text: 'What should I focus on this week?', category: 'decisions' },
-  { text: 'What am I naturally gifted at?', category: 'career' },
+  { key: 'sq.myCharm', category: 'love' },
+  { key: 'sq.attractivePoints', category: 'love' },
+  { key: 'sq.whatJob', category: 'career' },
+  { key: 'sq.spiritualGift', category: 'spiritual' },
+  { key: 'sq.placesHome', category: 'decisions' },
+  { key: 'sq.hiddenStrength', category: 'decisions' },
+  { key: 'sq.drawnTo', category: 'social' },
+  { key: 'sq.creativitySource', category: 'creativity' },
+  { key: 'sq.focusWeek', category: 'decisions' },
+  { key: 'sq.naturallyGifted', category: 'career' },
 ];
 
 /**

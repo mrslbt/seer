@@ -121,12 +121,12 @@ function serializeTodaysBond(bond: TodaysBondData): string {
 }
 
 // ── Call API helper ──
-async function callAPI(payload: Record<string, unknown>): Promise<LLMOracleResult> {
+async function callAPI(payload: Record<string, unknown>, lang?: string): Promise<LLMOracleResult> {
   try {
     const response = await fetch('/api/oracle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, lang: lang || 'en' }),
     });
 
     if (!response.ok) {
@@ -172,6 +172,7 @@ export async function callLLMOracle(
   category: QuestionCategory,
   profile: UserProfile,
   report: PersonalDailyReport,
+  lang?: string,
 ): Promise<LLMOracleResult> {
   const reportCategory = mapCategory(category);
   const cat = report.categories[reportCategory];
@@ -188,7 +189,7 @@ export async function callLLMOracle(
     badFor: cat.badFor.filter(b => b.length > 0),
     moonPhase: report.moonPhase.name,
     retrogrades: report.retrogrades.map(r => r.planet),
-  });
+  }, lang);
 }
 
 /**
@@ -201,6 +202,7 @@ export async function callBondLLM(
   profile2: UserProfile,
   synastryReport: SynastryReport,
   todaysBond?: TodaysBondData | null,
+  lang?: string,
 ): Promise<LLMOracleResult> {
   return callAPI({
     type: 'bond',
@@ -212,7 +214,7 @@ export async function callBondLLM(
     chart2Summary: serializeChart(profile2),
     synastryData: serializeSynastry(synastryReport),
     todaysBondData: todaysBond ? serializeTodaysBond(todaysBond) : undefined,
-  });
+  }, lang);
 }
 
 /**
@@ -225,6 +227,7 @@ export async function callFollowUpLLM(
   category: QuestionCategory,
   profile: UserProfile,
   report: PersonalDailyReport,
+  lang?: string,
 ): Promise<LLMOracleResult> {
   return callAPI({
     type: 'followup',
@@ -235,5 +238,5 @@ export async function callFollowUpLLM(
     category,
     chartSummary: serializeChart(profile),
     transitSummary: serializeTransits(report),
-  });
+  }, lang);
 }

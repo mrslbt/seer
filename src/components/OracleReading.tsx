@@ -12,6 +12,7 @@ import {
 } from '../lib/followUpResponse';
 import { callFollowUpLLM } from '../lib/llmOracle';
 import type { PersonalDailyReport } from '../lib/personalDailyReport';
+import { useI18n } from '../i18n/I18nContext';
 import './OracleReading.css';
 
 interface OracleReadingProps {
@@ -31,6 +32,7 @@ export function OracleReading({
   oracleText, verdict, category, article, dailyReport,
   userProfile, questionText, questionMode: _questionMode = 'directional', onAskAgain, onDismiss
 }: OracleReadingProps) {
+  const { t, lang } = useI18n();
   // Pure LLM — always gold accent, no verdict-based coloring
   const color = '#C9A84C';
   const [showArticle, setShowArticle] = useState(false);
@@ -81,7 +83,7 @@ export function OracleReading({
       try {
         const followUpQ = type === 'when_change' ? 'When will this change?' : 'Tell me more';
         const llmResult = await callFollowUpLLM(
-          followUpQ, questionText, oracleText, category, userProfile, dailyReport
+          followUpQ, questionText, oracleText, category, userProfile, dailyReport, lang
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -95,7 +97,7 @@ export function OracleReading({
     }
 
     setFollowUpText(templateResponse);
-  }, [verdict, category, dailyReport, userProfile, questionText, oracleText]);
+  }, [verdict, category, dailyReport, userProfile, questionText, oracleText, lang]);
 
   // Handle contextual follow-up question tap — async with LLM
   const handleContextualQuestion = useCallback(async (question: FollowUpQuestion) => {
@@ -119,7 +121,7 @@ export function OracleReading({
       setFollowUpLoading(true);
       try {
         const llmResult = await callFollowUpLLM(
-          question.text, questionText, oracleText, category, userProfile, dailyReport
+          question.text, questionText, oracleText, category, userProfile, dailyReport, lang
         );
         if (llmResult.source === 'llm' && llmResult.text) {
           setFollowUpText(llmResult.text);
@@ -133,7 +135,7 @@ export function OracleReading({
     }
 
     setFollowUpText(templateResponse);
-  }, [verdict, category, dailyReport, followUpRound, userProfile, questionText, oracleText]);
+  }, [verdict, category, dailyReport, followUpRound, userProfile, questionText, oracleText, lang]);
 
   // Handle share — generate canvas image
   const handleShare = useCallback(async () => {
@@ -271,10 +273,10 @@ export function OracleReading({
         {(followUpText || followUpLoading) && (
           <div className="follow-up-response" style={{ color }}>
             <div className="follow-up-label">
-              {followUpType === 'when_change' ? 'Timing' : 'Deeper Insight'}
+              {followUpType === 'when_change' ? t('oracle.timing') : t('oracle.deeperInsight')}
             </div>
             {followUpLoading ? (
-              <p className="follow-up-text follow-up-text--loading">The oracle peers deeper...</p>
+              <p className="follow-up-text follow-up-text--loading">{t('oracle.deeper')}</p>
             ) : (
               <p className="follow-up-text">{followUpText}</p>
             )}
@@ -287,7 +289,7 @@ export function OracleReading({
             className="oracle-learn-more"
             onClick={() => setShowFollowUps(true)}
           >
-            Learn more
+            {t('oracle.learnMore')}
           </button>
         )}
 
@@ -301,7 +303,7 @@ export function OracleReading({
                 onClick={() => setShowArticle(true)}
               >
                 <span className="follow-up-question-icon">{'\u203A'}</span>
-                <span className="follow-up-question-text">Why does the oracle say this?</span>
+                <span className="follow-up-question-text">{t('oracle.whyOracle')}</span>
               </button>
             )}
 
@@ -324,7 +326,7 @@ export function OracleReading({
                 onClick={() => handleFollowUp('when_change')}
               >
                 <span className="follow-up-question-icon">{'\u29D7'}</span>
-                <span className="follow-up-question-text">When will this change?</span>
+                <span className="follow-up-question-text">{t('oracle.whenChange')}</span>
               </button>
             )}
           </div>
@@ -332,13 +334,13 @@ export function OracleReading({
 
         {/* Follow-ups exhausted message */}
         {!hasFollowUps && followUpRound > 0 && (
-          <p className="follow-up-exhausted">The oracle has spoken. Ask again for a new reading.</p>
+          <p className="follow-up-exhausted">{t('oracle.exhausted')}</p>
         )}
 
         {/* ── Bottom bar: Ask Again + Share icon ── */}
         <div className="oracle-bottom-bar">
           <button className="oracle-ask-again" onClick={onAskAgain}>
-            Ask Again
+            {t('oracle.askAgain')}
           </button>
 
           <button
@@ -355,7 +357,7 @@ export function OracleReading({
 
         {/* Share toast */}
         {shareToast && (
-          <div className="share-toast">Copied to clipboard</div>
+          <div className="share-toast">{t('oracle.copied')}</div>
         )}
 
         {/* Hidden canvas for share card generation */}

@@ -18,12 +18,12 @@ export function SuggestedQuestions({ onSelect }: SuggestedQuestionsProps) {
       <div className="suggested-questions" role="group" aria-label="Suggested questions">
         {suggestions.map((q) => (
           <button
-            key={q.text}
+            key={q.key}
             className="suggestion-chip"
-            onClick={() => onSelect(q.text)}
+            onClick={() => onSelect(t(q.key))}
             type="button"
           >
-            {q.text}
+            {t(q.key)}
           </button>
         ))}
       </div>

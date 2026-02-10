@@ -17,6 +17,7 @@ interface BaseRequest {
   type: 'seer' | 'bond' | 'followup';
   question: string;
   questionMode: 'directional' | 'guidance';
+  lang?: string;
 }
 
 interface SeerRequest extends BaseRequest {
@@ -121,12 +122,25 @@ RULES:
 - If the follow-up asks "tell me more" or "why?", explain the underlying chart dynamic that drives the reading — but still in oracle voice, not astrology lecture.
 - Maximum 3 sentences. Tight. Specific.`;
 
+// ── Language instruction ──
+const LANGUAGE_NAMES: Record<string, string> = {
+  ja: 'Japanese',
+  vi: 'Vietnamese',
+};
+
+function getLanguageInstruction(lang?: string): string {
+  const name = lang ? LANGUAGE_NAMES[lang] : undefined;
+  if (!name) return '';
+  return `\n\nLANGUAGE: You MUST respond entirely in ${name}. Every word of your answer must be in ${name}. Do not use any English. Maintain the same oracle voice and brevity in ${name}.`;
+}
+
 // ── Build system prompt based on request type ──
-function getSystemPrompt(type: OracleRequest['type']): string {
+function getSystemPrompt(type: OracleRequest['type'], lang?: string): string {
+  const langRule = getLanguageInstruction(lang);
   switch (type) {
-    case 'seer': return VOICE_RULES + '\n\n' + SEER_INSTRUCTIONS;
-    case 'bond': return VOICE_RULES + '\n\n' + BOND_INSTRUCTIONS;
-    case 'followup': return VOICE_RULES + '\n\n' + FOLLOWUP_INSTRUCTIONS;
+    case 'seer': return VOICE_RULES + '\n\n' + SEER_INSTRUCTIONS + langRule;
+    case 'bond': return VOICE_RULES + '\n\n' + BOND_INSTRUCTIONS + langRule;
+    case 'followup': return VOICE_RULES + '\n\n' + FOLLOWUP_INSTRUCTIONS + langRule;
   }
 }
 
@@ -224,7 +238,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing question or type' });
   }
 
-  const systemPrompt = getSystemPrompt(body.type);
+  const systemPrompt = getSystemPrompt(body.type, body.lang);
   const userMessage = buildUserMessage(body);
 
   try {

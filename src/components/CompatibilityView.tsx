@@ -66,7 +66,7 @@ function getRandomQuestionKeys(count: number): TranslationKey[] {
 // ============================================
 
 export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: CompatibilityViewProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [phase, setPhase] = useState<BondPhase>('select');
   const [partner, setPartner] = useState<UserProfile | null>(null);
   const [report, setReport] = useState<SynastryReport | null>(null);
@@ -221,14 +221,14 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     if (partner && report) {
       // LLM reads the synastry data directly and decides the answer itself
       llmPromiseRef.current = callBondLLM(
-        trimmed, qMode, activeProfile, partner, report, todaysBond
+        trimmed, qMode, activeProfile, partner, report, todaysBond, lang
       );
     } else {
       llmPromiseRef.current = null;
     }
 
     setPhase('gazing');
-  }, [phase, question, partner, report, activeProfile, todaysBond]);
+  }, [phase, question, partner, report, activeProfile, todaysBond, lang]);
 
   // ---- Select suggested question ----
   const handleSuggestedQuestion = useCallback((q: string) => {
@@ -247,14 +247,14 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
     if (partner && report) {
       // LLM reads the synastry data directly
       llmPromiseRef.current = callBondLLM(
-        trimmed, qMode, activeProfile, partner, report, todaysBond
+        trimmed, qMode, activeProfile, partner, report, todaysBond, lang
       );
     } else {
       llmPromiseRef.current = null;
     }
 
     setPhase('gazing');
-  }, [phase, partner, report, activeProfile, todaysBond]);
+  }, [phase, partner, report, activeProfile, todaysBond, lang]);
 
   // ---- Input handlers ----
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
