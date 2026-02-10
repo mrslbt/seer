@@ -18,79 +18,45 @@ export interface SuggestedQuestion {
 }
 
 export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
-  // Love — the #1 reason people consult oracles
+  // Love & relationships — the #1 reason people open the app
+  { key: 'sq.thinkAboutMe', category: 'love' },
+  { key: 'sq.textBack', category: 'love' },
+  { key: 'sq.soulmate', category: 'love' },
+  { key: 'sq.overMe', category: 'love' },
   { key: 'sq.loveReal', category: 'love' },
-  { key: 'sq.walkAway', category: 'love' },
   { key: 'sq.comeBack', category: 'love' },
-  { key: 'sq.holdingOn', category: 'love' },
+  { key: 'sq.tellFeel', category: 'communication' },
+  { key: 'sq.settlingDown', category: 'love' },
+  { key: 'sq.loveBlocking', category: 'love' },
+  { key: 'sq.whoDrawn', category: 'social' },
 
-  // Career — stakes, not scheduling
-  { key: 'sq.takeRisk', category: 'career' },
-  { key: 'sq.wastingPotential', category: 'career' },
-  { key: 'sq.rightMove', category: 'career' },
-
-  // Money — fortune and risk
-  { key: 'sq.wrongBet', category: 'money' },
-  { key: 'sq.investNow', category: 'money' },
-  { key: 'sq.payOff', category: 'money' },
-
-  // Communication — truth and vulnerability
-  { key: 'sq.sayFeel', category: 'communication' },
-  { key: 'sq.tellTruth', category: 'communication' },
-  { key: 'sq.willUnderstand', category: 'communication' },
-
-  // Conflict — confrontation and resolution
-  { key: 'sq.deceived', category: 'conflict' },
-  { key: 'sq.fightWorth', category: 'conflict' },
-  { key: 'sq.standGround', category: 'conflict' },
-
-  // Timing — the oracle's domain
-  { key: 'sq.isItTime', category: 'timing' },
-  { key: 'sq.waitLonger', category: 'timing' },
-  { key: 'sq.willPass', category: 'timing' },
-
-  // Health — vitality, not gym routines
-  { key: 'sq.restOrPush', category: 'health' },
-  { key: 'sq.bodyTelling', category: 'health' },
-
-  // Social — bonds, not parties
-  { key: 'sq.canTrust', category: 'social' },
-  { key: 'sq.friendshipSurvive', category: 'social' },
-
-  // Decisions — crossroads
-  { key: 'sq.takeLeap', category: 'decisions' },
-  { key: 'sq.rightPath', category: 'decisions' },
-  { key: 'sq.makingMistake', category: 'decisions' },
-
-  // Creativity — calling and purpose
-  { key: 'sq.startNew', category: 'creativity' },
-  { key: 'sq.inspirationNear', category: 'creativity' },
-  { key: 'sq.creativeEnergy', category: 'creativity' },
-
-  // Spiritual — intuition and signs
-  { key: 'sq.trustGut', category: 'spiritual' },
-  { key: 'sq.notSeeing', category: 'spiritual' },
-  { key: 'sq.universeSign', category: 'spiritual' },
-  { key: 'sq.focusToday', category: 'spiritual' },
-
-  // Open-ended guidance questions (what/how/where)
-  { key: 'sq.blockingLove', category: 'love' },
-  { key: 'sq.approachCareer', category: 'career' },
-  { key: 'sq.financialEnergy', category: 'money' },
-  { key: 'sq.improveHealth', category: 'health' },
-  { key: 'sq.needToKnow', category: 'decisions' },
-
-  // Personality & self-discovery — what makes the LLM shine
-  { key: 'sq.myCharm', category: 'love' },
-  { key: 'sq.attractivePoints', category: 'love' },
+  // Career & money — high stakes, screenshotable
+  { key: 'sq.quitJob', category: 'career' },
+  { key: 'sq.wrongField', category: 'career' },
   { key: 'sq.whatJob', category: 'career' },
-  { key: 'sq.spiritualGift', category: 'spiritual' },
-  { key: 'sq.placesHome', category: 'decisions' },
+  { key: 'sq.payOff', category: 'money' },
+  { key: 'sq.rightMove', category: 'decisions' },
+
+  // Self-discovery — what makes users come back
+  { key: 'sq.mainCharacter', category: 'spiritual' },
+  { key: 'sq.superpower', category: 'spiritual' },
   { key: 'sq.hiddenStrength', category: 'decisions' },
-  { key: 'sq.drawnTo', category: 'social' },
-  { key: 'sq.creativitySource', category: 'creativity' },
-  { key: 'sq.focusWeek', category: 'decisions' },
+  { key: 'sq.myCharm', category: 'love' },
   { key: 'sq.naturallyGifted', category: 'career' },
+
+  // Gut checks & crossroads
+  { key: 'sq.beOkay', category: 'decisions' },
+  { key: 'sq.trustGut', category: 'spiritual' },
+  { key: 'sq.mistake', category: 'decisions' },
+  { key: 'sq.rightPath', category: 'decisions' },
+  { key: 'sq.notSeeing', category: 'spiritual' },
+  { key: 'sq.letGo', category: 'decisions' },
+
+  // Timing & spiritual
+  { key: 'sq.isItTime', category: 'timing' },
+  { key: 'sq.willPass', category: 'timing' },
+  { key: 'sq.focusNow', category: 'decisions' },
+  { key: 'sq.readyFor', category: 'spiritual' },
 ];
 
 /**
