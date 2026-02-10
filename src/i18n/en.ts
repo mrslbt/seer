@@ -60,13 +60,13 @@ export const en = {
   'hint.bonds': 'Compare your chart with another soul',
 
   // ── Question Placeholders ──
-  'q.placeholder1': 'Does he think about me?',
+  'q.placeholder1': 'What kind of lover am I?',
   'q.placeholder2': 'Should I quit my job?',
   'q.placeholder3': 'Am I the main character?',
-  'q.placeholder4': 'Will they text me back?',
-  'q.placeholder5': 'Is this person my soulmate?',
-  'q.placeholder6': 'What is my superpower?',
-  'q.placeholder7': 'Should I tell them how I feel?',
+  'q.placeholder4': 'What do I really need in love?',
+  'q.placeholder5': 'What is my superpower?',
+  'q.placeholder6': 'Am I on the right path?',
+  'q.placeholder7': 'Should I trust my gut?',
   'q.placeholder8': 'Will I be okay?',
   'q.errorEmpty': 'Speak your question first',
   'q.errorMeaningful': 'Ask a meaningful question',
@@ -75,13 +75,13 @@ export const en = {
   'suggested.divider': 'or let the stars choose',
 
   // ── Seer Suggested Questions ──
-  // Love & relationships (the #1 reason people open the app)
-  'sq.thinkAboutMe': 'Does he think about me?',
-  'sq.textBack': 'Will they text me back?',
-  'sq.soulmate': 'Is this person my soulmate?',
-  'sq.overMe': 'Are they over me?',
-  'sq.loveReal': 'Is this love real?',
-  'sq.comeBack': 'Will they come back?',
+  // Love & relationships — answerable from the user's OWN chart
+  'sq.loveNature': 'What kind of lover am I?',
+  'sq.loveNeed': 'What do I really need in love?',
+  'sq.loveAttract': 'What type of person do I attract?',
+  'sq.lovePattern': 'What patterns do I repeat in love?',
+  'sq.loveReady': 'Am I ready for love right now?',
+  'sq.loveDeserve': 'What kind of love do I deserve?',
   'sq.tellFeel': 'Should I tell them how I feel?',
   'sq.settlingDown': 'Am I settling?',
   'sq.loveBlocking': 'What is blocking me in love?',

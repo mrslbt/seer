@@ -925,7 +925,7 @@ function App() {
                 <CosmicDashboard report={dailyReport} onRefresh={refreshDailyReport} mode="inline" />
               )}
               {activeTab === 'cosmos' && !dailyReport && (
-                <p className="cosmos-status">Loading cosmic data...</p>
+                <p className="cosmos-status">{t('onboarding.loading')}</p>
               )}
 
               {/* Chart */}

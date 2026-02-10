@@ -176,6 +176,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  will-change: contents;
 }
 
 /* Tab content — scrollable below the seer core */
@@ -185,6 +186,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 8px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(201, 168, 76, 0.08);
+  animation: fadeIn 0.6s ease 0.2s both;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -197,7 +202,7 @@
   align-items: center;
   gap: 10px;
   margin-top: 16px;
-  animation: fadeIn 0.5s ease 0.2s both;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both;
 }
 
 .tab-suggestions-divider {
@@ -231,10 +236,10 @@
   border: 1px solid rgba(201, 168, 76, 0.15);
   border-radius: var(--radius-full, 999px);
   cursor: pointer;
-  transition: color 0.3s ease,
-              border-color 0.3s ease,
-              background 0.3s ease,
-              transform 0.15s ease;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
@@ -260,7 +265,7 @@
   color: rgba(201, 168, 76, 0.55);
   text-align: center;
   letter-spacing: 0.02em;
-  animation: fadeIn 0.6s ease;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Footer section — separated cosmic data */
@@ -270,8 +275,6 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(201, 168, 76, 0.1);
   animation: fadeIn 0.6s ease 0.3s both;
 }
 
@@ -293,14 +296,15 @@
   0% {
     opacity: 0;
     filter: blur(6px);
-    transform: translateY(-2px);
+    transform: translateY(-4px);
   }
-  50% {
-    opacity: 0.3;
+  40% {
+    opacity: 0.4;
     filter: blur(2px);
+    transform: translateY(-1px);
   }
   100% {
-    opacity: 1;
+    opacity: 0.88;
     filter: blur(0);
     transform: translateY(0);
   }
@@ -322,7 +326,8 @@
   color: var(--accent-dim);
   letter-spacing: 0.02em;
   text-align: center;
-  animation: fadeIn 0.4s ease;
+  width: 100%;
+  animation: fadeIn 0.6s ease;
 }
 
 .cosmos-status--warn {
@@ -375,7 +380,7 @@
 .input-container {
   width: 100%;
   max-width: 360px;
-  animation: slideUp 0.4s ease;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Modal overlay */
@@ -384,12 +389,13 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   z-index: 100;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal {
@@ -400,7 +406,7 @@
   max-width: 360px;
   max-height: 85vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-header {
@@ -729,7 +735,7 @@
 .seer-answer-container {
   width: 100%;
   text-align: center;
-  animation: seerAnswerFadeIn 0.4s ease;
+  animation: seerAnswerFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Oracle prose — the main reading */
@@ -761,7 +767,7 @@
   margin-top: 28px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
-  animation: seerSlideUp 0.6s ease;
+  animation: seerSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .seer-follow-up-label {
@@ -806,9 +812,9 @@
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
-  animation: seerSlideUp 0.6s ease 1.8s forwards;
+  animation: seerSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 1.8s forwards;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -826,7 +832,7 @@
   flex-direction: column;
   gap: 1px;
   margin-top: 36px;
-  animation: seerSlideUp 0.6s ease;
+  animation: seerSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .seer-follow-up-question {
@@ -844,9 +850,10 @@
   border: none;
   border-left: 2px solid rgba(201, 168, 76, 0.08);
   cursor: pointer;
-  transition: color 0.25s ease,
-              background 0.25s ease,
-              border-color 0.25s ease;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -919,7 +926,7 @@
   gap: 24px;
   margin-top: 40px;
   opacity: 0;
-  animation: seerSlideUp 0.5s ease 1.5s forwards;
+  animation: seerSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 1.5s forwards;
 }
 
 .seer-ask-again-btn {
@@ -1074,33 +1081,37 @@
 
 /* Seer inline keyframes */
 @keyframes seerAnswerFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes seerTextReveal {
   0% {
     text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
     opacity: 0;
+    transform: translateY(4px);
   }
   30% {
     text-shadow: 0 0 20px currentColor;
     opacity: 0.7;
+    transform: translateY(1px);
   }
   60% {
     text-shadow: 0 0 8px currentColor;
     opacity: 0.9;
+    transform: translateY(0);
   }
   100% {
     text-shadow: none;
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes seerSlideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -1119,7 +1130,7 @@
   }
 }
 
-/* Animations */
+/* Animations — all use GPU-composited properties (transform, opacity) */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -1128,7 +1139,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

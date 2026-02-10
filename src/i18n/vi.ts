@@ -62,13 +62,13 @@ export const vi: Record<TranslationKey, string> = {
   'hint.bonds': 'So sánh bản đồ sao của bạn với linh hồn khác',
 
   // ── Placeholder câu hỏi ──
-  'q.placeholder1': 'Anh ấy có nghĩ về tôi?',
+  'q.placeholder1': 'Tôi là kiểu người yêu nào?',
   'q.placeholder2': 'Tôi có nên nghỉ việc?',
   'q.placeholder3': 'Tôi có phải nhân vật chính?',
-  'q.placeholder4': 'Họ có nhắn lại?',
-  'q.placeholder5': 'Người này có phải định mệnh?',
-  'q.placeholder6': 'Siêu năng lực của tôi là gì?',
-  'q.placeholder7': 'Tôi có nên nói ra cảm xúc?',
+  'q.placeholder4': 'Tôi thực sự cần gì trong tình yêu?',
+  'q.placeholder5': 'Siêu năng lực của tôi là gì?',
+  'q.placeholder6': 'Tôi có đang đi đúng đường?',
+  'q.placeholder7': 'Tôi có nên tin linh cảm?',
   'q.placeholder8': 'Tôi sẽ ổn chứ?',
   'q.errorEmpty': 'Hãy nói câu hỏi trước',
   'q.errorMeaningful': 'Hãy hỏi một câu có ý nghĩa',
@@ -77,13 +77,13 @@ export const vi: Record<TranslationKey, string> = {
   'suggested.divider': 'hoặc để sao trời chọn',
 
   // ── Câu hỏi gợi ý Nhà Tiên Tri ──
-  // Tình yêu
-  'sq.thinkAboutMe': 'Anh ấy có nghĩ về tôi?',
-  'sq.textBack': 'Họ có nhắn lại?',
-  'sq.soulmate': 'Người này có phải định mệnh?',
-  'sq.overMe': 'Họ đã quên tôi chưa?',
-  'sq.loveReal': 'Tình yêu này có thật?',
-  'sq.comeBack': 'Họ có quay lại?',
+  // Tình yêu — trả lời được từ bản đồ sao của người dùng
+  'sq.loveNature': 'Tôi là kiểu người yêu nào?',
+  'sq.loveNeed': 'Tôi thực sự cần gì trong tình yêu?',
+  'sq.loveAttract': 'Tôi thu hút kiểu người nào?',
+  'sq.lovePattern': 'Tôi lặp lại mô hình gì trong tình yêu?',
+  'sq.loveReady': 'Tôi có sẵn sàng cho tình yêu bây giờ?',
+  'sq.loveDeserve': 'Tôi xứng đáng với tình yêu nào?',
   'sq.tellFeel': 'Tôi có nên nói ra cảm xúc?',
   'sq.settlingDown': 'Tôi có đang chấp nhận tạm bợ?',
   'sq.loveBlocking': 'Điều gì đang cản trở tình yêu?',

@@ -7,7 +7,7 @@
   text-transform: uppercase;
   color: var(--text-muted);
   margin: 24px 0 12px;
-  animation: fadeIn 0.4s ease 0.15s both;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both;
   user-select: none;
 }
 
@@ -16,7 +16,7 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  animation: fadeIn 0.5s ease 0.2s both;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
 }
 
 /* ── Chip ────────────────────────────────────────── */
@@ -33,15 +33,15 @@
   border: 1px solid rgba(201, 168, 76, 0.15);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: color 0.3s ease,
-              border-color 0.3s ease,
-              background 0.3s ease,
-              transform 0.15s ease;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  animation: chipAppear 0.4s ease both;
+  animation: chipAppear 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .suggestion-chip:nth-child(1) { animation-delay: 0.25s; }
@@ -66,7 +66,7 @@
 @keyframes chipAppear {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

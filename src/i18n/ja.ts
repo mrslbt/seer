@@ -62,13 +62,13 @@ export const ja: Record<TranslationKey, string> = {
   'hint.bonds': 'あなたのチャートを他の魂と比較する',
 
   // ── 質問プレースホルダー ──
-  'q.placeholder1': 'あの人は私のこと考えてる？',
+  'q.placeholder1': '私はどんな恋人？',
   'q.placeholder2': '仕事を辞めるべき？',
   'q.placeholder3': '私が主人公？',
-  'q.placeholder4': '返信は来る？',
-  'q.placeholder5': 'この人は運命の人？',
-  'q.placeholder6': '私の特別な力は？',
-  'q.placeholder7': '気持ちを伝えるべき？',
+  'q.placeholder4': '恋愛で本当に必要なものは？',
+  'q.placeholder5': '私の特別な力は？',
+  'q.placeholder6': '正しい道を歩いている？',
+  'q.placeholder7': '直感を信じるべき？',
   'q.placeholder8': '私は大丈夫？',
   'q.errorEmpty': 'まず質問を唱えよ',
   'q.errorMeaningful': '意味のある質問を',
@@ -77,13 +77,13 @@ export const ja: Record<TranslationKey, string> = {
   'suggested.divider': 'または星に選ばせる',
 
   // ── 予言者の提案質問 ──
-  // 恋愛
-  'sq.thinkAboutMe': 'あの人は私のこと考えてる？',
-  'sq.textBack': '返信は来る？',
-  'sq.soulmate': 'この人は運命の人？',
-  'sq.overMe': 'あの人はもう私を忘れた？',
-  'sq.loveReal': 'この愛は本物？',
-  'sq.comeBack': 'あの人は戻ってくる？',
+  // 恋愛 — 自分のチャートから読み取れる質問
+  'sq.loveNature': '私はどんな恋人？',
+  'sq.loveNeed': '恋愛で本当に必要なものは？',
+  'sq.loveAttract': 'どんな人を引き寄せる？',
+  'sq.lovePattern': '恋愛で繰り返すパターンは？',
+  'sq.loveReady': '今、恋愛の準備はできてる？',
+  'sq.loveDeserve': '私にふさわしい愛は？',
   'sq.tellFeel': '気持ちを伝えるべき？',
   'sq.settlingDown': '妥協してない？',
   'sq.loveBlocking': '恋愛を阻んでいるものは？',

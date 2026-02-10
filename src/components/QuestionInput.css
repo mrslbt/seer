@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .question-input-row {
@@ -25,7 +25,7 @@
   font-size: 1rem;
   font-style: italic;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.01em;
   border-radius: 0;
   -webkit-appearance: none;
@@ -49,7 +49,7 @@
   color: var(--text-muted);
   font-style: italic;
   font-family: var(--font-display);
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .question-input.has-error {
@@ -71,7 +71,7 @@
   background: transparent;
   border: 1px solid rgba(201, 168, 76, 0.2);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
 

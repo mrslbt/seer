@@ -18,13 +18,13 @@ export interface SuggestedQuestion {
 }
 
 export const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
-  // Love & relationships — the #1 reason people open the app
-  { key: 'sq.thinkAboutMe', category: 'love' },
-  { key: 'sq.textBack', category: 'love' },
-  { key: 'sq.soulmate', category: 'love' },
-  { key: 'sq.overMe', category: 'love' },
-  { key: 'sq.loveReal', category: 'love' },
-  { key: 'sq.comeBack', category: 'love' },
+  // Love & relationships — answerable from the user's OWN chart
+  { key: 'sq.loveNature', category: 'love' },
+  { key: 'sq.loveNeed', category: 'love' },
+  { key: 'sq.loveAttract', category: 'love' },
+  { key: 'sq.lovePattern', category: 'love' },
+  { key: 'sq.loveReady', category: 'love' },
+  { key: 'sq.loveDeserve', category: 'love' },
   { key: 'sq.tellFeel', category: 'communication' },
   { key: 'sq.settlingDown', category: 'love' },
   { key: 'sq.loveBlocking', category: 'love' },
