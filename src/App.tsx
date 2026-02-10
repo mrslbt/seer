@@ -4,6 +4,7 @@ import { generateAstroContext } from './lib/astroEngine';
 import { scoreDecision, classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
 import { playClick, playVerdictSound, playReveal, setMuted } from './lib/sounds';
 import { generateOracleResponse } from './lib/oracleResponse';
+import { callLLMOracle, type LLMOracleResult } from './lib/llmOracle';
 import { generateInsightArticle, generateFallbackArticle } from './lib/insightArticle';
 import type { InsightArticle } from './lib/insightArticle';
 
@@ -56,6 +57,7 @@ function App() {
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHadBirthData = useRef(false);
+  const llmPromiseRef = useRef<Promise<LLMOracleResult> | null>(null);
 
   const {
     isLoading: cosmosLoading,
@@ -264,7 +266,7 @@ function App() {
     setAppState('awaiting_question');
   }, []);
 
-  // Submit question — classify silently and go straight to gazing
+  // Submit question — classify silently, fire LLM call, go to gazing
   const handleSubmitQuestion = useCallback(() => {
     const validation = validateQuestionInput(questionText);
     if (!validation.valid) {
@@ -281,14 +283,27 @@ function App() {
     const { category } = classifyQuestionWithConfidence(trimmed);
     setSelectedCategory(category);
 
+    // Fire LLM call NOW — it runs during the gazing animation (~3s)
+    if (userProfile && dailyReport) {
+      const questionMode = detectQuestionMode(trimmed);
+      let verdict: Verdict = 'NEUTRAL';
+      if (questionMode === 'directional') {
+        const scoring = scorePersonalDecision(trimmed, dailyReport, category);
+        verdict = scoring.verdict;
+      }
+      llmPromiseRef.current = callLLMOracle(
+        trimmed, questionMode, category, verdict, userProfile, dailyReport
+      );
+    } else {
+      llmPromiseRef.current = null;
+    }
+
     setAppState('gazing');
-  }, [questionText]);
+  }, [questionText, userProfile, dailyReport]);
 
-  // Eye finished gazing - generate reading
-  const handleGazeComplete = useCallback(() => {
+  // Eye finished gazing - generate reading (async for LLM)
+  const handleGazeComplete = useCallback(async () => {
     if (!astroContext) return;
-
-    setAppState('revealing');
 
     const questionMode = detectQuestionMode(submittedQuestion);
     setOracleQuestionMode(questionMode);
@@ -297,11 +312,9 @@ function App() {
     let category: QuestionCategory;
 
     if (questionMode === 'guidance') {
-      // Guidance mode: skip the yes/no verdict pipeline entirely.
-      // We only need the category to know which life area to read from.
       const classified = classifyQuestionWithConfidence(submittedQuestion);
       category = selectedCategory ?? classified.category;
-      verdict = 'NEUTRAL'; // placeholder — not shown in UI
+      verdict = 'NEUTRAL';
     } else if (dailyReport && userProfile) {
       const personalScoring = scorePersonalDecision(submittedQuestion, dailyReport, selectedCategory ?? undefined);
       verdict = personalScoring.verdict;
@@ -312,8 +325,33 @@ function App() {
       category = scoring.category;
     }
 
-    const readingPatterns = analyzePatterns(userProfile?.id);
-    const response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+    // Try to get the LLM response (fired during gazing animation)
+    let response: string;
+    let usedLLM = false;
+
+    if (llmPromiseRef.current) {
+      try {
+        const llmResult = await llmPromiseRef.current;
+        if (llmResult.source === 'llm' && llmResult.text) {
+          response = llmResult.text;
+          usedLLM = true;
+        } else {
+          // LLM failed — fall back to templates
+          const readingPatterns = analyzePatterns(userProfile?.id);
+          response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+        }
+      } catch {
+        const readingPatterns = analyzePatterns(userProfile?.id);
+        response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+      }
+      llmPromiseRef.current = null;
+    } else {
+      // No LLM call (no profile/report) — use templates
+      const readingPatterns = analyzePatterns(userProfile?.id);
+      response = generateOracleResponse(verdict, category, dailyReport, submittedQuestion, readingPatterns, questionMode);
+    }
+
+    setAppState('revealing');
     setOracleText(response);
     setOracleVerdict(verdict);
     setOracleCategory(category);
@@ -334,11 +372,15 @@ function App() {
       profileId: userProfile?.id,
     });
 
-    // No verdict sound for guidance mode — it's not a yes/no
+    // No verdict sound for guidance mode
     if (questionMode !== 'guidance') {
       setTimeout(() => {
         playVerdictSound(verdict);
       }, 300);
+    }
+
+    if (usedLLM) {
+      console.log('[Seer] LLM response used');
     }
   }, [astroContext, submittedQuestion, dailyReport, userProfile, selectedCategory]);
 
