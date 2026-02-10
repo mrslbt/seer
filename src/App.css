@@ -160,9 +160,10 @@
 .onboarding-form {
   width: 100%;
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(201, 168, 76, 0.08);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.3);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -187,9 +188,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 8px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(201, 168, 76, 0.08);
+  margin-top: 12px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(201, 168, 76, 0.06);
   animation: fadeIn 0.6s ease 0.2s both;
 }
 
@@ -208,7 +209,7 @@
 
 .tab-suggestions-divider {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -322,13 +323,23 @@
 /* Cosmos status */
 .cosmos-status {
   font-family: var(--font-display);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-style: italic;
   color: var(--accent-dim);
   letter-spacing: 0.02em;
   text-align: center;
   width: 100%;
   animation: fadeIn 0.6s ease;
+}
+
+/* Full-screen centered loading state */
+.cosmos-status--center {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
 }
 
 .cosmos-status--warn {
@@ -401,13 +412,14 @@
 
 .modal {
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(201, 168, 76, 0.06);
   border-radius: var(--radius);
   width: 100%;
   max-width: 360px;
   max-height: 85vh;
   overflow-y: auto;
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
 }
 
 .modal-header {
@@ -565,7 +577,7 @@
 
 .moon-ritual-text {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-style: italic;
   color: var(--text-muted);
   letter-spacing: 0.01em;
@@ -774,11 +786,11 @@
 
 .seer-follow-up-label {
   font-family: var(--font);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.4);
+  color: rgba(201, 168, 76, 0.45);
   margin-bottom: 10px;
 }
 
@@ -786,7 +798,7 @@
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-style: italic;
-  line-height: 1.65;
+  line-height: 1.7;
   color: rgba(201, 168, 76, 0.85);
 }
 
@@ -912,8 +924,8 @@
 /* Follow-ups exhausted */
 .seer-follow-up-exhausted {
   font-family: var(--font);
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
   text-align: center;
   letter-spacing: 0.04em;
   margin: 4px 0;
@@ -938,17 +950,18 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.4);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: color 0.25s ease,
               border-color 0.25s ease;
 }
 
 .seer-ask-again-btn:hover {
-  color: rgba(255, 255, 255, 0.6);
-  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .seer-ask-again-btn:active {
@@ -961,9 +974,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.25);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   cursor: pointer;
   transition: color 0.25s ease,
@@ -1036,7 +1049,7 @@
 .seer-article-score-max {
   font-size: 0.875rem;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.5;
 }
 
 .seer-article-score-label {
@@ -1044,7 +1057,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.5;
   margin-left: 12px;
 }
 
@@ -1070,7 +1083,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.5;
   margin-bottom: 8px;
 }
 

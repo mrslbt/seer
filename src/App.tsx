@@ -716,7 +716,9 @@ function App() {
           </div>
         )}
         {!hasBirthData && cosmosLoading && (
-          <p className="cosmos-status">{t('onboarding.loading')}</p>
+          <div className="cosmos-status cosmos-status--center">
+            <p>{t('onboarding.loading')}</p>
+          </div>
         )}
         {hasBirthData && cosmosError && !cosmosLoading && (
           <p className="cosmos-status cosmos-status--warn">{t('onboarding.warnPrecision')}</p>

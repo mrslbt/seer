@@ -68,10 +68,10 @@
 
 .glyph-label {
   font-family: var(--font);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.3);
   transition: color 0.25s ease;
   line-height: 1;
   white-space: nowrap;
@@ -123,6 +123,6 @@
   }
 
   .glyph-label {
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
   }
 }

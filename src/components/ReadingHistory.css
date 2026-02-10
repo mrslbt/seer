@@ -129,9 +129,9 @@
 /* ── Reading Card ──────────────────────────────── */
 .history-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 16px;
   animation: historyCardAppear 0.4s ease both;
 }
 
@@ -202,7 +202,7 @@
   font-family: var(--font);
   font-size: 0.8125rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
   margin-bottom: 8px;
 }
 
