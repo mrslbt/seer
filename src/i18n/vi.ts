@@ -131,6 +131,7 @@ export const vi: Record<TranslationKey, string> = {
   // ── Bản đồ sao ──
   'chart.your': 'Của bạn',
   'chart.title': 'Bản đồ sao lúc sinh',
+  'chart.reading': 'Nhà tiên tri nhìn thấy',
   'chart.keyPoints': 'Điểm chính',
   'chart.planets': 'Hành tinh',
   'chart.houses': 'Nhà',

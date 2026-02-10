@@ -1,20 +1,22 @@
 /**
  * NatalChartView — overlay showing the user's natal planet placements and houses.
- * Redesigned: Big Three hero, grouped planet rows, compact house grid.
+ * Redesigned: Big Three hero, LLM personality reading, grouped planet rows, compact house grid.
  * Mobile-first (320-420px), dark luxury aesthetic.
  */
 
-import { useCallback, useEffect } from 'react';
-import type { NatalChart, PlanetPosition, Planet } from '../types/userProfile';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import type { NatalChart, PlanetPosition, Planet, UserProfile } from '../types/userProfile';
 import type { ZodiacSign } from '../types/astrology';
 import { HOUSE_MEANINGS } from '../lib/personalDailyReport';
 import { getHouseForLongitude } from '../lib/ephemerisService';
+import { callChartReadingLLM } from '../lib/llmOracle';
 import { useI18n } from '../i18n/I18nContext';
 import type { TranslationKey } from '../i18n/en';
 import './NatalChartView.css';
 
 interface NatalChartViewProps {
   natalChart: NatalChart;
+  userProfile?: UserProfile;
   onClose?: () => void;
   mode?: 'overlay' | 'inline';
 }
@@ -101,6 +103,13 @@ const BIG_THREE: { key: Planet; label: string }[] = [
   { key: 'ascendant', label: 'Rising' },
 ];
 
+// Element map for template fallback
+const SIGN_ELEMENTS: Record<ZodiacSign, 'fire' | 'earth' | 'air' | 'water'> = {
+  Aries: 'fire', Taurus: 'earth', Gemini: 'air', Cancer: 'water',
+  Leo: 'fire', Virgo: 'earth', Libra: 'air', Scorpio: 'water',
+  Sagittarius: 'fire', Capricorn: 'earth', Aquarius: 'air', Pisces: 'water',
+};
+
 function formatDegree(degree: number): string {
   const d = Math.floor(degree);
   const m = Math.floor((degree - d) * 60);
@@ -113,9 +122,57 @@ function ordinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalChartViewProps) {
-  const { t } = useI18n();
+// ── Template fallback reading based on Big Three ──
+function generateFallbackReading(chart: NatalChart): string {
+  const sunSign = chart.sun.sign;
+  const moonSign = chart.moon.sign;
+  const risingSign = chart.ascendant?.sign;
+
+  const sunEl = SIGN_ELEMENTS[sunSign];
+  const moonEl = SIGN_ELEMENTS[moonSign];
+
+  // Build a 2-sentence personality snapshot from element combination
+  const core: Record<string, string> = {
+    fire: 'Something in you burns. You move toward what you want before you name it',
+    earth: 'You build things that last. Patience is not something you practice. It is something you are',
+    air: 'Your mind arrives before you do. Ideas pull you forward. Stillness is harder than motion',
+    water: 'You feel the room before you enter it. What others miss, you carry',
+  };
+
+  const inner: Record<string, string> = {
+    fire: 'Underneath, you need to be seen. Not admired. Seen',
+    earth: 'Underneath, you need safety before you can give yourself away',
+    air: 'Underneath, you are looking for someone who can keep up with your mind',
+    water: 'Underneath, you hold more than you show. The depth is the point',
+  };
+
+  let reading = core[sunEl] + '. ' + inner[moonEl] + '.';
+
+  if (risingSign && SIGN_ELEMENTS[risingSign] !== sunEl) {
+    const risingEl = SIGN_ELEMENTS[risingSign];
+    const mask: Record<string, string> = {
+      fire: 'The world sees confidence first',
+      earth: 'The world sees composure first',
+      air: 'The world sees charm first',
+      water: 'The world sees softness first',
+    };
+    reading += ' ' + mask[risingEl] + '.';
+  }
+
+  return reading;
+}
+
+// ── Cache key for localStorage ──
+function getReadingCacheKey(profileId: string, lang: string): string {
+  return `seer-chart-reading-${profileId}-${lang}`;
+}
+
+export function NatalChartView({ natalChart, userProfile, onClose, mode = 'overlay' }: NatalChartViewProps) {
+  const { t, lang } = useI18n();
   const isInline = mode === 'inline';
+  const [chartReading, setChartReading] = useState<string | null>(null);
+  const [readingLoading, setReadingLoading] = useState(false);
+  const llmCalledRef = useRef(false);
 
   // Escape key handler (only in overlay mode)
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -127,6 +184,41 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown, isInline]);
+
+  // ── Fetch chart reading on mount ──
+  useEffect(() => {
+    if (!userProfile || llmCalledRef.current) return;
+    llmCalledRef.current = true;
+
+    const cacheKey = getReadingCacheKey(userProfile.id, lang);
+
+    // Check localStorage cache first
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        setChartReading(cached);
+        return;
+      }
+    } catch { /* empty */ }
+
+    // Call LLM
+    setReadingLoading(true);
+    callChartReadingLLM(userProfile, lang).then(result => {
+      if (result.source === 'llm' && result.text) {
+        setChartReading(result.text);
+        try { localStorage.setItem(cacheKey, result.text); } catch { /* empty */ }
+      } else {
+        // Template fallback
+        const fallback = generateFallbackReading(natalChart);
+        setChartReading(fallback);
+      }
+      setReadingLoading(false);
+    }).catch(() => {
+      const fallback = generateFallbackReading(natalChart);
+      setChartReading(fallback);
+      setReadingLoading(false);
+    });
+  }, [userProfile, natalChart, lang]);
 
   const hasHouses = !!natalChart.houses;
 
@@ -180,6 +272,16 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
                 </span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Chart Reading — LLM-generated personality snapshot */}
+        {(chartReading || readingLoading) && (
+          <div className="chart-reading">
+            <div className="chart-reading-label">{t('chart.reading')}</div>
+            <p className={`chart-reading-text${readingLoading ? ' chart-reading-text--loading' : ''}`}>
+              {readingLoading ? '\u2026' : chartReading}
+            </p>
           </div>
         )}
 

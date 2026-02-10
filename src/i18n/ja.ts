@@ -131,6 +131,7 @@ export const ja: Record<TranslationKey, string> = {
   // ── 出生チャート ──
   'chart.your': 'あなたの',
   'chart.title': '出生チャート',
+  'chart.reading': '予見者の目',
   'chart.keyPoints': 'キーポイント',
   'chart.planets': '惑星',
   'chart.houses': 'ハウス',

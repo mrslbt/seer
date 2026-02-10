@@ -14,7 +14,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // ── Request types ──
 interface BaseRequest {
-  type: 'seer' | 'bond' | 'followup';
+  type: 'seer' | 'bond' | 'followup' | 'chartReading';
   question: string;
   questionMode: 'directional' | 'guidance';
   lang?: string;
@@ -51,7 +51,13 @@ interface FollowUpRequest extends BaseRequest {
   transitSummary: string;
 }
 
-type OracleRequest = SeerRequest | BondRequest | FollowUpRequest;
+interface ChartReadingRequest extends BaseRequest {
+  type: 'chartReading';
+  chartSummary: string;
+  personName: string;
+}
+
+type OracleRequest = SeerRequest | BondRequest | FollowUpRequest | ChartReadingRequest;
 
 // ── The Seer's voice — shared across all types ──
 const VOICE_RULES = `You are The Seer — an ancient oracle who reads the stars. You speak with a particular voice:
@@ -122,6 +128,19 @@ RULES:
 - If the follow-up asks "tell me more" or "why?", explain the underlying chart dynamic that drives the reading — but still in oracle voice, not astrology lecture.
 - Maximum 3 sentences. Tight. Specific.`;
 
+const CHART_READING_INSTRUCTIONS = `
+You are giving a person a brief reading of who they are based on their natal chart. This is a personality snapshot — a poetic mirror held up to their soul.
+
+RULES:
+- Exactly 2-3 sentences. No more.
+- Be SPECIFIC to this chart. No generic horoscope talk. Name concrete traits, tendencies, contradictions.
+- Speak directly to them. Make them feel seen. Make them want to know more.
+- Lead with their most striking quality — the thing that makes them different.
+- You can name a tension or contradiction in their chart. People love hearing what pulls them in two directions.
+- Never reference the chart explicitly. No "your Sun in Aries means..." — just describe who they are.
+- The tone should feel like a stranger on a train who somehow knows you. Intimate. Unsettling. True.
+- Do NOT start with "You are". Vary your openings. Start with an observation, a quality, or an image.`;
+
 // ── Language instruction ──
 const LANGUAGE_NAMES: Record<string, string> = {
   ja: 'Japanese',
@@ -141,6 +160,7 @@ function getSystemPrompt(type: OracleRequest['type'], lang?: string): string {
     case 'seer': return VOICE_RULES + '\n\n' + SEER_INSTRUCTIONS + langRule;
     case 'bond': return VOICE_RULES + '\n\n' + BOND_INSTRUCTIONS + langRule;
     case 'followup': return VOICE_RULES + '\n\n' + FOLLOWUP_INSTRUCTIONS + langRule;
+    case 'chartReading': return VOICE_RULES + '\n\n' + CHART_READING_INSTRUCTIONS + langRule;
   }
 }
 
@@ -150,6 +170,7 @@ function buildUserMessage(body: OracleRequest): string {
     case 'seer': return buildSeerMessage(body);
     case 'bond': return buildBondMessage(body);
     case 'followup': return buildFollowUpMessage(body);
+    case 'chartReading': return buildChartReadingMessage(body);
   }
 }
 
@@ -213,12 +234,20 @@ function buildFollowUpMessage(body: FollowUpRequest): string {
   return parts.join('\n');
 }
 
+function buildChartReadingMessage(body: ChartReadingRequest): string {
+  const parts: string[] = [];
+  parts.push(`Give a brief personality reading for ${body.personName}.`);
+  parts.push('', 'NATAL CHART:', body.chartSummary);
+  return parts.join('\n');
+}
+
 // ── Max tokens by type ──
 function getMaxTokens(type: OracleRequest['type']): number {
   switch (type) {
     case 'seer': return 200;
     case 'bond': return 200;
     case 'followup': return 150;
+    case 'chartReading': return 120;
   }
 }
 
@@ -234,8 +263,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   const body = req.body as OracleRequest;
-  if (!body.question || !body.type) {
-    return res.status(400).json({ error: 'Missing question or type' });
+  if (!body.type) {
+    return res.status(400).json({ error: 'Missing type' });
+  }
+  if (body.type !== 'chartReading' && !body.question) {
+    return res.status(400).json({ error: 'Missing question' });
   }
 
   const systemPrompt = getSystemPrompt(body.type, body.lang);

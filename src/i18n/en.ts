@@ -129,6 +129,7 @@ export const en = {
   // ── Natal Chart ──
   'chart.your': 'Your',
   'chart.title': 'Natal Chart',
+  'chart.reading': 'The Seer Sees',
   'chart.keyPoints': 'Key Points',
   'chart.planets': 'Planets',
   'chart.houses': 'Houses',

@@ -966,6 +966,7 @@ function App() {
         {hasBirthData && activeTab === 'chart' && userProfile && (
           <NatalChartView
             natalChart={userProfile.natalChart}
+            userProfile={userProfile}
             mode="inline"
           />
         )}

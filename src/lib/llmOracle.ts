@@ -218,6 +218,22 @@ export async function callBondLLM(
 }
 
 /**
+ * Chart personality reading — short poetic summary of who the person is
+ */
+export async function callChartReadingLLM(
+  profile: UserProfile,
+  lang?: string,
+): Promise<LLMOracleResult> {
+  return callAPI({
+    type: 'chartReading',
+    question: 'read my chart',
+    questionMode: 'guidance' as const,
+    chartSummary: serializeChart(profile),
+    personName: profile.birthData.name || 'this person',
+  }, lang);
+}
+
+/**
  * Follow-up question after any reading
  */
 export async function callFollowUpLLM(
