@@ -19,14 +19,14 @@ export interface CategoryMeta {
  * Icons use astrological planet symbols (Unicode).
  */
 export const CATEGORY_META: CategoryMeta[] = [
-  { key: 'love',       displayName: 'Love',       icon: 'Ve', planetName: 'Venus' },
-  { key: 'career',     displayName: 'Career',     icon: 'Sa', planetName: 'Saturn' },
-  { key: 'money',      displayName: 'Money',      icon: 'Ju', planetName: 'Jupiter' },
-  { key: 'health',     displayName: 'Health',     icon: 'Ma', planetName: 'Mars' },
-  { key: 'social',     displayName: 'Social',     icon: 'Me', planetName: 'Mercury' },
-  { key: 'decisions',  displayName: 'Decisions',  icon: 'Su', planetName: 'Sun' },
-  { key: 'creativity', displayName: 'Creativity', icon: 'Ne', planetName: 'Neptune' },
-  { key: 'spiritual',  displayName: 'Spiritual',  icon: 'Mo', planetName: 'Moon' },
+  { key: 'love',       displayName: 'Love',       icon: '♀', planetName: 'Venus' },
+  { key: 'career',     displayName: 'Career',     icon: '♄', planetName: 'Saturn' },
+  { key: 'money',      displayName: 'Money',      icon: '♃', planetName: 'Jupiter' },
+  { key: 'health',     displayName: 'Health',     icon: '♂', planetName: 'Mars' },
+  { key: 'social',     displayName: 'Social',     icon: '☿', planetName: 'Mercury' },
+  { key: 'decisions',  displayName: 'Decisions',  icon: '☉', planetName: 'Sun' },
+  { key: 'creativity', displayName: 'Creativity', icon: '♆', planetName: 'Neptune' },
+  { key: 'spiritual',  displayName: 'Spiritual',  icon: '☽', planetName: 'Moon' },
 ];
 
 /**
