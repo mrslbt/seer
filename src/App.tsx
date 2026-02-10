@@ -680,7 +680,10 @@ function App() {
       {/* Header */}
       <header className="app-header">
         {hasBirthData ? (
-          <button className="header-brand" onClick={handleBrandClick}>{t('header.brand')}</button>
+          <button className="header-brand" onClick={handleBrandClick}>
+            <span className="header-brand-the">THE</span>
+            <span className="header-brand-seer">Seer</span>
+          </button>
         ) : (
           <div />
         )}
