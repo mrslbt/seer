@@ -8,6 +8,8 @@ import type { NatalChart, PlanetPosition, Planet } from '../types/userProfile';
 import type { ZodiacSign } from '../types/astrology';
 import { HOUSE_MEANINGS } from '../lib/personalDailyReport';
 import { getHouseForLongitude } from '../lib/ephemerisService';
+import { useI18n } from '../i18n/I18nContext';
+import type { TranslationKey } from '../i18n/en';
 import './NatalChartView.css';
 
 interface NatalChartViewProps {
@@ -19,20 +21,20 @@ interface NatalChartViewProps {
 // ---- Glyph maps ----
 
 const PLANET_GLYPHS: Record<Planet, string> = {
-  sun: '\u2609',        // ☉
-  moon: '\u263D',       // ☽
-  mercury: '\u263F',    // ☿
-  venus: '\u2640',      // ♀
-  mars: '\u2642',       // ♂
-  jupiter: '\u2643',    // ♃
-  saturn: '\u2644',     // ♄
-  uranus: '\u2645',     // ♅
-  neptune: '\u2646',    // ♆
-  pluto: '\u2647',      // ♇
+  sun: 'Su',
+  moon: 'Mo',
+  mercury: 'Me',
+  venus: 'Ve',
+  mars: 'Ma',
+  jupiter: 'Ju',
+  saturn: 'Sa',
+  uranus: 'Ur',
+  neptune: 'Ne',
+  pluto: 'Pl',
   ascendant: 'AC',
   midheaven: 'MC',
-  northNode: '\u260A',  // ☊
-  chiron: '\u26B7',     // ⚷
+  northNode: 'NN',
+  chiron: 'Ch',
 };
 
 const PLANET_NAMES: Record<Planet, string> = {
@@ -53,52 +55,34 @@ const PLANET_NAMES: Record<Planet, string> = {
 };
 
 const ZODIAC_GLYPHS: Record<ZodiacSign, string> = {
-  Aries: '\u2648',
-  Taurus: '\u2649',
-  Gemini: '\u264A',
-  Cancer: '\u264B',
-  Leo: '\u264C',
-  Virgo: '\u264D',
-  Libra: '\u264E',
-  Scorpio: '\u264F',
-  Sagittarius: '\u2650',
-  Capricorn: '\u2651',
-  Aquarius: '\u2652',
-  Pisces: '\u2653',
+  Aries: 'Ar',
+  Taurus: 'Ta',
+  Gemini: 'Ge',
+  Cancer: 'Cn',
+  Leo: 'Le',
+  Virgo: 'Vi',
+  Libra: 'Li',
+  Scorpio: 'Sc',
+  Sagittarius: 'Sg',
+  Capricorn: 'Cp',
+  Aquarius: 'Aq',
+  Pisces: 'Pi',
 };
 
-// What each planet represents (plain English for non-astrologers)
-const PLANET_MEANING: Record<Planet, string> = {
-  sun: 'Your core identity',
-  moon: 'Your emotions and inner world',
-  mercury: 'How you think and communicate',
-  venus: 'How you love and what you value',
-  mars: 'Your drive and how you take action',
-  jupiter: 'Where you find luck and growth',
-  saturn: 'Your discipline and life lessons',
-  uranus: 'Where you break the rules',
-  neptune: 'Your dreams and intuition',
-  pluto: 'Your deepest transformation',
-  ascendant: 'How the world sees you',
-  midheaven: 'Your public image and career path',
-  northNode: "Your soul's direction",
-  chiron: 'Your deepest wound and healing gift',
+// i18n key maps
+const PLANET_MEANING_KEY: Record<Planet, TranslationKey> = {
+  sun: 'planet.sun', moon: 'planet.moon', mercury: 'planet.mercury',
+  venus: 'planet.venus', mars: 'planet.mars', jupiter: 'planet.jupiter',
+  saturn: 'planet.saturn', uranus: 'planet.uranus', neptune: 'planet.neptune',
+  pluto: 'planet.pluto', ascendant: 'planet.ascendant', midheaven: 'planet.midheaven',
+  northNode: 'planet.northNode', chiron: 'planet.chiron',
 };
 
-// Sign qualities (one-line descriptor)
-const SIGN_QUALITY: Record<string, string> = {
-  Aries: 'bold, direct, action-driven',
-  Taurus: 'steady, sensual, grounded',
-  Gemini: 'curious, adaptable, expressive',
-  Cancer: 'nurturing, intuitive, protective',
-  Leo: 'confident, creative, warm',
-  Virgo: 'precise, practical, devoted',
-  Libra: 'harmonious, fair, relationship-oriented',
-  Scorpio: 'intense, transformative, deep',
-  Sagittarius: 'adventurous, philosophical, free',
-  Capricorn: 'ambitious, disciplined, strategic',
-  Aquarius: 'independent, visionary, unconventional',
-  Pisces: 'empathetic, dreamy, spiritually attuned',
+const SIGN_QUALITY_KEY: Record<string, TranslationKey> = {
+  Aries: 'sign.Aries', Taurus: 'sign.Taurus', Gemini: 'sign.Gemini',
+  Cancer: 'sign.Cancer', Leo: 'sign.Leo', Virgo: 'sign.Virgo',
+  Libra: 'sign.Libra', Scorpio: 'sign.Scorpio', Sagittarius: 'sign.Sagittarius',
+  Capricorn: 'sign.Capricorn', Aquarius: 'sign.Aquarius', Pisces: 'sign.Pisces',
 };
 
 // Display order: luminaries, personal, social, outer, points
@@ -123,6 +107,7 @@ function ordinal(n: number): string {
 }
 
 export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalChartViewProps) {
+  const { t } = useI18n();
   const isInline = mode === 'inline';
 
   // Escape key handler (only in overlay mode)
@@ -150,8 +135,8 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
         {/* Header */}
         <div className="chart-header">
           <div className="chart-title">
-            <span className="chart-title-sub">Your</span>
-            <span className="chart-title-main">Natal Chart</span>
+            <span className="chart-title-sub">{t('chart.your')}</span>
+            <span className="chart-title-main">{t('chart.title')}</span>
           </div>
           {!isInline && (
             <button className="chart-close" onClick={onClose} aria-label="Close">
@@ -162,7 +147,7 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
 
         {/* Ascendant & Midheaven */}
         <section className="chart-section">
-          <h3 className="chart-section-label">Key Points</h3>
+          <h3 className="chart-section-label">{t('chart.keyPoints')}</h3>
           <div className="chart-points">
             {POINT_ORDER.map(key => {
               const pos = natalChart[key] as PlanetPosition | undefined;
@@ -179,7 +164,7 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
                     <span className="chart-point-degree">{formatDegree(pos.degree)}</span>
                   </div>
                   <div className="chart-point-interp">
-                    {PLANET_MEANING[key]}: {SIGN_QUALITY[pos.sign] || pos.sign.toLowerCase()}
+                    {t(PLANET_MEANING_KEY[key])}: {SIGN_QUALITY_KEY[pos.sign] ? t(SIGN_QUALITY_KEY[pos.sign]) : pos.sign.toLowerCase()}
                   </div>
                 </div>
               );
@@ -189,7 +174,7 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
 
         {/* Planet Placements */}
         <section className="chart-section">
-          <h3 className="chart-section-label">Planets</h3>
+          <h3 className="chart-section-label">{t('chart.planets')}</h3>
           <div className="chart-planets">
             {PLANET_ORDER.map(key => {
               const pos = natalChart[key] as PlanetPosition | undefined;
@@ -210,12 +195,12 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
                       <span className="chart-planet-degree">{formatDegree(pos.degree)}</span>
                       {pos.isRetrograde && <span className="chart-rx">Rx</span>}
                       {house && (
-                        <span className="chart-planet-house">{ordinal(house)} house</span>
+                        <span className="chart-planet-house">{t('chart.house', { n: ordinal(house) })}</span>
                       )}
                     </div>
                   </div>
                   <div className="chart-planet-interp">
-                    {PLANET_MEANING[key]}: {SIGN_QUALITY[pos.sign] || pos.sign.toLowerCase()}
+                    {t(PLANET_MEANING_KEY[key])}: {SIGN_QUALITY_KEY[pos.sign] ? t(SIGN_QUALITY_KEY[pos.sign]) : pos.sign.toLowerCase()}
                   </div>
                 </div>
               );
@@ -227,9 +212,9 @@ export function NatalChartView({ natalChart, onClose, mode = 'overlay' }: NatalC
         {hasHouses && natalChart.houses && (
           <section className="chart-section">
             <h3 className="chart-section-label">
-              Houses
+              {t('chart.houses')}
               <span className="chart-house-system">
-                {natalChart.houses.system === 'P' ? 'Placidus' : 'Whole Sign'}
+                {natalChart.houses.system === 'P' ? t('chart.placidus') : t('chart.wholeSign')}
               </span>
             </h3>
             <div className="chart-houses-grid">

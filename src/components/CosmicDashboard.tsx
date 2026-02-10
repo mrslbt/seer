@@ -3,6 +3,7 @@ import type { PersonalDailyReport } from '../lib/personalDailyReport';
 import type { QuestionCategory } from '../types/astrology';
 import { generateInsightArticle, getScoreLabel } from '../lib/insightArticle';
 import { CATEGORY_META, getScoreColor, getEnergyLabel, getOverallDescriptor } from '../lib/dashboardHelpers';
+import { useI18n } from '../i18n/I18nContext';
 import './CosmicDashboard.css';
 
 interface CosmicDashboardProps {
@@ -22,6 +23,7 @@ function getArcOffset(score: number): number {
 }
 
 export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }: CosmicDashboardProps) {
+  const { t } = useI18n();
   const [expandedCategory, setExpandedCategory] = useState<keyof PersonalDailyReport['categories'] | null>(null);
   const isInline = mode === 'inline';
 
@@ -53,12 +55,12 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
       <div className={isInline ? 'dashboard-inline' : 'dashboard-overlay'} role={isInline ? undefined : 'dialog'} aria-modal={isInline ? undefined : true} aria-label={isInline ? undefined : `${meta.displayName} details`}>
         <div className="dashboard-container dashboard-detail">
           <button className="detail-back" onClick={() => setExpandedCategory(null)}>
-            {'←'} Back
+            {'←'} {t('cosmos.back')}
           </button>
 
           <div className="detail-header">
             <div className="detail-category-name">
-              <span className="detail-icon">{meta.icon}</span>
+              <span className="detail-icon">{meta.planetName}</span>
               <h2 className="detail-title" style={{ color: scoreColor }}>{article.title}</h2>
             </div>
             <div className="detail-score-row">
@@ -78,7 +80,7 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
           </div>
 
           <button className="detail-back" onClick={() => setExpandedCategory(null)}>
-            {'←'} Back
+            {'←'} {t('cosmos.back')}
           </button>
         </div>
       </div>
@@ -101,8 +103,8 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
             </button>
           )}
           <div className="dashboard-title">
-            <span className="dashboard-title-sub">Your</span>
-            <span className="dashboard-title-main">Cosmic Day</span>
+            <span className="dashboard-title-sub">{t('cosmos.your')}</span>
+            <span className="dashboard-title-main">{t('cosmos.title')}</span>
           </div>
           <button className="dashboard-refresh" onClick={onRefresh} aria-label="Refresh data">
             {'↻'}
@@ -153,7 +155,7 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
                 <div className="category-bar-track">
                   <div
                     className="category-bar-fill"
-                    style={{ width: `${score.score * 10}%` }}
+                    style={{ width: `${score.score * 10}%`, background: color }}
                   />
                 </div>
                 <span className="category-advice">{score.advice}</span>
@@ -164,7 +166,7 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
 
         {/* Moon Phase */}
         <div className="dashboard-section">
-          <h3 className="section-label">Lunar Phase</h3>
+          <h3 className="section-label">{t('cosmos.lunar')}</h3>
           <div className="moon-row">
             <span className="moon-name">{report.moonPhase.name}</span>
           </div>
@@ -174,13 +176,13 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
         {/* Key Transits */}
         {report.keyTransits.length > 0 && (
           <div className="dashboard-section">
-            <h3 className="section-label">Active Transits</h3>
-            {report.keyTransits.map((t, i) => (
+            <h3 className="section-label">{t('cosmos.transits')}</h3>
+            {report.keyTransits.map((tr, i) => (
               <div key={i} className="transit-row">
-                <span className={`transit-impact transit-impact--${t.impact}`}>
-                  {t.impact === 'positive' ? '↑' : t.impact === 'negative' ? '↓' : '↔'}
+                <span className={`transit-impact transit-impact--${tr.impact}`}>
+                  {tr.impact === 'positive' ? '↑' : tr.impact === 'negative' ? '↓' : '↔'}
                 </span>
-                <span className="transit-text">{t.interpretation}</span>
+                <span className="transit-text">{tr.interpretation}</span>
               </div>
             ))}
           </div>
@@ -189,21 +191,21 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
         {/* Upcoming Transits — what's coming */}
         {(() => {
           const upcoming = report.keyTransits
-            .filter(t => t.timing?.isApplying && t.timing?.daysUntilExact != null && t.timing.daysUntilExact > 0)
+            .filter(tr => tr.timing?.isApplying && tr.timing?.daysUntilExact != null && tr.timing.daysUntilExact > 0)
             .sort((a, b) => (a.timing?.daysUntilExact ?? 99) - (b.timing?.daysUntilExact ?? 99))
             .slice(0, 4);
           return upcoming.length > 0 ? (
             <div className="dashboard-section">
-              <h3 className="section-label">Coming Up</h3>
-              {upcoming.map((t, i) => {
-                const days = t.timing!.daysUntilExact!;
-                const dayLabel = days === 1 ? 'tomorrow' : `in ${days} days`;
+              <h3 className="section-label">{t('cosmos.coming')}</h3>
+              {upcoming.map((tr, i) => {
+                const days = tr.timing!.daysUntilExact!;
+                const dayLabel = days === 1 ? t('cosmos.tomorrow') : t('cosmos.inDays', { days: String(days) });
                 return (
                   <div key={i} className="upcoming-row">
                     <span className="upcoming-when">{dayLabel}</span>
-                    <span className="upcoming-text">{t.interpretation}</span>
-                    <span className={`transit-impact transit-impact--${t.impact}`}>
-                      {t.impact === 'positive' ? '↑' : t.impact === 'negative' ? '↓' : '↔'}
+                    <span className="upcoming-text">{tr.interpretation}</span>
+                    <span className={`transit-impact transit-impact--${tr.impact}`}>
+                      {tr.impact === 'positive' ? '↑' : tr.impact === 'negative' ? '↓' : '↔'}
                     </span>
                   </div>
                 );
@@ -215,7 +217,7 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
         {/* Retrogrades */}
         {report.retrogrades.length > 0 && (
           <div className="dashboard-section">
-            <h3 className="section-label">Retrogrades</h3>
+            <h3 className="section-label">{t('cosmos.retrogrades')}</h3>
             {report.retrogrades.map((r, i) => (
               <div key={i} className="retrograde-row">
                 <span className="retrograde-planet">
@@ -229,7 +231,7 @@ export function CosmicDashboard({ report, onClose, onRefresh, mode = 'overlay' }
 
         {/* Timestamp */}
         <p className="dashboard-timestamp">
-          Updated {new Date(report.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {t('cosmos.updated', { time: new Date(report.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}
         </p>
       </div>
     </div>

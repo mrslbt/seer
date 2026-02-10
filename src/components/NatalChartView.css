@@ -39,7 +39,7 @@
 .chart-container {
   max-width: 420px;
   margin: 0 auto;
-  padding: 24px 20px 48px;
+  padding: 8px 20px 48px;
 }
 
 @keyframes chartFadeIn {
@@ -150,13 +150,17 @@
   font-size: 0.75rem;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.4);
-  padding-left: 38px;
+  padding-left: 34px;
 }
 
 .chart-point-glyph {
-  font-size: 1.125rem;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--accent);
-  width: 28px;
+  width: 24px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -217,7 +221,7 @@
   font-size: 0.75rem;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.35);
-  padding-left: 34px;
+  padding-left: 32px;
 }
 
 .chart-planet-left {
@@ -228,9 +232,13 @@
 }
 
 .chart-planet-glyph {
-  font-size: 1rem;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--accent);
-  width: 24px;
+  width: 22px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -259,8 +267,13 @@
 }
 
 .zodiac-glyph {
-  font-size: 0.875rem;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--accent-dim, rgba(201, 168, 76, 0.7));
+  margin-right: 1px;
 }
 
 .chart-planet-degree {

@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Verdict } from '../types/astrology';
 import { getReadingsGroupedByDate, type ReadingRecord } from '../lib/readingHistory';
 import { getSeerVerdictColor } from '../lib/oracleResponse';
+import { useI18n } from '../i18n/I18nContext';
 import './ReadingHistory.css';
 
 interface ReadingHistoryProps {
@@ -17,6 +18,7 @@ interface ReadingHistoryProps {
 }
 
 export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
+  const { t } = useI18n();
   const [groups, setGroups] = useState<{ date: string; readings: ReadingRecord[] }[]>([]);
 
   useEffect(() => {
@@ -33,12 +35,12 @@ export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
   }, [handleKeyDown]);
 
   const verdictLabels: Record<Verdict, string> = {
-    HARD_YES: 'Yes',
-    SOFT_YES: 'Leaning Yes',
-    NEUTRAL: 'Uncertain',
-    SOFT_NO: 'Leaning No',
-    HARD_NO: 'No',
-    UNCLEAR: 'Unclear',
+    HARD_YES: t('history.yes'),
+    SOFT_YES: t('history.leaningYes'),
+    NEUTRAL: t('history.uncertain'),
+    SOFT_NO: t('history.leaningNo'),
+    HARD_NO: t('history.no'),
+    UNCLEAR: t('history.unclear'),
   };
 
   const verdictIcons: Record<Verdict, string> = {
@@ -65,8 +67,8 @@ export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
         <div className="history-header">
           <button className="history-close" onClick={onClose} aria-label="Close">&times;</button>
           <div className="history-title">
-            <span className="history-title-sub">The Oracle</span>
-            <span className="history-title-main">Remembers</span>
+            <span className="history-title-sub">{t('history.the')}</span>
+            <span className="history-title-main">{t('history.remembers')}</span>
           </div>
           <div style={{ width: 32 }} /> {/* spacer */}
         </div>
@@ -74,8 +76,8 @@ export function ReadingHistory({ onClose, profileId }: ReadingHistoryProps) {
         {/* Content */}
         {groups.length === 0 ? (
           <div className="history-empty">
-            <p className="history-empty-text">No readings yet.</p>
-            <p className="history-empty-sub">Ask the Seer a question to begin your journal.</p>
+            <p className="history-empty-text">{t('history.empty')}</p>
+            <p className="history-empty-sub">{t('history.emptyHint')}</p>
           </div>
         ) : (
           <div className="history-scroll">

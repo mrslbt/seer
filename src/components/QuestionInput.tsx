@@ -1,16 +1,12 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { validateQuestion } from '../lib/questionValidator';
+import { useI18n } from '../i18n/I18nContext';
+import type { TranslationKey } from '../i18n/en';
 import './QuestionInput.css';
 
-const PLACEHOLDER_EXAMPLES = [
-  'Should I take the risk?',
-  'Will this work out?',
-  'Is now the right time?',
-  'Should I trust them?',
-  'Will I find what I need?',
-  'Should I let go?',
-  'Is this the right path?',
-  'Should I make the move?',
+const PLACEHOLDER_KEYS: TranslationKey[] = [
+  'q.placeholder1', 'q.placeholder2', 'q.placeholder3', 'q.placeholder4',
+  'q.placeholder5', 'q.placeholder6', 'q.placeholder7', 'q.placeholder8',
 ];
 
 interface QuestionInputProps {
@@ -22,16 +18,17 @@ interface QuestionInputProps {
 }
 
 export function QuestionInput({ value, onChange, onSubmit, disabled, error }: QuestionInputProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(
-    () => Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.length)
+    () => Math.floor(Math.random() * PLACEHOLDER_KEYS.length)
   );
 
   // Rotate placeholder every 4 seconds when input is empty
   useEffect(() => {
     if (value) return; // Don't rotate while typing
     const interval = setInterval(() => {
-      setPlaceholderIndex(prev => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
+      setPlaceholderIndex(prev => (prev + 1) % PLACEHOLDER_KEYS.length);
     }, 4000);
     return () => clearInterval(interval);
   }, [value]);
@@ -66,7 +63,7 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder={PLACEHOLDER_EXAMPLES[placeholderIndex]}
+          placeholder={t(PLACEHOLDER_KEYS[placeholderIndex])}
           disabled={disabled}
           autoComplete="off"
           autoCorrect="off"
@@ -81,7 +78,7 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error }: Qu
           disabled={disabled || !value.trim()}
           type="button"
         >
-          Ask
+          {t('oracle.ask')}
         </button>
       </div>
       {error && <div className="input-error">{error}</div>}

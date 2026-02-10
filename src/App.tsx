@@ -32,6 +32,7 @@ import { BottomTabBar, type ActiveTab } from './components/BottomTabBar';
 import { CompatibilityView } from './components/CompatibilityView';
 import { SeerIntro } from './components/SeerIntro';
 import { useDashboardRefresh } from './hooks/useDashboardRefresh';
+import { useI18n, LANGUAGE_LABELS, type Language } from './i18n/I18nContext';
 
 import './App.css';
 
@@ -39,6 +40,7 @@ type AppState = 'idle' | 'summoning' | 'awaiting_question' | 'gazing' | 'reveali
 type SettingsView = 'hidden' | 'settings' | 'add' | 'edit';
 
 function App() {
+  const { lang, setLang, t } = useI18n();
   const [appState, setAppState] = useState<AppState>('idle');
   const [activeTab, setActiveTab] = useState<ActiveTab>('oracle');
   const [questionText, setQuestionText] = useState('');
@@ -126,20 +128,20 @@ function App() {
   useEffect(() => {
     if (!hasBirthData) return;
     if (appState === 'awaiting_question') {
-      showHintOnce('seer_hint_summon', 'Speak your question. The Seer will answer.');
+      showHintOnce('seer_hint_summon', t('hint.oracle'));
     }
-  }, [appState, hasBirthData, showHintOnce]);
+  }, [appState, hasBirthData, showHintOnce, t]);
 
   useEffect(() => {
     if (!hasBirthData) return;
     if (activeTab === 'cosmos') {
-      showHintOnce('seer_hint_cosmos', 'Your daily cosmic weather');
+      showHintOnce('seer_hint_cosmos', t('hint.cosmos'));
     } else if (activeTab === 'chart') {
-      showHintOnce('seer_hint_chart', 'Your birth sky, mapped');
+      showHintOnce('seer_hint_chart', t('hint.chart'));
     } else if (activeTab === 'bonds') {
-      showHintOnce('seer_hint_bonds', 'Compare your chart with another soul');
+      showHintOnce('seer_hint_bonds', t('hint.bonds'));
     }
-  }, [activeTab, hasBirthData, showHintOnce]);
+  }, [activeTab, hasBirthData, showHintOnce, t]);
 
   // ---- Greeting (above the eye) ----
   const seerAcknowledgment = useMemo(() => {
@@ -189,7 +191,7 @@ function App() {
     if (!dailyReport) return false;
     const today = new Date().toDateString();
     if (cosmosSeenDate === today) return false;
-    return dailyReport.keyTransits.some(t => t.transit.isExact);
+    return dailyReport.keyTransits.some(tr => tr.transit.isExact);
   }, [dailyReport, cosmosSeenDate]);
 
   // Mark cosmos as seen when tab is visited
@@ -658,7 +660,7 @@ function App() {
       {/* Header — brand left, settings right */}
       <header className="app-header">
         {hasBirthData ? (
-          <button className="header-brand" onClick={handleBrandClick}>The Seer</button>
+          <button className="header-brand" onClick={handleBrandClick}>{t('header.brand')}</button>
         ) : (
           <div />
         )}
@@ -685,8 +687,8 @@ function App() {
         {!hasBirthData && !cosmosLoading && !showIntro && (
           <div className="onboarding">
             <div className="onboarding-title">
-              <span className="title-the">The</span>
-              <span className="title-seer">Seer</span>
+              <span className="title-the">{t('onboarding.the')}</span>
+              <span className="title-seer">{t('onboarding.seer')}</span>
             </div>
             <div className="onboarding-form">
               <BirthDataForm onSubmit={handleBirthDataSubmit} />
@@ -696,12 +698,12 @@ function App() {
 
         {/* Loading indicator while cosmos engine initializes */}
         {!hasBirthData && cosmosLoading && (
-          <p className="cosmos-status">Aligning the cosmos...</p>
+          <p className="cosmos-status">{t('onboarding.loading')}</p>
         )}
 
         {/* Cosmos error */}
         {hasBirthData && cosmosError && !cosmosLoading && (
-          <p className="cosmos-status cosmos-status--warn">Readings may be less precise today</p>
+          <p className="cosmos-status cosmos-status--warn">{t('onboarding.warnPrecision')}</p>
         )}
 
         {/* === ORACLE TAB === */}
@@ -720,7 +722,7 @@ function App() {
 
             {/* Cryptic acknowledgment — the Seer notes your presence */}
             {appState === 'idle' && (
-              <p className="seer-acknowledgment">I sleep until summoned.</p>
+              <p className="seer-acknowledgment">{t('oracle.sleeping')}</p>
             )}
             {appState === 'awaiting_question' && seerAcknowledgment && (
               <p className="seer-acknowledgment">{seerAcknowledgment}</p>
@@ -743,7 +745,7 @@ function App() {
             {/* Summon button */}
             {appState === 'idle' && (
               <button className="summon-btn" onClick={handleSummon}>
-                Summon
+                {t('oracle.summon')}
               </button>
             )}
 
@@ -775,10 +777,10 @@ function App() {
                 {(followUpText || followUpLoading) && (
                   <div className="seer-follow-up-response">
                     <div className="seer-follow-up-label">
-                      {followUpType === 'when_change' ? 'Timing' : 'Deeper Insight'}
+                      {followUpType === 'when_change' ? t('oracle.timing') : t('oracle.deeperInsight')}
                     </div>
                     {followUpLoading ? (
-                      <p className="seer-follow-up-text seer-follow-up-text--loading">The oracle peers deeper...</p>
+                      <p className="seer-follow-up-text seer-follow-up-text--loading">{t('oracle.deeper')}</p>
                     ) : (
                       <p className="seer-follow-up-text">{followUpText}</p>
                     )}
@@ -791,7 +793,7 @@ function App() {
                     className="seer-learn-more"
                     onClick={() => setShowFollowUps(true)}
                   >
-                    Learn more
+                    {t('oracle.learnMore')}
                   </button>
                 )}
 
@@ -805,7 +807,7 @@ function App() {
                         onClick={() => setShowArticle(true)}
                       >
                         <span className="seer-follow-up-question-icon">{'\u203A'}</span>
-                        <span className="seer-follow-up-question-text">Why does the oracle say this?</span>
+                        <span className="seer-follow-up-question-text">{t('oracle.whyOracle')}</span>
                       </button>
                     )}
 
@@ -828,7 +830,7 @@ function App() {
                         onClick={() => handleFollowUp('when_change')}
                       >
                         <span className="seer-follow-up-question-icon">{'\u29D7'}</span>
-                        <span className="seer-follow-up-question-text">When will this change?</span>
+                        <span className="seer-follow-up-question-text">{t('oracle.whenChange')}</span>
                       </button>
                     )}
                   </div>
@@ -836,13 +838,13 @@ function App() {
 
                 {/* Follow-ups exhausted */}
                 {!(followUpRound < 2 && (contextualQuestions.length > 0 || followUpType !== 'when_change')) && followUpRound > 0 && (
-                  <p className="seer-follow-up-exhausted">The oracle has spoken. Ask again for a new reading.</p>
+                  <p className="seer-follow-up-exhausted">{t('oracle.exhausted')}</p>
                 )}
 
                 {/* Bottom actions: Ask Again + Share */}
                 <div className="seer-answer-actions">
                   <button className="seer-ask-again-btn" onClick={handleAskAgain}>
-                    Ask Again
+                    {t('oracle.askAgain')}
                   </button>
 
                   <button
@@ -859,7 +861,7 @@ function App() {
 
                 {/* Share toast */}
                 {shareToast && (
-                  <div className="seer-share-toast">Copied to clipboard</div>
+                  <div className="seer-share-toast">{t('oracle.copied')}</div>
                 )}
 
                 {/* Hidden canvas for share card */}
@@ -888,10 +890,10 @@ function App() {
                 </div>
                 <div className="seer-answer-actions">
                   <button className="seer-ask-again-btn" onClick={() => setShowArticle(false)}>
-                    Back
+                    {t('general.back')}
                   </button>
                   <button className="seer-ask-again-btn" onClick={handleDismiss}>
-                    Dismiss
+                    {t('general.dismiss')}
                   </button>
                 </div>
               </div>
@@ -932,8 +934,8 @@ function App() {
                     <span className="moon-ritual-icon">{isSpecialMoonPhase === 'New Moon' ? '\u{1F311}' : '\u{1F315}'}</span>
                     <span className="moon-ritual-text">
                       {isSpecialMoonPhase === 'New Moon'
-                        ? 'New Moon — Set intentions. Ask what to begin.'
-                        : 'Full Moon — Seek clarity. Ask what to release.'}
+                        ? t('ritual.newMoon')
+                        : t('ritual.fullMoon')}
                     </span>
                   </div>
                 )}
@@ -995,7 +997,7 @@ function App() {
         <div className="modal-overlay" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{settingsView === 'settings' ? 'Settings' : settingsView === 'edit' ? 'Edit Profile' : 'New Profile'}</h2>
+              <h2>{settingsView === 'settings' ? t('settings.title') : settingsView === 'edit' ? t('settings.editProfile') : t('settings.newProfile')}</h2>
               <button className="close-btn" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18"/>
@@ -1008,7 +1010,7 @@ function App() {
               <div className="settings-content">
                 {/* Sound toggle */}
                 <div className="settings-row">
-                  <span className="settings-row-label">Sound</span>
+                  <span className="settings-row-label">{t('settings.sound')}</span>
                   <button
                     className={`settings-toggle ${!isMuted ? 'settings-toggle--on' : ''}`}
                     onClick={toggleMute}
@@ -1018,12 +1020,28 @@ function App() {
                   </button>
                 </div>
 
+                {/* Language switcher */}
+                <div className="settings-row">
+                  <span className="settings-row-label">{t('settings.language')}</span>
+                  <div className="lang-switcher">
+                    {(['en', 'ja', 'vi'] as Language[]).map(l => (
+                      <button
+                        key={l}
+                        className={`lang-btn ${lang === l ? 'lang-btn--active' : ''}`}
+                        onClick={() => { playClick(); setLang(l); }}
+                      >
+                        {LANGUAGE_LABELS[l]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Reading History link */}
                 <button
                   className="settings-row settings-row--link"
                   onClick={() => { playClick(); setShowHistory(true); }}
                 >
-                  <span className="settings-row-label">Reading History</span>
+                  <span className="settings-row-label">{t('settings.history')}</span>
                   <span className="settings-row-chevron">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6"/>
@@ -1033,7 +1051,7 @@ function App() {
 
                 {/* Profiles section */}
                 <div className="settings-section">
-                  <h3 className="settings-section-label">Profiles</h3>
+                  <h3 className="settings-section-label">{t('settings.profiles')}</h3>
                   <ProfileManager
                     profiles={allProfiles}
                     activeProfileId={userProfile?.id ?? null}

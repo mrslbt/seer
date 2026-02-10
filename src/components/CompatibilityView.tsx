@@ -23,6 +23,8 @@ import { validateQuestionInput } from './QuestionInput';
 import { detectQuestionMode } from '../lib/scoreDecision';
 import { callBondLLM } from '../lib/llmOracle';
 import type { LLMOracleResult } from '../lib/llmOracle';
+import { useI18n } from '../i18n/I18nContext';
+import type { TranslationKey } from '../i18n/en';
 import './CompatibilityView.css';
 
 // ============================================
@@ -47,26 +49,15 @@ type BondPhase =
 // SUGGESTED RELATIONSHIP QUESTIONS
 // ============================================
 
-const RELATIONSHIP_QUESTIONS = [
-  // Open-ended (guidance)
-  'What brings us together?',
-  'What places would we enjoy?',
-  'What might we fight about?',
-  'What is our biggest challenge?',
-  'What kind of dates suit us?',
-  'What makes this bond unique?',
-  'How do we balance each other?',
-  // Directional (yes/no)
-  'Are we truly compatible?',
-  'Is there real chemistry between us?',
-  'Will this last?',
-  'Can I trust them?',
-  'Is now the right time?',
-  'Are they serious about me?',
+const RELATIONSHIP_QUESTION_KEYS: TranslationKey[] = [
+  'bondQ.together', 'bondQ.places', 'bondQ.fight', 'bondQ.challenge',
+  'bondQ.dates', 'bondQ.unique', 'bondQ.balance',
+  'bondQ.compatible', 'bondQ.chemistry', 'bondQ.last',
+  'bondQ.trust', 'bondQ.timing', 'bondQ.serious',
 ];
 
-function getRandomQuestions(count: number): string[] {
-  const shuffled = [...RELATIONSHIP_QUESTIONS].sort(() => Math.random() - 0.5);
+function getRandomQuestionKeys(count: number): TranslationKey[] {
+  const shuffled = [...RELATIONSHIP_QUESTION_KEYS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
@@ -75,6 +66,7 @@ function getRandomQuestions(count: number): string[] {
 // ============================================
 
 export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: CompatibilityViewProps) {
+  const { t } = useI18n();
   const [phase, setPhase] = useState<BondPhase>('select');
   const [partner, setPartner] = useState<UserProfile | null>(null);
   const [report, setReport] = useState<SynastryReport | null>(null);
@@ -82,7 +74,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
   const [answer, setAnswer] = useState<RelationshipAnswer | null>(null);
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [suggestions] = useState(() => getRandomQuestions(4));
+  const [suggestionKeys] = useState(() => getRandomQuestionKeys(4));
   const [todaysBond, setTodaysBond] = useState<TodaysBondData | null>(null); // null until computed
   const [bondQuestionMode, setBondQuestionMode] = useState<'directional' | 'guidance'>('directional');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -323,7 +315,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
 
       {/* ---- Header text when selecting ---- */}
       {phase === 'select' && (
-        <p className="compat-header">Choose a soul to compare</p>
+        <p className="compat-header">{t('bonds.choose')}</p>
       )}
 
       {/* ---- THE SEER EYE — always present ---- */}
@@ -364,16 +356,16 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
                 );
               })}
               <button className="compat-add-btn compat-add-btn--inline" onClick={onAddProfile}>
-                + Add Profile
+                {t('bonds.addProfile')}
               </button>
             </div>
           ) : (
             <div className="compat-empty">
               <p className="compat-empty-text">
-                Add a second soul to reveal what lies between you
+                {t('bonds.addPrompt')}
               </p>
               <button className="compat-add-btn" onClick={onAddProfile}>
-                + Add Profile
+                {t('bonds.addProfile')}
               </button>
             </div>
           )}
@@ -391,7 +383,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Score */}
           <div className="compat-score" style={{ color: getTierColor(report.tier) }}>
             <span className="compat-score-num">{report.score}</span>
-            <span className="compat-score-label">Cosmic Resonance</span>
+            <span className="compat-score-label">{t('bonds.resonance')}</span>
           </div>
 
           {/* Oracle verdict */}
@@ -409,7 +401,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Strengths */}
           {report.strengths.length > 0 && (
             <div className="compat-section">
-              <h3 className="compat-section-label">What Draws You Together</h3>
+              <h3 className="compat-section-label">{t('bonds.draws')}</h3>
               {report.strengths.map((s, i) => (
                 <p key={i} className="compat-section-item compat-section-item--strength">{s}</p>
               ))}
@@ -419,7 +411,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Challenges */}
           {report.challenges.length > 0 && (
             <div className="compat-section">
-              <h3 className="compat-section-label">What Tests You</h3>
+              <h3 className="compat-section-label">{t('bonds.tests')}</h3>
               {report.challenges.map((c, i) => (
                 <p key={i} className="compat-section-item compat-section-item--challenge">{c}</p>
               ))}
@@ -428,18 +420,18 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
 
           {/* Theme pills */}
           {(() => {
-            const topThemes = report.themes.filter(t => t.score > 2).slice(0, 5);
+            const topThemes = report.themes.filter(th => th.score > 2).slice(0, 5);
             return topThemes.length > 0 ? (
               <div className="compat-themes">
-                {topThemes.map((t) => (
+                {topThemes.map((th) => (
                   <span
-                    key={t.theme}
+                    key={th.theme}
                     className="compat-theme-pill"
                     style={{ borderColor: `${getTierColor(report.tier)}33`, color: getTierColor(report.tier) }}
                   >
-                    {t.label}
+                    {th.label}
                     <span className="compat-theme-score">
-                      {t.score >= 7 ? 'strong' : t.score >= 4 ? 'present' : 'subtle'}
+                      {th.score >= 7 ? t('bonds.strong') : th.score >= 4 ? t('bonds.present') : t('bonds.subtle')}
                     </span>
                   </span>
                 ))}
@@ -449,7 +441,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
 
           {/* Element harmony */}
           <div className="compat-element">
-            <h3 className="compat-section-label">Elemental Harmony</h3>
+            <h3 className="compat-section-label">{t('bonds.harmony')}</h3>
             <p className="compat-element-text">{report.elementHarmony.description}</p>
           </div>
 
@@ -459,10 +451,10 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Actions */}
           <div className="compat-actions">
             <button className="compat-ask-btn" onClick={handleAskMode}>
-              Ask about this bond
+              {t('bonds.askBond')}
             </button>
             <button className="compat-back-link" onClick={handleBack}>
-              Choose another soul
+              {t('bonds.chooseAnother')}
             </button>
           </div>
         </div>
@@ -482,7 +474,7 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={handleInputFocus}
-                placeholder="Will this work between us?"
+                placeholder={t('bonds.placeholder')}
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck="false"
@@ -496,28 +488,28 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
                 disabled={!question.trim()}
                 type="button"
               >
-                Ask
+                {t('oracle.ask')}
               </button>
             </div>
             {questionError && <div className="compat-input-error">{questionError}</div>}
           </div>
 
           {/* Suggested questions */}
-          <p className="compat-suggestions-divider">or ask the stars</p>
+          <p className="compat-suggestions-divider">{t('bonds.orAsk')}</p>
           <div className="compat-suggestions">
-            {suggestions.map((q) => (
+            {suggestionKeys.map((key) => (
               <button
-                key={q}
+                key={key}
                 className="compat-suggestion-chip"
-                onClick={() => handleSuggestedQuestion(q)}
+                onClick={() => handleSuggestedQuestion(t(key))}
               >
-                {q}
+                {t(key)}
               </button>
             ))}
           </div>
 
           <button className="compat-back-link" onClick={handleBackToReading}>
-            Back to reading
+            {t('bonds.backReading')}
           </button>
         </div>
       )}
@@ -550,13 +542,13 @@ export function CompatibilityView({ activeProfile, allProfiles, onAddProfile }: 
           {/* Actions */}
           <div className="compat-answer-actions">
             <button className="compat-ask-btn" onClick={handleAskMode}>
-              Ask another
+              {t('bonds.askAnother')}
             </button>
             <button className="compat-back-link" onClick={handleBackToReading}>
-              Back to reading
+              {t('bonds.backReading')}
             </button>
             <button className="compat-back-link" onClick={handleBack}>
-              Choose another soul
+              {t('bonds.chooseAnother')}
             </button>
           </div>
         </div>

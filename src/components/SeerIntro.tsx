@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import './SeerIntro.css';
 
 interface SeerIntroProps {
@@ -8,6 +9,7 @@ interface SeerIntroProps {
 const SCREEN_COUNT = 3;
 
 export function SeerIntro({ onComplete }: SeerIntroProps) {
+  const { t } = useI18n();
   const [activeScreen, setActiveScreen] = useState(0);
   const [exitingScreen, setExitingScreen] = useState<number | null>(null);
 
@@ -47,24 +49,24 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
     <div className="seer-intro" onClick={advance}>
       {/* Screen 1: "The stars have been waiting" */}
       <div className={getScreenClass(0)}>
-        <p className="seer-intro__text">The stars have been waiting</p>
+        <p className="seer-intro__text">{t('intro.line1')}</p>
       </div>
 
       {/* Screen 2: Three lines staggered */}
       <div className={getScreenClass(1)}>
         <div>
-          <span className="seer-intro__text-line">Your chart.</span>
-          <span className="seer-intro__text-line">Your oracle.</span>
-          <span className="seer-intro__text-line">Your truth.</span>
+          <span className="seer-intro__text-line">{t('intro.line2')}</span>
+          <span className="seer-intro__text-line">{t('intro.line3')}</span>
+          <span className="seer-intro__text-line">{t('intro.line4')}</span>
         </div>
       </div>
 
       {/* Screen 3: Before the form */}
       <div className={getScreenClass(2)}>
-        <p className="seer-intro__text">To see, I must know when you arrived</p>
+        <p className="seer-intro__text">{t('intro.line5')}</p>
       </div>
 
-      <span className="seer-intro__hint">tap</span>
+      <span className="seer-intro__hint">{t('intro.tap')}</span>
     </div>
   );
 }

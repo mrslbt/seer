@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { UserProfile } from '../types/userProfile';
 import { playClick } from '../lib/sounds';
+import { useI18n } from '../i18n/I18nContext';
 import './ProfileManager.css';
 
 interface ProfileManagerProps {
@@ -16,6 +17,7 @@ interface ProfileManagerProps {
 export function ProfileManager({
   profiles, activeProfileId, onSwitch, onAddNew, onDelete, onEdit, onClose
 }: ProfileManagerProps) {
+  const { t } = useI18n();
 
   const handleSwitch = useCallback((profileId: string) => {
     if (profileId === activeProfileId) return;
@@ -87,7 +89,7 @@ export function ProfileManager({
       </div>
 
       <button className="profile-add-btn" onClick={handleAdd}>
-        + Add Profile
+        {t('profile.addProfile')}
       </button>
     </div>
   );

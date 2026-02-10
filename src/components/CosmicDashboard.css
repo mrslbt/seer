@@ -40,7 +40,7 @@
 .dashboard-container {
   max-width: 420px;
   margin: 0 auto;
-  padding: 24px 20px 48px;
+  padding: 8px 20px 48px;
 }
 
 /* ---- Header ---- */
@@ -248,10 +248,16 @@
 }
 
 .category-icon {
-  font-size: 0.875rem;
-  opacity: 0.6;
-  width: 16px;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  opacity: 0.7;
+  width: 18px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .category-name {
@@ -470,7 +476,12 @@
 }
 
 .detail-icon {
-  font-size: 1.25rem;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
   opacity: 0.7;
 }
 

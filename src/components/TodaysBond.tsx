@@ -7,6 +7,8 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useI18n } from '../i18n/I18nContext';
+import type { TranslationKey } from '../i18n/en';
 import './TodaysBond.css';
 
 // ============================================
@@ -63,18 +65,18 @@ const MOOD_VISUALS: Record<BondMood, MoodVisual> = {
   dissolving: { hue: 240, saturation: 30, lightness: 55 },
 };
 
-// Mood → plain-English descriptor so users understand what the word means
-const MOOD_DESCRIPTORS: Record<BondMood, string> = {
-  electric:   'high energy, charged',
-  tender:     'soft, open-hearted',
-  volatile:   'intense, unpredictable',
-  still:      'calm, waiting',
-  magnetic:   'pulling together',
-  fated:      'heavy with destiny',
-  restless:   'uneasy, seeking',
-  raw:        'exposed, unfiltered',
-  expanding:  'growing, opening up',
-  dissolving: 'boundaries softening',
+// Mood → i18n keys for descriptors
+const MOOD_DESCRIPTOR_KEY: Record<BondMood, TranslationKey> = {
+  electric:   'mood.electric',
+  tender:     'mood.tender',
+  volatile:   'mood.volatile',
+  still:      'mood.still',
+  magnetic:   'mood.magnetic',
+  fated:      'mood.fated',
+  restless:   'mood.restless',
+  raw:        'mood.raw',
+  expanding:  'mood.expanding',
+  dissolving: 'mood.dissolving',
 };
 
 // ============================================
@@ -82,6 +84,7 @@ const MOOD_DESCRIPTORS: Record<BondMood, string> = {
 // ============================================
 
 export default function TodaysBond({ data }: TodaysBondProps) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const visual = MOOD_VISUALS[data.mood];
 
@@ -97,10 +100,10 @@ export default function TodaysBond({ data }: TodaysBondProps) {
 
   // Pulse intensity label
   const pulseLabel =
-    data.pulseScore >= 75 ? 'intense' :
-    data.pulseScore >= 50 ? 'active' :
-    data.pulseScore >= 25 ? 'gentle' :
-    'quiet';
+    data.pulseScore >= 75 ? t('todayBond.intense') :
+    data.pulseScore >= 50 ? t('todayBond.active') :
+    data.pulseScore >= 25 ? t('todayBond.gentle') :
+    t('todayBond.quiet');
 
   return (
     <div
@@ -111,7 +114,7 @@ export default function TodaysBond({ data }: TodaysBondProps) {
       } as React.CSSProperties}
     >
       {/* Section label — matches compat-section-label pattern */}
-      <h3 className="todays-bond__label">Today's Energy</h3>
+      <h3 className="todays-bond__label">{t('todayBond.energy')}</h3>
 
       {/* Pulse score — thin bar + number, immediately readable */}
       <div className="todays-bond__pulse-row">
@@ -129,15 +132,15 @@ export default function TodaysBond({ data }: TodaysBondProps) {
 
       {/* Mood — contextual sentence, not a naked word */}
       <div className="todays-bond__mood-row">
-        <span className="todays-bond__mood-prefix">The mood between you:</span>
+        <span className="todays-bond__mood-prefix">{t('todayBond.mood')}</span>
         <span className="todays-bond__mood-word">{data.mood}</span>
-        <span className="todays-bond__mood-meaning">{MOOD_DESCRIPTORS[data.mood]}</span>
+        <span className="todays-bond__mood-meaning">{t(MOOD_DESCRIPTOR_KEY[data.mood])}</span>
       </div>
 
       {/* Transit insights — what's actually happening astronomically */}
       {data.transitLines.length > 0 && (
         <div className="todays-bond__section">
-          <span className="todays-bond__section-label">What's happening</span>
+          <span className="todays-bond__section-label">{t('todayBond.happening')}</span>
           {data.transitLines.map((line, i) => (
             <p key={i} className="todays-bond__transit-line">{line}</p>
           ))}
@@ -146,7 +149,7 @@ export default function TodaysBond({ data }: TodaysBondProps) {
 
       {/* Ritual / advice — clearly labelled */}
       <div className="todays-bond__section">
-        <span className="todays-bond__section-label">Today's advice</span>
+        <span className="todays-bond__section-label">{t('todayBond.advice')}</span>
         <p className="todays-bond__advice">{data.ritual}</p>
       </div>
 

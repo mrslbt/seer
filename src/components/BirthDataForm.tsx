@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { BirthData } from '../types/astrology';
 import { searchCities, type CityData, formatCity } from '../lib/cities';
+import { useI18n } from '../i18n/I18nContext';
 import './BirthDataForm.css';
 
 interface BirthDataFormProps {
@@ -18,6 +19,7 @@ function formatLocalDate(date: Date): string {
 }
 
 export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataFormProps) {
+  const { t } = useI18n();
   const isEditing = !!initialData;
   const [name, setName] = useState(initialName || '');
   const [dateStr, setDateStr] = useState(
@@ -94,12 +96,12 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       setError('');
 
       if (!dateStr) {
-        setError('Enter your birth date');
+        setError(t('form.errorDate'));
         return;
       }
 
       if (!selectedCity) {
-        setError('Select a city from suggestions');
+        setError(t('form.errorCity'));
         return;
       }
 
@@ -126,24 +128,24 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
     <form onSubmit={handleSubmit} className="birth-form">
       <div className="form-intro">
         <p className="form-intro-text">
-          {isEditing ? 'Realign your celestial coordinates' : 'The Seer requires your celestial coordinates'}
+          {isEditing ? t('form.titleEdit') : t('form.title')}
         </p>
       </div>
 
       <div className="form-field">
-        <label className="field-label">Name</label>
+        <label className="field-label">{t('form.name')}</label>
         <input
           type="text"
           className="field-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
+          placeholder={t('form.namePlaceholder')}
           autoComplete="off"
         />
       </div>
 
       <div className="form-field">
-        <label className="field-label">Date of Birth</label>
+        <label className="field-label">{t('form.date')}</label>
         <input
           type="date"
           className="field-input"
@@ -154,7 +156,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       </div>
 
       <div className="form-field">
-        <label className="field-label">Time of Birth</label>
+        <label className="field-label">{t('form.time')}</label>
         {!timeUnknown && (
           <input
             type="time"
@@ -172,15 +174,15 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
               if (e.target.checked) setTimeStr('12:00');
             }}
           />
-          <span className="field-toggle-text">I don't know my birth time</span>
+          <span className="field-toggle-text">{t('form.noTime')}</span>
         </label>
         {timeUnknown && (
-          <span className="field-hint">Noon will be used. Rising sign and houses may be less accurate, but readings still work.</span>
+          <span className="field-hint">{t('form.noTimeHint')}</span>
         )}
       </div>
 
       <div className="form-field">
-        <label className="field-label">Place of Birth</label>
+        <label className="field-label">{t('form.place')}</label>
         <div className="city-wrapper">
           <input
             type="text"
@@ -188,7 +190,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
             value={cityQuery}
             onChange={(e) => handleCityInputChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            placeholder="Start typing..."
+            placeholder={t('form.placePlaceholder')}
             autoComplete="off"
           />
           {showSuggestions && (
@@ -216,7 +218,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       {error && <div className="form-error">{error}</div>}
 
       <button type="submit" className="submit-btn">
-        {isEditing ? 'Save' : 'Enter'}
+        {isEditing ? t('form.save') : t('form.enter')}
       </button>
     </form>
   );

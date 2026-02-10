@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getRandomSuggestions, type SuggestedQuestion } from '../data/suggestedQuestions';
+import { useI18n } from '../i18n/I18nContext';
 import './SuggestedQuestions.css';
 
 interface SuggestedQuestionsProps {
@@ -7,12 +8,13 @@ interface SuggestedQuestionsProps {
 }
 
 export function SuggestedQuestions({ onSelect }: SuggestedQuestionsProps) {
+  const { t } = useI18n();
   // Generate once on mount — fresh set each time component remounts
   const [suggestions] = useState<SuggestedQuestion[]>(() => getRandomSuggestions(5));
 
   return (
     <>
-      <p className="suggestions-divider">or let the stars choose</p>
+      <p className="suggestions-divider">{t('suggested.divider')}</p>
       <div className="suggested-questions" role="group" aria-label="Suggested questions">
         {suggestions.map((q) => (
           <button
