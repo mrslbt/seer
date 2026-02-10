@@ -372,63 +372,13 @@ function buildTransitInsight(
   return transit.isExact ? `An exact aspect today. ${line}` : line;
 }
 
-// ---- Session memory line (the oracle remembers) ----
-const CATEGORY_DISPLAY: Partial<Record<QuestionCategory, string>> = {
-  love: 'love',
-  career: 'work',
-  money: 'money',
-  health: 'your body',
-  social: 'people',
-  decisions: 'decisions',
-  creativity: 'creating',
-  spiritual: 'the inner world',
-  communication: 'words',
-  conflict: 'conflict',
-  timing: 'timing',
-};
-
+// ---- Session memory removed — users found repeat-counting annoying ----
 function buildSessionMemory(
-  verdict: Verdict,
-  category: QuestionCategory,
-  patterns?: ReadingPatterns | null,
+  _verdict: Verdict,
+  _category: QuestionCategory,
+  _patterns?: ReadingPatterns | null,
 ): string | null {
-  if (!patterns) return null;
-
-  const parts: string[] = [];
-
-  // 1. Acknowledge repeat category (3+ times in 7 days)
-  const freq = patterns.categoryFrequency[category] ?? 0;
-  if (freq >= 3) {
-    const domainLabel = CATEGORY_DISPLAY[category] || category;
-    const repeatLines = [
-      `You keep asking about ${domainLabel}. ${freq} times this week. The pull is real.`,
-      `${freq} times in seven days you have asked about ${domainLabel}. The oracle notices.`,
-      `${domainLabel}, again. ${freq} times now. Something in you keeps circling back.`,
-    ];
-    parts.push(pick(repeatLines));
-  }
-
-  // 2. Verdict changed from last time in same category
-  const prevVerdict = patterns.previousVerdictForCategory[category];
-  if (prevVerdict && prevVerdict !== verdict) {
-    const isPositiveShift =
-      (prevVerdict === 'HARD_NO' || prevVerdict === 'SOFT_NO') &&
-      (verdict === 'HARD_YES' || verdict === 'SOFT_YES');
-    const isNegativeShift =
-      (prevVerdict === 'HARD_YES' || prevVerdict === 'SOFT_YES') &&
-      (verdict === 'HARD_NO' || verdict === 'SOFT_NO');
-
-    if (isPositiveShift) {
-      parts.push('Last time you asked, the answer was no. Today the sky has changed.');
-    } else if (isNegativeShift) {
-      parts.push('The stars once favored this. That window has closed.');
-    } else {
-      parts.push('The answer is different from last time. The sky has moved.');
-    }
-  }
-
-  if (parts.length === 0) return null;
-  return parts.join(' ');
+  return null;
 }
 
 // ---- Retrograde/moon extras ----
