@@ -286,6 +286,7 @@ export const en = {
   'vision.twoCast': 'Two visions cast today \u00B7 One remains',
   'vision.oneLeft': 'One vision remains. Ask with intention.',
   'vision.generous': 'The Seer has been generous today.',
+  'vision.noLimit': 'Testing phase \u00B7 No limit mode unlocked',
 
   // ── General ──
   'general.back': 'Back',

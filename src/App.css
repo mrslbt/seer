@@ -987,6 +987,17 @@
   100% { opacity: 0; transform: translateY(-2px); }
 }
 
+.seer-vision-hint--no-limit {
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+/* Acknowledgment vision state — muted when showing limit text */
+.seer-acknowledgment-action--vision {
+  font-size: 0.875rem;
+  opacity: 0.6;
+}
+
 /* Bottom bar — Ask Again + Share */
 .seer-answer-actions {
   display: flex;

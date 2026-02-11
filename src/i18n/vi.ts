@@ -288,6 +288,7 @@ export const vi: Record<TranslationKey, string> = {
   'vision.twoCast': 'Hai tầm nhìn đã hiện hôm nay \u00B7 Còn một',
   'vision.oneLeft': 'Còn một tầm nhìn. Hãy hỏi với chủ đích.',
   'vision.generous': 'Nhà Tiên Tri đã hào phóng hôm nay.',
+  'vision.noLimit': 'Giai đoạn thử nghiệm \u00B7 Chế độ không giới hạn',
 
   // ── Chung ──
   'general.back': 'Quay lại',

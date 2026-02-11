@@ -122,7 +122,7 @@ function App() {
   const [bondSynastry, setBondSynastry] = useState<SynastryReport | null>(null);
 
   // Vision limit tracking (soft paywall — visual hints only, no blocking)
-  const [todayVisionCount, setTodayVisionCount] = useState(() => getTodayReadingCount());
+  const [todayVisionCount, setTodayVisionCount] = useState(0);
   const [showVisionHint, setShowVisionHint] = useState(false);
 
   // Tab-specific suggested question keys
@@ -160,6 +160,11 @@ function App() {
   }, [userProfile]);
 
   useDashboardRefresh(activeTab === 'cosmos', refreshDailyReport);
+
+  // ── Sync vision count from localStorage on mount / profile change ──
+  useEffect(() => {
+    setTodayVisionCount(getTodayReadingCount(userProfile?.id));
+  }, [userProfile?.id]);
 
   // ── Intro ──
   const handleIntroComplete = useCallback(() => {
@@ -759,9 +764,9 @@ function App() {
               {seerPhase === 'open' && userProfile && (
                 <div className="seer-acknowledgment">
                   <p className="seer-acknowledgment-line">{t('oracle.acknowledge', { name: userProfile.birthData.name })}</p>
-                  <p className="seer-acknowledgment-action">
+                  <p className={`seer-acknowledgment-action${todayVisionCount >= 2 ? ' seer-acknowledgment-action--vision' : ''}`}>
                     {todayVisionCount >= 3
-                      ? t('vision.generous')
+                      ? t('vision.noLimit')
                       : todayVisionCount >= 2
                         ? t('vision.oneLeft')
                         : t('oracle.acknowledgeAction')}
@@ -874,9 +879,12 @@ function App() {
                     </>
                   )}
 
-                  {/* Vision hint — subtle fade after Q2+ */}
-                  {showVisionHint && todayVisionCount >= 2 && (
+                  {/* Vision hint — subtle fade after answer */}
+                  {showVisionHint && todayVisionCount === 2 && (
                     <p className="seer-vision-hint">{t('vision.twoCast')}</p>
+                  )}
+                  {showVisionHint && todayVisionCount >= 3 && (
+                    <p className="seer-vision-hint seer-vision-hint--no-limit">{t('vision.noLimit')}</p>
                   )}
 
                   {/* Bottom actions */}
