@@ -282,6 +282,11 @@ export const en = {
   // ── Profile ──
   'profile.addProfile': '+ Add Profile',
 
+  // ── Vision Limits (soft paywall hints) ──
+  'vision.twoCast': 'Two visions cast today \u00B7 One remains',
+  'vision.oneLeft': 'One vision remains. Ask with intention.',
+  'vision.generous': 'The Seer has been generous today.',
+
   // ── General ──
   'general.back': 'Back',
   'general.dismiss': 'Dismiss',

@@ -17,7 +17,7 @@ import {
 
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
 import { getDailyWhisper } from './lib/cosmicWhisper';
-import { saveReading, analyzePatterns } from './lib/readingHistory';
+import { saveReading, analyzePatterns, getTodayReadingCount } from './lib/readingHistory';
 
 import { BirthDataForm } from './components/BirthDataForm';
 import { getCity } from './lib/cities';
@@ -120,6 +120,10 @@ function App() {
   // Bond partner state (lifted from CompatibilityView)
   const [bondPartner, setBondPartner] = useState<UserProfile | null>(null);
   const [bondSynastry, setBondSynastry] = useState<SynastryReport | null>(null);
+
+  // Vision limit tracking (soft paywall — visual hints only, no blocking)
+  const [todayVisionCount, setTodayVisionCount] = useState(() => getTodayReadingCount());
+  const [showVisionHint, setShowVisionHint] = useState(false);
 
   // Tab-specific suggested question keys
   const [chartSuggestionKeys] = useState(() => getRandomKeys(CHART_QUESTION_KEYS, 4));
@@ -406,6 +410,24 @@ function App() {
         category, moonPhase: dailyReport?.moonPhase.name,
         overallScore: dailyReport?.overallScore, profileId: userProfile?.id,
       });
+    } else {
+      // Save reading for non-oracle tabs too (bonds, chart, cosmos)
+      const category = activeTab === 'bonds' ? 'love' as QuestionCategory
+        : activeTab === 'cosmos' ? 'decisions' as QuestionCategory
+        : 'self' as QuestionCategory;
+      saveReading({
+        question: submittedQuestion, verdict: 'NEUTRAL', oracleText: response,
+        category, moonPhase: dailyReport?.moonPhase.name,
+        overallScore: dailyReport?.overallScore, profileId: userProfile?.id,
+      });
+    }
+
+    // Update vision count + show hint if threshold reached
+    const newCount = getTodayReadingCount(userProfile?.id);
+    setTodayVisionCount(newCount);
+    if (newCount >= 2) {
+      setShowVisionHint(true);
+      setTimeout(() => setShowVisionHint(false), 8000);
     }
 
     if (usedLLM) console.log('[Seer] LLM response used');
@@ -737,7 +759,13 @@ function App() {
               {seerPhase === 'open' && userProfile && (
                 <div className="seer-acknowledgment">
                   <p className="seer-acknowledgment-line">{t('oracle.acknowledge', { name: userProfile.birthData.name })}</p>
-                  <p className="seer-acknowledgment-action">{t('oracle.acknowledgeAction')}</p>
+                  <p className="seer-acknowledgment-action">
+                    {todayVisionCount >= 3
+                      ? t('vision.generous')
+                      : todayVisionCount >= 2
+                        ? t('vision.oneLeft')
+                        : t('oracle.acknowledgeAction')}
+                  </p>
                 </div>
               )}
 
@@ -844,6 +872,11 @@ function App() {
                         <p className="seer-follow-up-exhausted">{t('oracle.exhausted')}</p>
                       )}
                     </>
+                  )}
+
+                  {/* Vision hint — subtle fade after Q2+ */}
+                  {showVisionHint && todayVisionCount >= 2 && (
+                    <p className="seer-vision-hint">{t('vision.twoCast')}</p>
                   )}
 
                   {/* Bottom actions */}

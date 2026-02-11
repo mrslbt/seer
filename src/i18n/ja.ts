@@ -284,6 +284,11 @@ export const ja: Record<TranslationKey, string> = {
   // ── プロフィール ──
   'profile.addProfile': '+ プロフィール追加',
 
+  // ── ビジョン制限 ──
+  'vision.twoCast': '今日二つのビジョンが示された \u00B7 あと一つ',
+  'vision.oneLeft': '残り一つのビジョン。心を込めて聞きなさい。',
+  'vision.generous': '予言者は今日寛大であった。',
+
   // ── 一般 ──
   'general.back': '戻る',
   'general.dismiss': '閉じる',

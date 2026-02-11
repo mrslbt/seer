@@ -284,6 +284,11 @@ export const vi: Record<TranslationKey, string> = {
   // ── Hồ sơ ──
   'profile.addProfile': '+ Thêm hồ sơ',
 
+  // ── Giới hạn tầm nhìn ──
+  'vision.twoCast': 'Hai tầm nhìn đã hiện hôm nay \u00B7 Còn một',
+  'vision.oneLeft': 'Còn một tầm nhìn. Hãy hỏi với chủ đích.',
+  'vision.generous': 'Nhà Tiên Tri đã hào phóng hôm nay.',
+
   // ── Chung ──
   'general.back': 'Quay lại',
   'general.dismiss': 'Đóng',

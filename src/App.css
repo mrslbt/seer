@@ -967,6 +967,26 @@
   animation: fadeIn 0.4s ease;
 }
 
+/* Vision hint — subtle threshold text that fades in and out */
+.seer-vision-hint {
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0;
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin: 12px 0 0;
+  animation: visionHintCycle 8s ease forwards;
+}
+
+@keyframes visionHintCycle {
+  0% { opacity: 0; transform: translateY(4px); }
+  10% { opacity: 0.35; transform: translateY(0); }
+  75% { opacity: 0.35; }
+  100% { opacity: 0; transform: translateY(-2px); }
+}
+
 /* Bottom bar — Ask Again + Share */
 .seer-answer-actions {
   display: flex;
