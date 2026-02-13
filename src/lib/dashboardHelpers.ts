@@ -42,12 +42,10 @@ export function getScoreColor(score: number): string {
  * Score → human-readable energy label
  */
 export function getEnergyLabel(score: number): string {
-  if (score >= 9) return 'Exceptional';
+  if (score >= 9) return 'Strong';
   if (score >= 7) return 'Favorable';
-  if (score >= 6) return 'Steady';
   if (score >= 5) return 'Balanced';
-  if (score >= 4) return 'Cautious';
-  if (score >= 2) return 'Challenged';
+  if (score >= 3) return 'Restrained';
   return 'Difficult';
 }
 

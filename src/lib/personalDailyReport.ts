@@ -212,10 +212,75 @@ interface NatalModifier {
   warnings: Partial<Record<QuestionCategory, string>>;
 }
 
+/**
+ * Essential dignity table — based on classical astrology.
+ * Domicile and Exaltation boost; Detriment and Fall penalize.
+ * This replaces the scattered if/else approach with a systematic lookup.
+ */
+type Dignity = 'domicile' | 'exaltation' | 'detriment' | 'fall';
+const ESSENTIAL_DIGNITIES: Partial<Record<string, { dignity: Dignity; mod: number }>> = {
+  // Sun
+  'sun:Leo':             { dignity: 'domicile',   mod:  1 },
+  'sun:Aries':           { dignity: 'exaltation', mod:  0.5 },
+  'sun:Aquarius':        { dignity: 'detriment',  mod: -1 },
+  'sun:Libra':           { dignity: 'fall',       mod: -0.5 },
+  // Moon
+  'moon:Cancer':         { dignity: 'domicile',   mod:  1 },
+  'moon:Taurus':         { dignity: 'exaltation', mod:  0.5 },
+  'moon:Capricorn':      { dignity: 'detriment',  mod: -1 },
+  'moon:Scorpio':        { dignity: 'fall',       mod: -0.5 },
+  // Mercury
+  'mercury:Gemini':      { dignity: 'domicile',   mod:  1 },
+  'mercury:Virgo':       { dignity: 'domicile',   mod:  1 },
+  'mercury:Sagittarius': { dignity: 'detriment',  mod: -1 },
+  'mercury:Pisces':      { dignity: 'detriment',  mod: -1 },
+  // Venus
+  'venus:Taurus':        { dignity: 'domicile',   mod:  1 },
+  'venus:Libra':         { dignity: 'domicile',   mod:  1 },
+  'venus:Pisces':        { dignity: 'exaltation', mod:  0.5 },
+  'venus:Scorpio':       { dignity: 'detriment',  mod: -1 },
+  'venus:Aries':         { dignity: 'detriment',  mod: -1 },
+  'venus:Virgo':         { dignity: 'fall',       mod: -0.5 },
+  // Mars
+  'mars:Aries':          { dignity: 'domicile',   mod:  1 },
+  'mars:Scorpio':        { dignity: 'domicile',   mod:  1 },
+  'mars:Capricorn':      { dignity: 'exaltation', mod:  0.5 },
+  'mars:Libra':          { dignity: 'detriment',  mod: -1 },
+  'mars:Taurus':         { dignity: 'detriment',  mod: -1 },
+  'mars:Cancer':         { dignity: 'fall',       mod: -0.5 },
+  // Jupiter
+  'jupiter:Sagittarius': { dignity: 'domicile',   mod:  1 },
+  'jupiter:Pisces':      { dignity: 'domicile',   mod:  1 },
+  'jupiter:Cancer':      { dignity: 'exaltation', mod:  0.5 },
+  'jupiter:Gemini':      { dignity: 'detriment',  mod: -1 },
+  'jupiter:Virgo':       { dignity: 'detriment',  mod: -1 },
+  'jupiter:Capricorn':   { dignity: 'fall',       mod: -0.5 },
+  // Saturn
+  'saturn:Capricorn':    { dignity: 'domicile',   mod:  1 },
+  'saturn:Aquarius':     { dignity: 'domicile',   mod:  1 },
+  'saturn:Libra':        { dignity: 'exaltation', mod:  0.5 },
+  'saturn:Aries':        { dignity: 'detriment',  mod: -1 },
+  'saturn:Cancer':       { dignity: 'detriment',  mod: -1 },
+  'saturn:Leo':          { dignity: 'fall',       mod: -0.5 },
+};
+
+/**
+ * Maps planets to the categories their dignity affects.
+ * When a planet is dignified/debilitated, these categories shift.
+ */
+const DIGNITY_CATEGORY_MAP: Record<string, Partial<Record<QuestionCategory, number>>> = {
+  sun:     { career: 1, creativity: 0.5, health: 0.5 },
+  moon:    { love: 1, health: 0.5, spiritual: 0.5 },
+  mercury: { decisions: 1, social: 0.5, career: 0.5 },
+  venus:   { love: 1, money: 0.5, social: 0.5 },
+  mars:    { career: 0.5, decisions: 1, health: 0.5 },
+  jupiter: { money: 1, spiritual: 0.5, career: 0.5 },
+  saturn:  { career: 1, decisions: 0.5 },
+};
+
 function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier[] {
   const modifiers: NatalModifier[] = [];
 
-  // NatalChart has individual planet properties, not a 'planets' object
   const planetEntries: [string, { sign: ZodiacSign }][] = [
     ['sun', natalChart.sun],
     ['moon', natalChart.moon],
@@ -232,186 +297,74 @@ function getNatalModifiers(natalChart: UserProfile['natalChart']): NatalModifier
   for (const [planet, data] of planetEntries) {
     if (!data) continue;
     const sign = data.sign as ZodiacSign;
-    const element = SIGN_ELEMENTS[sign];
 
-    // ---- Sun placement ----
-    if (planet === 'sun') {
-      if (sign === 'Leo') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { creativity: 1, social: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Capricorn') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { career: 1, creativity: -1 },
-          warnings: { creativity: 'Your Capricorn Sun favors structure over spontaneity' }
-        });
+    // ── Essential dignity modifiers (systematic) ──
+    const dignityKey = `${planet}:${sign}`;
+    const dignity = ESSENTIAL_DIGNITIES[dignityKey];
+    const categoryWeights = DIGNITY_CATEGORY_MAP[planet];
+
+    if (dignity && categoryWeights) {
+      const categoryModifiers: Partial<Record<QuestionCategory, number>> = {};
+      const warnings: Partial<Record<QuestionCategory, string>> = {};
+      const direction = dignity.mod > 0 ? 1 : -1;
+
+      for (const [cat, weight] of Object.entries(categoryWeights)) {
+        const impact = direction * (weight as number) * Math.abs(dignity.mod);
+        categoryModifiers[cat as QuestionCategory] = Math.round(impact * 10) / 10;
       }
+
+      // Warnings only for debilitated placements
+      if (dignity.dignity === 'detriment' || dignity.dignity === 'fall') {
+        const primaryCat = Object.entries(categoryWeights)
+          .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] as QuestionCategory;
+        if (primaryCat) {
+          const dignityLabel = dignity.dignity === 'detriment' ? 'in detriment' : 'in fall';
+          warnings[primaryCat] = `Your ${sign} ${planet.charAt(0).toUpperCase() + planet.slice(1)} is ${dignityLabel} — temper expectations here`;
+        }
+      }
+
+      modifiers.push({ planet: planet as Planet, sign, categoryModifiers, warnings });
     }
 
-    // ---- Moon placement ----
-    if (planet === 'moon') {
-      if (sign === 'Cancer') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { love: 1, health: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Aquarius') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { love: -1, social: 1, spiritual: 1 },
-          warnings: { love: 'Your Aquarius Moon may overthink emotional matters' }
-        });
-      } else if (sign === 'Capricorn') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { love: -1, career: 1 },
-          warnings: { love: 'Your Capricorn Moon can hold back emotional expression' }
-        });
-      } else if (sign === 'Scorpio') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { spiritual: 1, social: -1 },
-          warnings: { social: 'Your Scorpio Moon prefers depth over breadth in connections' }
-        });
-      }
+    // ── Specific behavioral modifiers (supplement dignities) ──
+    if (planet === 'venus' && sign === 'Pisces') {
+      // Venus exalted in Pisces: great for love, risky for money
+      modifiers.push({
+        planet: planet as Planet, sign,
+        categoryModifiers: { money: -0.5 },
+        warnings: { money: 'Your Pisces Venus has a dreamy relationship with money — stay grounded' }
+      });
     }
 
-    // ---- Mercury placement ----
-    if (planet === 'mercury') {
-      if (sign === 'Gemini' || sign === 'Virgo') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { decisions: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Pisces') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { decisions: -1 },
-          warnings: { decisions: 'Your Pisces Mercury thinks in dreams, not data' }
-        });
-      } else if (sign === 'Sagittarius') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { social: -1 },
-          warnings: { social: 'Your Sagittarius Mercury can be blunt in communication' }
-        });
-      }
+    if (planet === 'mercury' && sign === 'Sagittarius') {
+      modifiers.push({
+        planet: planet as Planet, sign,
+        categoryModifiers: { social: -0.5 },
+        warnings: { social: 'Your Sagittarius Mercury can be blunt in communication' }
+      });
     }
 
-    // ---- Venus placement ----
-    if (planet === 'venus') {
-      if (sign === 'Pisces') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { money: -1, love: 1 },
-          warnings: { money: 'Your Venus in Pisces has a dreamy relationship with money — stay grounded' }
-        });
-      } else if (sign === 'Taurus' || sign === 'Capricorn') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { money: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Libra') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { social: 1, love: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Scorpio') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { social: -1, spiritual: 1 },
-          warnings: { social: 'Your Scorpio Venus craves intensity over casual connection' }
-        });
-      } else if (sign === 'Aries') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { love: -1 },
-          warnings: { love: 'Your Aries Venus can be impatient in romance' }
-        });
+    // Outer planets — element-based modifiers (no traditional dignities)
+    if (planet === 'uranus') {
+      const element = SIGN_ELEMENTS[sign];
+      if (element === 'air') {
+        modifiers.push({ planet: planet as Planet, sign, categoryModifiers: { creativity: 0.5, social: 0.5 }, warnings: {} });
+      } else if (element === 'earth') {
+        modifiers.push({ planet: planet as Planet, sign, categoryModifiers: { creativity: -0.5 }, warnings: {} });
       }
     }
-
-    // ---- Mars placement ----
-    if (planet === 'mars') {
-      if (sign === 'Aries' || sign === 'Scorpio') {
-        // Mars in domicile
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { career: 1, decisions: 1, health: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Libra') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { decisions: -1 },
-          warnings: { decisions: 'Your Libra Mars hesitates under pressure' }
-        });
-      } else if (element === 'water') {
-        // Water Mars (Cancer, Pisces) = passive, intuitive action
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { money: -1, decisions: -1 },
-          warnings: {
-            money: 'Your Mars in water sign prefers flowing with circumstances over forcing outcomes',
-            decisions: 'Trust your gut but verify with logic'
-          }
-        });
-      } else if (element === 'fire') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { decisions: 1, health: 1 },
-          warnings: {}
-        });
+    if (planet === 'neptune') {
+      const element = SIGN_ELEMENTS[sign];
+      if (element === 'water') {
+        modifiers.push({ planet: planet as Planet, sign, categoryModifiers: { spiritual: 0.5, creativity: 0.5 }, warnings: {} });
+      } else if (element === 'earth') {
+        modifiers.push({ planet: planet as Planet, sign, categoryModifiers: { spiritual: -0.5 }, warnings: {} });
       }
     }
-
-    // ---- Jupiter placement ----
-    if (planet === 'jupiter') {
-      if (sign === 'Sagittarius' || sign === 'Pisces') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { money: 1, spiritual: 1 },
-          warnings: {}
-        });
-      } else if (sign === 'Capricorn') {
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { spiritual: -1 },
-          warnings: { spiritual: 'Your Capricorn Jupiter favors material over mystical' }
-        });
-      }
-    }
-
-    // ---- Saturn placement ----
-    if (planet === 'saturn') {
-      if (sign === 'Capricorn' || sign === 'Aquarius') {
-        // Saturn in domicile — discipline as strength
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { career: 1, decisions: 1 },
-          warnings: {}
-        });
-      } else if (element === 'fire') {
-        // Saturn in fire — restriction clashes with spontaneity
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { creativity: -1 },
-          warnings: { creativity: 'Your Saturn in a fire sign can dampen creative impulses' }
-        });
-      } else if (element === 'water') {
-        // Saturn in water — emotional restraint
-        modifiers.push({
-          planet: planet as Planet, sign,
-          categoryModifiers: { love: -1 },
-          warnings: { love: 'Your Saturn in water can restrict emotional expression' }
-        });
+    if (planet === 'pluto') {
+      const element = SIGN_ELEMENTS[sign];
+      if (element === 'water') {
+        modifiers.push({ planet: planet as Planet, sign, categoryModifiers: { spiritual: 0.5 }, warnings: {} });
       }
     }
   }
@@ -539,17 +492,20 @@ function generateCategoryScore(
 
   // Generate advice based on score
   let advice: string;
-  if (score >= 8) {
-    advice = 'Excellent energy! Go for it.';
+  if (score >= 9) {
+    advice = 'The sky strongly supports you here. Act with confidence.';
     goodFor.push('taking action', 'making moves');
-  } else if (score >= 6) {
-    advice = 'Good energy. Proceed with awareness.';
+  } else if (score >= 7) {
+    advice = 'Favorable conditions. Trust what feels right.';
+    goodFor.push('steady progress', 'moving forward');
+  } else if (score >= 5) {
+    advice = 'Balanced ground. Stay aware, stay open.';
     goodFor.push('steady progress');
-  } else if (score >= 4) {
-    advice = 'Mixed energy. Be cautious.';
+  } else if (score >= 3) {
+    advice = 'Some resistance here. Patience serves you.';
     badFor.push('major decisions', 'rushing');
   } else {
-    advice = 'Challenging energy. Wait if possible.';
+    advice = 'Not the day for this. Redirect your attention.';
     badFor.push('big moves', 'confrontation');
     goodFor.push('reflection', 'planning');
   }

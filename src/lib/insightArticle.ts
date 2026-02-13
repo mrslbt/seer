@@ -52,25 +52,21 @@ const CATEGORY_MAP: Record<QuestionCategory, keyof PersonalDailyReport['categori
  * Describe the energy level poetically
  */
 function describeEnergy(score: number): string {
-  if (score >= 9) return "Rare strength here. The sky is fully behind you in this area today.";
-  if (score >= 7) return "Strong energy working in your favor. The stars clearly support you here.";
-  if (score >= 6) return "Steady, quiet support. The sky is on your side, but not loudly.";
-  if (score === 5) return "Perfect balance. Nothing pushes you forward or holds you back. The day is yours to shape.";
-  if (score >= 4) return "Light resistance. The sky suggests patience over force right now.";
-  if (score >= 2) return "The sky works against progress here. Not punishment. Redirection.";
-  return "Strong opposition. The stars are protecting you from a path best avoided today.";
+  if (score >= 9) return "Clear support here. The conditions genuinely favor action in this area today.";
+  if (score >= 7) return "The conditions work in your favor. Trust what you feel drawn to here.";
+  if (score >= 5) return "Balanced ground. Neither strongly helped nor hindered. The day is yours to shape.";
+  if (score >= 3) return "Some friction. Not a dead end — but the sky suggests patience over force.";
+  return "Real resistance today. Better to redirect than to push through.";
 }
 
 /**
  * Format the score as a poetic assessment
  */
 function scoreLabel(score: number): string {
-  if (score >= 9) return "Exceptional";
+  if (score >= 9) return "Strong";
   if (score >= 7) return "Favorable";
-  if (score >= 6) return "Steady";
-  if (score === 5) return "Balanced";
-  if (score >= 4) return "Cautious";
-  if (score >= 2) return "Challenged";
+  if (score >= 5) return "Balanced";
+  if (score >= 3) return "Restrained";
   return "Difficult";
 }
 
