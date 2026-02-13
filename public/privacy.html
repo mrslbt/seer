@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — The Seer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #000; color: #E8E8E8;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 15px; line-height: 1.7;
+      padding: 48px 24px; max-width: 640px; margin: 0 auto;
+    }
+    h1 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 1.6rem; color: #C9A84C; margin-bottom: 8px; }
+    h2 { font-size: 1rem; color: #C9A84C; margin: 32px 0 8px; font-weight: 500; }
+    p, li { color: #B0B0B0; margin-bottom: 12px; }
+    ul { padding-left: 20px; }
+    a { color: #C9A84C; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .updated { font-size: 0.8rem; color: #666; margin-bottom: 32px; }
+    .back { display: inline-block; margin-bottom: 24px; font-size: 0.85rem; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+  <a href="/" class="back">&larr; Back to The Seer</a>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: February 13, 2026</p>
+
+  <p>The Seer ("we", "the app") is a browser-based astrology oracle at theseer.xyz. Your privacy matters. This policy explains what data is collected, how it is used, and your rights.</p>
+
+  <h2>1. Data stored on your device</h2>
+  <p>All personal data you enter — birth date, time, location, name, and reading history — is stored exclusively in your browser's localStorage. We do not have access to this data. It never leaves your device except as described below.</p>
+
+  <h2>2. Data sent to our servers</h2>
+  <p>When you ask The Seer a question, we send the following to our server-side API to generate a response:</p>
+  <ul>
+    <li>Your question text</li>
+    <li>A summary of your astrological chart (planetary positions, not raw birth data)</li>
+    <li>Current transit information</li>
+  </ul>
+  <p>This data is forwarded to OpenAI's API to generate your reading. We do not store your questions or readings on our servers. OpenAI's data usage policy applies to data processed by their API.</p>
+
+  <h2>3. Analytics</h2>
+  <p>We use two analytics services to understand how the app is used:</p>
+  <ul>
+    <li><strong>PostHog</strong> — Tracks anonymous product events (e.g., "question asked", "tab switched"). No personally identifiable information is collected. Session recording is disabled.</li>
+    <li><strong>Cloudflare Web Analytics</strong> — Privacy-first page view analytics. No cookies, no personal data collected.</li>
+  </ul>
+
+  <h2>4. Cookies</h2>
+  <p>The Seer does not set cookies. PostHog uses localStorage for anonymous session identification. Cloudflare Web Analytics is cookieless.</p>
+
+  <h2>5. Third-party services</h2>
+  <ul>
+    <li><strong>OpenAI</strong> — Processes questions to generate readings. <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI Privacy Policy</a></li>
+    <li><strong>PostHog</strong> — Product analytics. <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog Privacy Policy</a></li>
+    <li><strong>Cloudflare</strong> — Hosting and analytics. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a></li>
+    <li><strong>Google Fonts</strong> — Font delivery. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
+  </ul>
+
+  <h2>6. Children</h2>
+  <p>The Seer is not intended for children under 13. We do not knowingly collect data from children.</p>
+
+  <h2>7. Your rights</h2>
+  <p>Since your data is stored in your browser, you have full control. You can delete all data at any time by clearing your browser's localStorage for theseer.xyz, or by deleting your profiles in the app settings.</p>
+
+  <h2>8. Changes</h2>
+  <p>We may update this policy. Changes will be reflected by the "last updated" date above.</p>
+
+  <h2>9. Contact</h2>
+  <p>Questions? Reach out at <a href="mailto:privacy@theseer.xyz">privacy@theseer.xyz</a>.</p>
+</body>
+</html>
