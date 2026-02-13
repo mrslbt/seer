@@ -15,6 +15,7 @@
     "swisseph-wasm": "^0.0.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260213.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vercel/node": "^5.6.0",
