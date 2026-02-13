@@ -10,6 +10,7 @@
     "postinstall": "mkdir -p public/wsam && cp node_modules/swisseph-wasm/wsam/swisseph.data public/wsam/swisseph.data && cp node_modules/swisseph-wasm/wsam/swisseph.wasm public/wsam/swisseph.wasm"
   },
   "dependencies": {
+    "posthog-js": "^1.347.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "swisseph-wasm": "^0.0.4"

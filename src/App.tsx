@@ -18,6 +18,7 @@ import {
 import { usePersonalCosmos } from './hooks/usePersonalCosmos';
 import { getDailyWhisper } from './lib/cosmicWhisper';
 import { saveReading, analyzePatterns, getTodayReadingCount } from './lib/readingHistory';
+import { trackQuestionAsked, trackTabSwitched, trackReadingShared, trackProfileCreated, trackPartnerSelected, trackVisionLimitHit, identifyUser } from './lib/analytics';
 
 import { BirthDataForm } from './components/BirthDataForm';
 import { getCity } from './lib/cities';
@@ -164,6 +165,7 @@ function App() {
   // ── Sync vision count from localStorage on mount / profile change ──
   useEffect(() => {
     setTodayVisionCount(getTodayReadingCount(userProfile?.id));
+    if (userProfile?.id) identifyUser(userProfile.id);
   }, [userProfile?.id]);
 
   // ── Intro ──
@@ -253,6 +255,7 @@ function App() {
   const handleBirthDataSubmit = useCallback(async (data: BirthData, name: string) => {
     playClick();
     await setUserFromOldBirthData(data, name);
+    trackProfileCreated();
     setSettingsView('hidden');
   }, [setUserFromOldBirthData]);
 
@@ -317,6 +320,7 @@ function App() {
 
     setQuestionError(null);
     playClick();
+    trackQuestionAsked(activeTab, detectQuestionMode(questionText.trim()));
 
     const trimmed = questionText.trim();
     setSubmittedQuestion(trimmed);
@@ -434,6 +438,7 @@ function App() {
       setShowVisionHint(true);
       setTimeout(() => setShowVisionHint(false), 8000);
     }
+    if (newCount === 3) trackVisionLimitHit(newCount);
 
     if (usedLLM) console.log('[Seer] LLM response used');
 
@@ -494,6 +499,7 @@ function App() {
   // Tab change handler — reset question state
   const handleTabChange = useCallback((tab: ActiveTab) => {
     if (tab === activeTab) return;
+    trackTabSwitched(activeTab, tab);
     resetQuestionState();
     setActiveTab(tab);
   }, [activeTab, resetQuestionState]);
@@ -592,10 +598,12 @@ function App() {
       if (blob && navigator.share) {
         const file = new File([blob], 'seer-reading.png', { type: 'image/png' });
         await navigator.share({ files: [file] });
+        trackReadingShared();
       } else if (blob) {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         setShareToast(true);
         setTimeout(() => setShareToast(false), 2000);
+        trackReadingShared();
       }
     } catch { /* User cancelled */ }
   }, [oracleText]);
@@ -625,6 +633,7 @@ function App() {
   const handlePartnerSelect = useCallback((partner: UserProfile, synastryReport: SynastryReport) => {
     setBondPartner(partner);
     setBondSynastry(synastryReport);
+    trackPartnerSelected();
   }, []);
 
   const handlePartnerDeselect = useCallback(() => {
