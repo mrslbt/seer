@@ -190,7 +190,7 @@ export function OracleReading({
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.font = '9px Inter, system-ui, sans-serif';
-    ctx.fillText('hiseer.vercel.app', w / 2, h - 24);
+    ctx.fillText('theseer.xyz', w / 2, h - 24);
 
     try {
       const blob = await new Promise<Blob | null>((resolve) =>
