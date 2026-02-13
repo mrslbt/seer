@@ -850,6 +850,9 @@ function App() {
               {/* ── Answer Display (unified across all tabs) ── */}
               {seerPhase === 'revealing' && oracleText && !showArticle && (
                 <div className="seer-answer-container" ref={answerRef}>
+                  {submittedQuestion && !crisisDetected && (
+                    <p className="seer-answer-question">{submittedQuestion}</p>
+                  )}
                   <div className="seer-answer-text" style={crisisDetected ? { whiteSpace: 'pre-line' } : undefined}>
                     {!crisisDetected && <span className="seer-answer-quote">{'\u201C'}</span>}
                     {oracleText}

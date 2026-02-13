@@ -872,13 +872,26 @@
   animation: seerAnswerFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Echoed question — above the reading */
+.seer-answer-question {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: seerAnswerFadeIn 0.8s ease 0.1s forwards;
+}
+
 /* Oracle prose — the main reading */
 .seer-answer-text {
   font-family: var(--font-display);
   font-size: 1.375rem;
   font-weight: 400;
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.65;
   letter-spacing: 0.015em;
   color: #C9A84C;
   margin-bottom: 24px;
@@ -1370,12 +1383,25 @@
     font-size: 0.9375rem;
   }
 
+  .seer-answer-question {
+    font-size: 0.6875rem;
+    margin-bottom: 16px;
+  }
+
   .seer-answer-text {
-    font-size: 1.1875rem;
+    font-size: 1.25rem;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .seer-answer-quote {
     font-size: 2rem;
+  }
+
+  .seer-follow-up-text {
+    font-size: 0.9375rem;
+    line-height: 1.75;
   }
 
   .seer-follow-up-question {
