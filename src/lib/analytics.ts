@@ -21,8 +21,9 @@ export function initAnalytics(): void {
 
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST || 'https://us.i.posthog.com',
+    ui_host: 'https://us.posthog.com',
     autocapture: false,        // we track manually — cleaner data
-    capture_pageview: false,   // SPA — we handle this ourselves
+    capture_pageview: true,    // capture page views with correct domain
     capture_pageleave: true,
     persistence: 'localStorage',
     disable_session_recording: true,  // no session replays needed
