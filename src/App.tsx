@@ -775,7 +775,14 @@ function App() {
         )}
         {!hasBirthData && cosmosLoading && (
           <div className="cosmos-status cosmos-status--center">
-            <p>{t('onboarding.loading')}</p>
+            <div className="seer-loading">
+              <div className="seer-loading__orbit">
+                <span className="seer-loading__dot" />
+                <span className="seer-loading__dot" />
+                <span className="seer-loading__dot" />
+              </div>
+              <p className="seer-loading__text">{t('onboarding.loading')}</p>
+            </div>
           </div>
         )}
         {hasBirthData && cosmosError && !cosmosLoading && (

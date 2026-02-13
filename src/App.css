@@ -381,6 +381,94 @@
   color: var(--text-muted);
 }
 
+/* ═══════════════════════════════════════════════════
+   Seer Loading — Orbital Animation
+   Three dots orbit a central point, evoking celestial alignment.
+   ═══════════════════════════════════════════════════ */
+
+.seer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  animation: fadeIn 0.8s ease;
+}
+
+.seer-loading__orbit {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  animation: loadingOrbitSpin 6s linear infinite;
+}
+
+.seer-loading__dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Position 3 dots equally around a circle (r=20px from center) */
+.seer-loading__dot:nth-child(1) {
+  top: 2px;
+  left: 22px;
+  opacity: 0.9;
+  animation: loadingDotPulse 2s ease-in-out infinite;
+}
+
+.seer-loading__dot:nth-child(2) {
+  bottom: 6px;
+  left: 4px;
+  opacity: 0.5;
+  animation: loadingDotPulse 2s ease-in-out 0.66s infinite;
+}
+
+.seer-loading__dot:nth-child(3) {
+  bottom: 6px;
+  right: 4px;
+  opacity: 0.3;
+  animation: loadingDotPulse 2s ease-in-out 1.33s infinite;
+}
+
+.seer-loading__text {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--accent-dim);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: loadingTextAppear 1.6s ease 0.4s forwards;
+}
+
+@keyframes loadingOrbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loadingDotPulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.6);
+    box-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
+  }
+}
+
+@keyframes loadingTextAppear {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 0.7;
+    filter: blur(0);
+  }
+}
+
 /* Submitted question */
 .current-question {
   font-family: var(--font-display);

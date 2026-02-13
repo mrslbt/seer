@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import './SeerIntro.css';
 
@@ -12,8 +12,17 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
   const { t } = useI18n();
   const [activeScreen, setActiveScreen] = useState(0);
   const [exitingScreen, setExitingScreen] = useState<number | null>(null);
+  const [ripple, setRipple] = useState<{ x: number; y: number; id: number } | null>(null);
+  const rippleId = useRef(0);
 
-  const advance = useCallback(() => {
+  const advance = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    // Spawn tap ripple at click/touch position
+    if (e && 'clientX' in e) {
+      const id = ++rippleId.current;
+      setRipple({ x: e.clientX, y: e.clientY, id });
+      setTimeout(() => setRipple(prev => prev?.id === id ? null : prev), 600);
+    }
+
     if (activeScreen >= SCREEN_COUNT - 1) {
       onComplete();
       return;
@@ -46,7 +55,7 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
   };
 
   return (
-    <div className="seer-intro" onClick={advance}>
+    <div className="seer-intro" onClick={(e) => advance(e)}>
       {/* Screen 1: "The stars have been waiting" */}
       <div className={getScreenClass(0)}>
         <p className="seer-intro__text">{t('intro.line1')}</p>
@@ -66,7 +75,27 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
         <p className="seer-intro__text">{t('intro.line5')}</p>
       </div>
 
+      {/* Progress dots */}
+      <div className="seer-intro__progress">
+        {Array.from({ length: SCREEN_COUNT }, (_, i) => (
+          <span
+            key={i}
+            className={`seer-intro__dot${i === activeScreen ? ' seer-intro__dot--active' : ''}`}
+          />
+        ))}
+      </div>
+
+      {/* Tap hint */}
       <span className="seer-intro__hint">{t('intro.tap')}</span>
+
+      {/* Tap ripple feedback */}
+      {ripple && (
+        <span
+          className="seer-intro__ripple"
+          style={{ left: ripple.x, top: ripple.y }}
+          key={ripple.id}
+        />
+      )}
     </div>
   );
 }
