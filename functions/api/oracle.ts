@@ -452,7 +452,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: 'LLM request failed' }), {
+      return new Response(JSON.stringify({ error: 'LLM request failed', detail: errorText, status: response.status }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
