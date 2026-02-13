@@ -776,10 +776,16 @@ function App() {
         {!hasBirthData && cosmosLoading && (
           <div className="cosmos-status cosmos-status--center">
             <div className="seer-loading">
-              <div className="seer-loading__orbit">
-                <span className="seer-loading__dot" />
-                <span className="seer-loading__dot" />
-                <span className="seer-loading__dot" />
+              <div className="seer-loading__stars">
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
+                </svg>
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
+                </svg>
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
+                </svg>
               </div>
               <p className="seer-loading__text">{t('onboarding.loading')}</p>
             </div>

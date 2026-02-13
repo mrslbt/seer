@@ -146,13 +146,13 @@
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.35);
+  color: rgba(201, 168, 76, 0.8);
   opacity: 0;
-  animation: introHintPulse 4s ease-in-out 2.5s infinite;
+  animation: introHintPulse 3s ease-in-out 2s infinite;
 }
 
 /* ── Tap ripple feedback ─────────────────────────── */
@@ -225,14 +225,14 @@
   }
 }
 
-/* Hint fades in then breathes — single animation */
+/* Hint fades in then breathes — clearly visible */
 @keyframes introHintPulse {
   0% { opacity: 0; }
-  12% { opacity: 0.5; }
-  25% { opacity: 0.35; }
-  50% { opacity: 0.55; }
-  75% { opacity: 0.35; }
-  100% { opacity: 0.55; }
+  15% { opacity: 0.9; }
+  30% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+  70% { opacity: 0.6; }
+  100% { opacity: 0.9; }
 }
 
 /* Tap ripple expands outward */
