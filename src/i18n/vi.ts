@@ -258,7 +258,7 @@ export const vi: Record<TranslationKey, string> = {
   // ── Chân trang ──
   'footer.terms': 'Điều khoản',
   'footer.privacy': 'Quyền riêng tư',
-  'footer.disclaimer': 'Chỉ mang tính giải trí. Không thay thế tư vấn chuyên nghiệp.',
+  'footer.disclaimer': 'Để suy ngẫm, không phải tiên đoán.',
 
   // ── Năng lượng hôm nay ──
   'todayBond.energy': 'Năng lượng hôm nay',

@@ -256,7 +256,7 @@ export const en = {
   // ── Footer ──
   'footer.terms': 'Terms',
   'footer.privacy': 'Privacy',
-  'footer.disclaimer': 'For entertainment only. Not a substitute for professional advice.',
+  'footer.disclaimer': 'For reflection, not prediction.',
 
   // ── Today's Bond ──
   'todayBond.energy': "Today's Energy",

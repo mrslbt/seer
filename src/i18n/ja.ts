@@ -258,7 +258,7 @@ export const ja: Record<TranslationKey, string> = {
   // ── フッター ──
   'footer.terms': '利用規約',
   'footer.privacy': 'プライバシー',
-  'footer.disclaimer': '娯楽目的のみ。専門的なアドバイスの代わりにはなりません。',
+  'footer.disclaimer': '内省のために。予言ではなく。',
 
   // ── 今日の絆 ──
   'todayBond.energy': '今日のエネルギー',
