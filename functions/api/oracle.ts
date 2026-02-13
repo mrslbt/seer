@@ -92,7 +92,18 @@ VOICE RULES:
 - You can be poetic but never flowery. Concrete images beat abstract concepts.
 - Never explain astrology. Never say "because Mars is in your 5th house". Instead, let the chart data inform your answer naturally, the way a doctor uses test results without reading them aloud.
 - NEVER reference the chart, transits, or stars explicitly. No "your chart reveals", "current transits create", "the stars indicate", "your natal chart shows". You just KNOW. Speak as someone who sees, not someone reading a report.
-- Maximum 4 sentences. Fewer is better.`;
+- Maximum 4 sentences. Fewer is better.
+
+SAFETY RULES (ABSOLUTE — NEVER VIOLATE):
+- NEVER encourage, suggest, or normalize self-harm, suicide, or violence in any form.
+- NEVER predict death, terminal illness, or catastrophic personal outcomes.
+- NEVER tell someone they are worthless, hopeless, doomed, or beyond help.
+- NEVER discourage someone from seeking medical, psychological, or professional help.
+- NEVER encourage ending relationships in absolute terms. You can note tension or difficulty, but always leave room for agency and choice.
+- NEVER give specific medical, legal, or financial advice.
+- When readings involve difficult themes (loss, endings, hardship), ALWAYS frame them as temporary phases, opportunities for growth, or redirections — never as permanent doom.
+- If a user's question suggests they are in crisis or distress, respond with compassion and gently encourage them to seek support from someone they trust or a professional. Do not provide an astrological reading for crisis-related questions.
+- You are entertainment. You provide reflection, not diagnosis. Never forget this.`;
 
 // ── Type-specific instructions ──
 const SEER_INSTRUCTIONS = `
@@ -370,6 +381,31 @@ function buildCosmosQuestionMessage(body: CosmosQuestionRequest): string {
   return parts.join('\n');
 }
 
+// ── Response safety filter ──
+const HARMFUL_PATTERNS = [
+  /\bkill\s+(your|him|her|them|my)self\b/i,
+  /\bsuicid/i,
+  /\bself[- ]?harm/i,
+  /\bend\s+(your|my|their)\s+life\b/i,
+  /\bnot\s+worth\s+living\b/i,
+  /\bgive\s+up\s+on\s+(life|everything|living)\b/i,
+  /\bno\s+(reason|point)\s+(to|in)\s+(live|living|go on)\b/i,
+  /\byou\s+(will|are going to)\s+die\b/i,
+  /\bdeath\s+(is|awaits|comes)\b/i,
+  /\bhopeless\b.*\bforever\b/i,
+  /\bforever\b.*\bhopeless\b/i,
+  /\bdoomed\b/i,
+  /\bworthless\b/i,
+  /\bdon'?t\s+(bother|seek)\s+(with\s+)?(help|therapy|treatment|doctor)/i,
+  /\bstop\s+taking\s+(your\s+)?(medication|medicine|meds)\b/i,
+];
+
+function isResponseSafe(text: string): boolean {
+  return !HARMFUL_PATTERNS.some(pattern => pattern.test(text));
+}
+
+const SAFE_FALLBACK = 'The sky holds complexity here. This question deserves more than the stars can offer alone. Trust your own judgment, and if this weighs on you, reach out to someone you trust.';
+
 // ── Max tokens by type ──
 function getMaxTokens(type: OracleRequest['type']): number {
   switch (type) {
@@ -468,7 +504,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       });
     }
 
-    return new Response(JSON.stringify({ oracleText }), {
+    // Safety filter — replace harmful responses with safe fallback
+    const safeText = isResponseSafe(oracleText) ? oracleText : SAFE_FALLBACK;
+
+    return new Response(JSON.stringify({ oracleText: safeText }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -20,8 +20,9 @@
     a:hover { text-decoration: underline; }
     .updated { font-size: 0.8rem; color: #666; margin-bottom: 32px; }
     .back { display: inline-block; margin-bottom: 24px; font-size: 0.85rem; }
+    @font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/InstrumentSerif-Regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap; src: url('/fonts/InstrumentSerif-Italic.woff2') format('woff2'); }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
   <a href="/" class="back">&larr; Back to The Seer</a>
@@ -40,36 +41,58 @@
     <li>A summary of your astrological chart (planetary positions, not raw birth data)</li>
     <li>Current transit information</li>
   </ul>
-  <p>This data is forwarded to OpenAI's API to generate your reading. We do not store your questions or readings on our servers. OpenAI's data usage policy applies to data processed by their API.</p>
+  <p>This data is forwarded to OpenAI's API to generate your reading. We do not store your questions or readings on our servers. OpenAI processes this data under their API data usage policy — API inputs and outputs are not used to train their models.</p>
 
   <h2>3. Analytics</h2>
   <p>We use two analytics services to understand how the app is used:</p>
   <ul>
-    <li><strong>PostHog</strong> — Tracks anonymous product events (e.g., "question asked", "tab switched"). No personally identifiable information is collected. Session recording is disabled.</li>
-    <li><strong>Cloudflare Web Analytics</strong> — Privacy-first page view analytics. No cookies, no personal data collected.</li>
+    <li><strong>PostHog</strong> — Tracks anonymous product events (e.g., "question asked", "tab switched"). No personally identifiable information is collected. Session recording is disabled. Legal basis: legitimate interest in understanding product usage.</li>
+    <li><strong>Cloudflare Web Analytics</strong> — Privacy-first page view analytics. No cookies, no personal data collected, no user tracking.</li>
   </ul>
 
-  <h2>4. Cookies</h2>
-  <p>The Seer does not set cookies. PostHog uses localStorage for anonymous session identification. Cloudflare Web Analytics is cookieless.</p>
+  <h2>4. Cookies and local storage</h2>
+  <p>The Seer does not set cookies. PostHog uses localStorage for anonymous session identification. Cloudflare Web Analytics is cookieless. Your birth data and preferences are stored in localStorage solely on your device.</p>
 
-  <h2>5. Third-party services</h2>
+  <h2>5. Third-party services and international data transfers</h2>
+  <p>We use the following third-party services, which may process data outside your country of residence:</p>
   <ul>
-    <li><strong>OpenAI</strong> — Processes questions to generate readings. <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI Privacy Policy</a></li>
-    <li><strong>PostHog</strong> — Product analytics. <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog Privacy Policy</a></li>
-    <li><strong>Cloudflare</strong> — Hosting and analytics. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a></li>
-    <li><strong>Google Fonts</strong> — Font delivery. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
+    <li><strong>OpenAI</strong> (US) — Processes questions to generate readings. <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI Privacy Policy</a></li>
+    <li><strong>PostHog</strong> (US) — Product analytics. <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog Privacy Policy</a></li>
+    <li><strong>Cloudflare</strong> (US) — Hosting and analytics. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a></li>
   </ul>
+  <p>Data transferred to these US-based services is protected under their respective data processing agreements and standard contractual clauses where applicable.</p>
 
-  <h2>6. Children</h2>
-  <p>The Seer is not intended for children under 13. We do not knowingly collect data from children.</p>
+  <h2>6. Legal basis for processing (GDPR)</h2>
+  <p>For users in the European Economic Area (EEA), United Kingdom, and Switzerland, we process data on the following legal bases:</p>
+  <ul>
+    <li><strong>Contract performance</strong> — Processing your questions via OpenAI to deliver the service you requested</li>
+    <li><strong>Legitimate interest</strong> — Anonymous product analytics (PostHog) to improve the service, without overriding your privacy rights</li>
+    <li><strong>Consent</strong> — Where required by applicable law</li>
+  </ul>
 
   <h2>7. Your rights</h2>
   <p>Since your data is stored in your browser, you have full control. You can delete all data at any time by clearing your browser's localStorage for theseer.xyz, or by deleting your profiles in the app settings.</p>
+  <p>If you are in the EEA, UK, or Switzerland, you also have the right to:</p>
+  <ul>
+    <li>Access the personal data we process about you</li>
+    <li>Rectify inaccurate data</li>
+    <li>Request erasure of your data</li>
+    <li>Object to processing based on legitimate interest</li>
+    <li>Data portability</li>
+    <li>Lodge a complaint with your local data protection supervisory authority</li>
+  </ul>
+  <p>Since we do not store your personal data on our servers, most of these rights are automatically satisfied. For any requests, contact us at the address below.</p>
 
-  <h2>8. Changes</h2>
+  <h2>8. Age restriction</h2>
+  <p>The Seer is intended for users aged 18 and older. We do not knowingly collect data from anyone under 18. If we learn that someone under 18 has used the service, we will take appropriate steps to address it.</p>
+
+  <h2>9. Data retention</h2>
+  <p>We do not retain your personal data on our servers. Questions sent to OpenAI are processed in real time and not stored by us. Analytics data collected by PostHog consists of anonymous events with no personally identifiable information.</p>
+
+  <h2>10. Changes</h2>
   <p>We may update this policy. Changes will be reflected by the "last updated" date above.</p>
 
-  <h2>9. Contact</h2>
-  <p>Questions? Reach out at <a href="mailto:privacy@theseer.xyz">privacy@theseer.xyz</a>.</p>
+  <h2>11. Contact</h2>
+  <p>For privacy inquiries, contact us at <a href="mailto:privacy@theseer.xyz">privacy@theseer.xyz</a>.</p>
 </body>
 </html>

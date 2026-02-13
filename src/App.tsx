@@ -3,6 +3,7 @@ import type { BirthData, Verdict, QuestionCategory } from './types/astrology';
 import { generateAstroContext } from './lib/astroEngine';
 import { classifyQuestionWithConfidence, detectQuestionMode } from './lib/scoreDecision';
 import { playClick, playReveal, setMuted } from './lib/sounds';
+import { detectCrisis, CRISIS_RESPONSE } from './lib/crisisDetection';
 import { generateOracleResponse } from './lib/oracleResponse';
 import { callLLMOracle, callFollowUpLLM, callChartQuestionLLM, callBondLLM, callCosmosQuestionLLM, type LLMOracleResult } from './lib/llmOracle';
 import { generateInsightArticle, generateFallbackArticle, getScoreLabel } from './lib/insightArticle';
@@ -93,6 +94,7 @@ function App() {
   const [oracleCategory, setOracleCategory] = useState<QuestionCategory>('decisions');
   const [oracleArticle, setOracleArticle] = useState<InsightArticle | null>(null);
   const [, setOracleQuestionMode] = useState<'directional' | 'guidance'>('directional');
+  const [crisisDetected, setCrisisDetected] = useState(false);
 
   // Follow-up state (oracle tab only)
   const [followUpText, setFollowUpText] = useState<string | null>(null);
@@ -306,6 +308,7 @@ function App() {
     setShowArticle(false);
     setContextualQuestions([]);
     setQuestionError(null);
+    setCrisisDetected(false);
     setSeerPhase('open');
     llmPromiseRef.current = null;
   }, []);
@@ -324,6 +327,14 @@ function App() {
 
     const trimmed = questionText.trim();
     setSubmittedQuestion(trimmed);
+
+    // Crisis detection — show help resources instead of a reading
+    if (detectCrisis(trimmed)) {
+      setCrisisDetected(true);
+      setOracleText(CRISIS_RESPONSE);
+      setSeerPhase('revealing');
+      return;
+    }
 
     // Route LLM call based on active tab
     if (activeTab === 'oracle') {
@@ -453,6 +464,14 @@ function App() {
     setQuestionText(question);
     setQuestionError(null);
     setSubmittedQuestion(question);
+
+    // Crisis detection — show help resources instead of a reading
+    if (detectCrisis(question)) {
+      setCrisisDetected(true);
+      setOracleText(CRISIS_RESPONSE);
+      setSeerPhase('revealing');
+      return;
+    }
 
     // Route LLM call based on active tab
     if (activeTab === 'oracle') {
@@ -831,14 +850,14 @@ function App() {
               {/* ── Answer Display (unified across all tabs) ── */}
               {seerPhase === 'revealing' && oracleText && !showArticle && (
                 <div className="seer-answer-container" ref={answerRef}>
-                  <div className="seer-answer-text">
-                    <span className="seer-answer-quote">{'\u201C'}</span>
+                  <div className="seer-answer-text" style={crisisDetected ? { whiteSpace: 'pre-line' } : undefined}>
+                    {!crisisDetected && <span className="seer-answer-quote">{'\u201C'}</span>}
                     {oracleText}
-                    <span className="seer-answer-quote">{'\u201D'}</span>
+                    {!crisisDetected && <span className="seer-answer-quote">{'\u201D'}</span>}
                   </div>
 
-                  {/* Oracle-only: follow-ups */}
-                  {activeTab === 'oracle' && (
+                  {/* Oracle-only: follow-ups (suppressed during crisis) */}
+                  {activeTab === 'oracle' && !crisisDetected && (
                     <>
                       {(followUpText || followUpLoading) && (
                         <div className="seer-follow-up-response">
@@ -888,11 +907,11 @@ function App() {
                     </>
                   )}
 
-                  {/* Vision hint — subtle fade after answer */}
-                  {showVisionHint && todayVisionCount === 2 && (
+                  {/* Vision hint — subtle fade after answer (suppressed during crisis) */}
+                  {!crisisDetected && showVisionHint && todayVisionCount === 2 && (
                     <p className="seer-vision-hint">{t('vision.twoCast')}</p>
                   )}
-                  {showVisionHint && todayVisionCount >= 3 && (
+                  {!crisisDetected && showVisionHint && todayVisionCount >= 3 && (
                     <p className="seer-vision-hint seer-vision-hint--no-limit">{t('vision.noLimit')}</p>
                   )}
 
@@ -901,7 +920,7 @@ function App() {
                     <button className="seer-ask-again-btn" onClick={handleAskAgain}>
                       {t('oracle.askAgain')}
                     </button>
-                    {activeTab === 'oracle' && (
+                    {activeTab === 'oracle' && !crisisDetected && (
                       <button className="seer-share-icon" onClick={handleShare} aria-label="Share reading">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M8 10V2M8 2L5 5M8 2L11 5" />

@@ -1,5 +1,20 @@
 /* The Seer - Mystical Minimal */
-/* Font loaded via index.html <link> tag */
+
+/* Self-hosted Instrument Serif (GDPR-safe — no Google Fonts CDN) */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/InstrumentSerif-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/InstrumentSerif-Italic.woff2') format('woff2');
+}
 
 /* Reset */
 *, *::before, *::after {
