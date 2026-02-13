@@ -253,6 +253,11 @@ export const en = {
   'settings.editProfile': 'Edit Profile',
   'settings.language': 'Language',
 
+  // ── Footer ──
+  'footer.terms': 'Terms',
+  'footer.privacy': 'Privacy',
+  'footer.disclaimer': 'For entertainment only. Not a substitute for professional advice.',
+
   // ── Today's Bond ──
   'todayBond.energy': "Today's Energy",
   'todayBond.happening': "What's happening",

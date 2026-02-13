@@ -1027,6 +1027,18 @@ function App() {
             </div>
           </>
         )}
+
+        {/* ── Site footer ── */}
+        <footer className="app-footer">
+          <div className="app-footer-inner">
+            <span className="app-footer-brand">The Seer</span>
+            <span className="app-footer-sep">&middot;</span>
+            <a href="/terms.html" className="app-footer-link">{t('footer.terms')}</a>
+            <span className="app-footer-sep">&middot;</span>
+            <a href="/privacy.html" className="app-footer-link">{t('footer.privacy')}</a>
+          </div>
+          <p className="app-footer-disclaimer">{t('footer.disclaimer')}</p>
+        </footer>
       </main>
 
       {/* Settings modal */}
@@ -1084,6 +1096,11 @@ function App() {
                     onEdit={handleEditProfile}
                     onClose={() => setSettingsView('hidden')}
                   />
+                </div>
+                <div className="settings-legal">
+                  <a href="/terms.html" className="settings-legal-link">{t('footer.terms')}</a>
+                  <span className="settings-legal-sep">&middot;</span>
+                  <a href="/privacy.html" className="settings-legal-link">{t('footer.privacy')}</a>
                 </div>
               </div>
             )}

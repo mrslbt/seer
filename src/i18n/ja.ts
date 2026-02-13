@@ -255,6 +255,11 @@ export const ja: Record<TranslationKey, string> = {
   'settings.editProfile': 'プロフィール編集',
   'settings.language': '言語',
 
+  // ── フッター ──
+  'footer.terms': '利用規約',
+  'footer.privacy': 'プライバシー',
+  'footer.disclaimer': '娯楽目的のみ。専門的なアドバイスの代わりにはなりません。',
+
   // ── 今日の絆 ──
   'todayBond.energy': '今日のエネルギー',
   'todayBond.happening': '何が起きているか',

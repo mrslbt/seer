@@ -255,6 +255,11 @@ export const vi: Record<TranslationKey, string> = {
   'settings.editProfile': 'Sửa hồ sơ',
   'settings.language': 'Ngôn ngữ',
 
+  // ── Chân trang ──
+  'footer.terms': 'Điều khoản',
+  'footer.privacy': 'Quyền riêng tư',
+  'footer.disclaimer': 'Chỉ mang tính giải trí. Không thay thế tư vấn chuyên nghiệp.',
+
   // ── Năng lượng hôm nay ──
   'todayBond.energy': 'Năng lượng hôm nay',
   'todayBond.happening': 'Đang xảy ra',
