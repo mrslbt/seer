@@ -28,16 +28,18 @@ export function InlineTabs({ activeTab, onTabChange, hasTransitAlert }: InlineTa
   }, [activeTab, onTabChange]);
 
   return (
-    <nav className="inline-tabs">
+    <nav className="inline-tabs" role="tablist" aria-label="App sections">
       {TABS.map(({ key, labelKey }) => (
         <button
           key={key}
+          role="tab"
+          aria-selected={activeTab === key}
           className={`inline-tab ${activeTab === key ? 'inline-tab--active' : ''}`}
           onClick={() => handleTab(key)}
         >
           {t(labelKey as Parameters<typeof t>[0])}
           {key === 'cosmos' && hasTransitAlert && (
-            <span className="inline-tab-alert" />
+            <span className="inline-tab-alert" aria-label="Transit alert" />
           )}
         </button>
       ))}

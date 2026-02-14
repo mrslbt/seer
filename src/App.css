@@ -1,5 +1,39 @@
 /* App - The Seer — v2 */
 
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  z-index: 200;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 .app {
   min-height: 100vh;
   min-height: 100dvh;
@@ -110,13 +144,13 @@
   color: var(--text-muted);
   background: transparent;
   border: none;
-  opacity: 0.4;
+  opacity: 0.65;
   transition: opacity 0.4s ease, transform 0.2s ease;
   cursor: pointer;
 }
 
 .header-settings-btn:hover {
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .header-settings-btn:active {
@@ -236,7 +270,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.7;
+  opacity: 0.85;
   text-align: center;
   user-select: none;
 }
@@ -286,7 +320,7 @@
   font-family: var(--font-display);
   font-size: 0.875rem;
   font-style: italic;
-  color: rgba(201, 168, 76, 0.55);
+  color: rgba(201, 168, 76, 0.65);
   text-align: center;
   letter-spacing: 0.02em;
   animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -324,7 +358,7 @@
   font-size: 1rem;
   font-style: italic;
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.75;
   letter-spacing: 0.02em;
   margin-top: 2px;
 }
@@ -595,7 +629,7 @@
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  color: rgba(201, 168, 76, 0.55);
+  color: rgba(201, 168, 76, 0.65);
   background: transparent;
   border: 1px solid rgba(201, 168, 76, 0.18);
   border-radius: 20px;
@@ -901,7 +935,7 @@
   font-style: italic;
   font-size: 0.8rem;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.65;
 }
 
 .app-footer-sep {
@@ -915,7 +949,7 @@
   letter-spacing: 0.06em;
   color: var(--text-muted);
   text-decoration: none;
-  opacity: 0.5;
+  opacity: 0.65;
   transition: opacity var(--transition), color var(--transition);
 }
 
@@ -927,7 +961,7 @@
 .app-footer-disclaimer {
   font-size: 0.6rem;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.55;
   letter-spacing: 0.03em;
   max-width: 280px;
   margin: 0 auto;
@@ -951,7 +985,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 20px;
   opacity: 0;
   animation: seerAnswerFadeIn 0.8s ease 0.1s forwards;
@@ -995,7 +1029,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.45);
+  color: rgba(201, 168, 76, 0.65);
   margin-bottom: 10px;
 }
 
@@ -1027,7 +1061,7 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.35);
+  color: rgba(201, 168, 76, 0.55);
   background: none;
   border: none;
   cursor: pointer;
@@ -1119,7 +1153,7 @@
 }
 
 .seer-follow-up-question--timing {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .seer-follow-up-question--timing .seer-follow-up-question-icon {
@@ -1130,7 +1164,7 @@
 .seer-follow-up-exhausted {
   font-family: var(--font);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
   letter-spacing: 0.04em;
   margin: 4px 0;
@@ -1152,8 +1186,8 @@
 
 @keyframes visionHintCycle {
   0% { opacity: 0; transform: translateY(4px); }
-  10% { opacity: 0.35; transform: translateY(0); }
-  75% { opacity: 0.35; }
+  10% { opacity: 0.55; transform: translateY(0); }
+  75% { opacity: 0.55; }
   100% { opacity: 0; transform: translateY(-2px); }
 }
 
@@ -1165,7 +1199,7 @@
 /* Acknowledgment vision state — muted when showing limit text */
 .seer-acknowledgment-action--vision {
   font-size: 0.875rem;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 /* Bottom bar — Ask Again + Share */
@@ -1395,6 +1429,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ── Reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

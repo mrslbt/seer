@@ -59,6 +59,7 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error, cust
           ref={inputRef}
           type="search"
           name="seer-question"
+          aria-label="Ask the oracle a question"
           className={`question-input ${error ? 'has-error' : ''}`}
           value={value}
           onChange={handleInputChange}

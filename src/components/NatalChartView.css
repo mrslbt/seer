@@ -176,7 +176,7 @@
   font-family: var(--font-display);
   font-style: italic;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
   line-height: 1.4;
 }
@@ -299,7 +299,7 @@
   font-style: italic;
   font-size: 0.75rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   padding-left: 34px;
 }
 
@@ -482,7 +482,7 @@
   font-style: italic;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* ---- House Cusps Grid ---- */

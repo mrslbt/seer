@@ -44,6 +44,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
   const [suggestions, setSuggestions] = useState<CityData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState('');
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
 
   // Sync form state when initialData changes (e.g., reopening settings)
   useEffect(() => {
@@ -77,18 +78,36 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       setSuggestions([]);
       setShowSuggestions(false);
     }
+    setActiveSuggestion(-1);
   }, [cityQuery, selectedCity]);
 
   const handleCitySelect = useCallback((city: CityData) => {
     setSelectedCity(city);
     setCityQuery(formatCity(city));
     setShowSuggestions(false);
+    setActiveSuggestion(-1);
   }, []);
 
   const handleCityInputChange = useCallback((value: string) => {
     setCityQuery(value);
     setSelectedCity(null);
   }, []);
+
+  const handleCityKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveSuggestion(prev => Math.min(prev + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveSuggestion(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter' && activeSuggestion >= 0) {
+      e.preventDefault();
+      handleCitySelect(suggestions[activeSuggestion]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  }, [showSuggestions, suggestions, activeSuggestion, handleCitySelect]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -125,7 +144,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
   );
 
   return (
-    <form onSubmit={handleSubmit} className="birth-form">
+    <form onSubmit={handleSubmit} className="birth-form" noValidate>
       <div className="form-intro">
         <p className="form-intro-text">
           {isEditing ? t('form.titleEdit') : t('form.title')}
@@ -133,8 +152,9 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       </div>
 
       <div className="form-field">
-        <label className="field-label">{t('form.name')}</label>
+        <label className="field-label" htmlFor="birth-name">{t('form.name')}</label>
         <input
+          id="birth-name"
           type="text"
           className="field-input"
           value={name}
@@ -145,20 +165,25 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       </div>
 
       <div className="form-field">
-        <label className="field-label">{t('form.date')}</label>
+        <label className="field-label" htmlFor="birth-date">{t('form.date')}</label>
         <input
+          id="birth-date"
           type="date"
           className="field-input"
           value={dateStr}
           onChange={(e) => setDateStr(e.target.value)}
           max={formatLocalDate(new Date())}
+          required
+          aria-required="true"
+          aria-describedby={error ? 'birth-form-error' : undefined}
         />
       </div>
 
       <div className="form-field">
-        <label className="field-label">{t('form.time')}</label>
+        <label className="field-label" htmlFor="birth-time">{t('form.time')}</label>
         {!timeUnknown && (
           <input
+            id="birth-time"
             type="time"
             className="field-input"
             value={timeStr}
@@ -182,23 +207,36 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
       </div>
 
       <div className="form-field">
-        <label className="field-label">{t('form.place')}</label>
+        <label className="field-label" htmlFor="birth-city">{t('form.place')}</label>
         <div className="city-wrapper">
           <input
+            id="birth-city"
             type="text"
             className="field-input"
             value={cityQuery}
             onChange={(e) => handleCityInputChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            onKeyDown={handleCityKeyDown}
             placeholder={t('form.placePlaceholder')}
             autoComplete="off"
+            required
+            aria-required="true"
+            role="combobox"
+            aria-expanded={showSuggestions}
+            aria-autocomplete="list"
+            aria-controls="city-suggestions"
+            aria-activedescendant={activeSuggestion >= 0 ? `city-option-${activeSuggestion}` : undefined}
+            aria-describedby={error ? 'birth-form-error' : undefined}
           />
           {showSuggestions && (
-            <ul className="suggestions">
+            <ul className="suggestions" id="city-suggestions" role="listbox">
               {suggestions.map((city, index) => (
                 <li
                   key={`${city.city}-${city.country}-${index}`}
-                  className="suggestion"
+                  id={`city-option-${index}`}
+                  className={`suggestion${index === activeSuggestion ? ' suggestion--active' : ''}`}
+                  role="option"
+                  aria-selected={index === activeSuggestion}
                   onClick={() => handleCitySelect(city)}
                 >
                   {formatCity(city)}
@@ -215,7 +253,7 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
         )}
       </div>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && <div className="form-error" id="birth-form-error" role="alert">{error}</div>}
 
       <button type="submit" className="submit-btn">
         {isEditing ? t('form.save') : t('form.enter')}

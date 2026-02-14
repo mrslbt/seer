@@ -170,6 +170,54 @@ function App() {
     if (userProfile?.id) identifyUser(userProfile.id);
   }, [userProfile?.id]);
 
+  // ── Modal focus trap + Escape key ──
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (settingsView === 'hidden') return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSettingsView('hidden');
+        setEditingProfileId(null);
+      }
+    };
+
+    // Focus trap
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleTab);
+
+    // Focus the first focusable element in the modal
+    requestAnimationFrame(() => {
+      const focusable = modalRef.current?.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusable?.focus();
+    });
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleTab);
+    };
+  }, [settingsView]);
+
   // ── Intro ──
   const handleIntroComplete = useCallback(() => {
     localStorage.setItem('seer_intro_seen', '1');
@@ -732,10 +780,11 @@ function App() {
 
   return (
     <div className="app">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {/* Header */}
       <header className="app-header">
         {hasBirthData ? (
-          <button className="header-brand" onClick={handleBrandClick}>
+          <button className="header-brand" onClick={handleBrandClick} aria-label="The Seer — return to main view">
             <span className="header-brand-the">THE</span>
             <span className="header-brand-seer">Seer</span>
           </button>
@@ -748,7 +797,7 @@ function App() {
             onClick={() => { playClick(); setSettingsView('settings'); }}
             aria-label="Settings"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
             </svg>
@@ -757,33 +806,34 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className="app-main app-main--scrollable">
+      <main className="app-main app-main--scrollable" id="main-content">
+        {hasBirthData && <h1 className="sr-only">The Seer — Oracle</h1>}
         {/* ── Onboarding ── */}
         {!hasBirthData && !cosmosLoading && showIntro && (
           <SeerIntro onComplete={handleIntroComplete} />
         )}
         {!hasBirthData && !cosmosLoading && !showIntro && (
           <div className="onboarding">
-            <div className="onboarding-title">
+            <h1 className="onboarding-title">
               <span className="title-the">{t('onboarding.the')}</span>
               <span className="title-seer">{t('onboarding.seer')}</span>
-            </div>
+            </h1>
             <div className="onboarding-form">
               <BirthDataForm onSubmit={handleBirthDataSubmit} />
             </div>
           </div>
         )}
         {!hasBirthData && cosmosLoading && (
-          <div className="cosmos-status cosmos-status--center">
+          <div className="cosmos-status cosmos-status--center" role="status">
             <div className="seer-loading">
               <div className="seer-loading__stars">
-                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
                 </svg>
-                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
                 </svg>
-                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="seer-loading__star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M12 0 L14 9 L24 12 L14 15 L12 24 L10 15 L0 12 L10 9 Z" fill="currentColor" />
                 </svg>
               </div>
@@ -817,7 +867,7 @@ function App() {
 
               {/* Contextual hint */}
               {activeHint && seerPhase === 'open' && (
-                <p className="contextual-hint">{activeHint}</p>
+                <p className="contextual-hint" role="status" aria-live="polite">{activeHint}</p>
               )}
 
               {/* The Eye — always present, always watching */}
@@ -862,7 +912,7 @@ function App() {
 
               {/* ── Answer Display (unified across all tabs) ── */}
               {seerPhase === 'revealing' && oracleText && !showArticle && (
-                <div className="seer-answer-container" ref={answerRef}>
+                <div className="seer-answer-container" ref={answerRef} aria-live="polite">
                   {submittedQuestion && !crisisDetected && (
                     <p className="seer-answer-question">{submittedQuestion}</p>
                   )}
@@ -938,7 +988,7 @@ function App() {
                     </button>
                     {activeTab === 'oracle' && !crisisDetected && (
                       <button className="seer-share-icon" onClick={handleShare} aria-label="Share reading">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M8 10V2M8 2L5 5M8 2L11 5" />
                           <path d="M3 9V13H13V9" />
                         </svg>
@@ -946,7 +996,7 @@ function App() {
                     )}
                   </div>
 
-                  {shareToast && <div className="seer-share-toast">{t('oracle.copied')}</div>}
+                  {shareToast && <div className="seer-share-toast" role="status" aria-live="polite">{t('oracle.copied')}</div>}
                   <canvas ref={shareCanvasRef} style={{ display: 'none' }} />
                 </div>
               )}
@@ -1060,11 +1110,11 @@ function App() {
       {/* Settings modal */}
       {settingsView !== 'hidden' && (
         <div className="modal-overlay" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{settingsView === 'settings' ? t('settings.title') : settingsView === 'edit' ? t('settings.editProfile') : t('settings.newProfile')}</h2>
-              <button className="close-btn" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <h2 id="settings-modal-title">{settingsView === 'settings' ? t('settings.title') : settingsView === 'edit' ? t('settings.editProfile') : t('settings.newProfile')}</h2>
+              <button className="close-btn" onClick={() => { setSettingsView('hidden'); setEditingProfileId(null); }} aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -1078,7 +1128,9 @@ function App() {
                   <button
                     className={`settings-toggle ${!isMuted ? 'settings-toggle--on' : ''}`}
                     onClick={toggleMute}
-                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                    role="switch"
+                    aria-checked={!isMuted}
+                    aria-label={isMuted ? 'Unmute sound' : 'Mute sound'}
                   >
                     <span className="settings-toggle-knob" />
                   </button>
@@ -1096,7 +1148,7 @@ function App() {
                 <button className="settings-row settings-row--link" onClick={() => { playClick(); setShowHistory(true); }}>
                   <span className="settings-row-label">{t('settings.history')}</span>
                   <span className="settings-row-chevron">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <polyline points="9 18 15 12 9 6"/>
                     </svg>
                   </span>

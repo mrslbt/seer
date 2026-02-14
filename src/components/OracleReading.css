@@ -96,7 +96,7 @@
   font-size: 2.8rem;
   line-height: 0;
   vertical-align: -0.15em;
-  opacity: 0.35;
+  opacity: 0.55;
   color: var(--accent);
   display: inline;
   animation: quoteGlow 4s ease-in-out infinite;
@@ -171,7 +171,7 @@
   font-weight: 500;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: 0.65;
   margin-bottom: 10px;
 }
 
@@ -268,7 +268,7 @@
 
 /* Timing variant */
 .follow-up-question--timing {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .follow-up-question--timing .follow-up-question-icon {
@@ -303,7 +303,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
@@ -390,7 +390,7 @@
 .score-max {
   font-size: 0.875rem;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .score-label {
@@ -398,7 +398,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.55;
   margin-left: 12px;
 }
 
@@ -427,7 +427,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.55;
   margin-bottom: 8px;
 }
 
@@ -457,7 +457,7 @@
   transition: all 0.25s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .oracle-btn:hover {

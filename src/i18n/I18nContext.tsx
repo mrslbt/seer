@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { en, ja } from './index';
 import type { TranslationKey } from './en';
 
@@ -39,7 +39,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
     try { localStorage.setItem(STORAGE_KEY, newLang); } catch {}
+    document.documentElement.lang = newLang;
   }, []);
+
+  // Sync lang attribute on initial mount
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const t = useCallback((key: TranslationKey, params?: Record<string, string | number>): string => {
     let text = translations[lang][key] ?? translations.en[key] ?? key;

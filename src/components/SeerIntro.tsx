@@ -55,7 +55,7 @@ export function SeerIntro({ onComplete }: SeerIntroProps) {
   };
 
   return (
-    <div className="seer-intro" onClick={(e) => advance(e)}>
+    <div className="seer-intro" onClick={(e) => advance(e)} role="button" tabIndex={0} aria-label="Tap to continue through the introduction">
       {/* Screen 1: "The stars have been waiting" */}
       <div className={getScreenClass(0)}>
         <p className="seer-intro__text">{t('intro.line1')}</p>
