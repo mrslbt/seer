@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#000"/>
+  <!-- Eye almond — filled with subtle dark gold to be visible -->
+  <path d="M 68,256 Q 160,148 256,132 Q 352,148 444,256 Q 352,364 256,380 Q 160,364 68,256 Z" fill="#0d0b06" stroke="#C9A84C" stroke-width="3"/>
+  <!-- Iris -->
+  <circle cx="256" cy="256" r="60" fill="#C9A84C"/>
+  <!-- Iris inner ring -->
+  <circle cx="256" cy="256" r="60" fill="none" stroke="#8a7030" stroke-width="4"/>
+  <!-- Pupil -->
+  <circle cx="256" cy="256" r="28" fill="#000"/>
+  <!-- Glint -->
+  <circle cx="274" cy="238" r="10" fill="rgba(255,255,255,0.8)"/>
+  <!-- Secondary glint -->
+  <circle cx="242" cy="268" r="5" fill="rgba(255,255,255,0.25)"/>
+</svg>
