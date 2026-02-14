@@ -37,6 +37,10 @@ export const ja: Record<TranslationKey, string> = {
   'form.noTimeHint': '正午が使用されます。アセンダントとハウスの精度が低下する場合がありますが、リーディングは機能します。',
   'form.enter': '確定',
   'form.save': '保存',
+  'form.email': 'メールアドレス',
+  'form.emailPlaceholder': 'your@email.com',
+  'form.emailHint': '任意 — 宇宙のアップデートやトランジットアラートのため',
+  'form.emailConsent': '週刊オラクルの洞察と宇宙イベントを受け取る',
   'form.errorDate': '生年月日を入力してください',
   'form.errorCity': '候補から都市を選択してください',
 

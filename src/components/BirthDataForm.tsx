@@ -4,8 +4,13 @@ import { searchCities, type CityData, formatCity } from '../lib/cities';
 import { useI18n } from '../i18n/I18nContext';
 import './BirthDataForm.css';
 
+export interface EmailData {
+  email: string;
+  consent: boolean;
+}
+
 interface BirthDataFormProps {
-  onSubmit: (birthData: BirthData, name: string) => void;
+  onSubmit: (birthData: BirthData, name: string, emailData?: EmailData) => void;
   initialData?: BirthData | null;
   initialName?: string;
 }
@@ -43,6 +48,8 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
   );
   const [suggestions, setSuggestions] = useState<CityData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailConsent, setEmailConsent] = useState(false);
   const [error, setError] = useState('');
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
 
@@ -138,9 +145,10 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
         timezone: selectedCity.timezone,
       };
 
-      onSubmit(birthData, name.trim() || 'Cosmic Traveler');
+      const emailData = email.trim() ? { email: email.trim(), consent: emailConsent } : undefined;
+      onSubmit(birthData, name.trim() || 'Cosmic Traveler', emailData);
     },
-    [dateStr, timeStr, selectedCity, name, onSubmit]
+    [dateStr, timeStr, selectedCity, name, email, emailConsent, onSubmit]
   );
 
   return (
@@ -252,6 +260,32 @@ export function BirthDataForm({ onSubmit, initialData, initialName }: BirthDataF
           </span>
         )}
       </div>
+
+      {!isEditing && (
+        <div className="form-field">
+          <label className="field-label" htmlFor="birth-email">{t('form.email')}</label>
+          <input
+            id="birth-email"
+            type="email"
+            className="field-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t('form.emailPlaceholder')}
+            autoComplete="email"
+          />
+          <span className="field-hint">{t('form.emailHint')}</span>
+          {email.trim() && (
+            <label className="field-toggle">
+              <input
+                type="checkbox"
+                checked={emailConsent}
+                onChange={(e) => setEmailConsent(e.target.checked)}
+              />
+              <span className="field-toggle-text">{t('form.emailConsent')}</span>
+            </label>
+          )}
+        </div>
+      )}
 
       {error && <div className="form-error" id="birth-form-error" role="alert">{error}</div>}
 

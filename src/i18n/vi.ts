@@ -37,6 +37,10 @@ export const vi: Record<TranslationKey, string> = {
   'form.noTimeHint': 'Sẽ dùng 12 giờ trưa. Cung mọc và nhà có thể kém chính xác, nhưng bài đọc vẫn hoạt động.',
   'form.enter': 'Xác nhận',
   'form.save': 'Lưu',
+  'form.email': 'Email',
+  'form.emailPlaceholder': 'your@email.com',
+  'form.emailHint': 'Tùy chọn — cho cập nhật vũ trụ và cảnh báo quá cảnh',
+  'form.emailConsent': 'Gửi cho tôi thông tin oracle hàng tuần và sự kiện vũ trụ',
   'form.errorDate': 'Nhập ngày sinh của bạn',
   'form.errorCity': 'Chọn thành phố từ gợi ý',
 

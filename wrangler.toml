@@ -1,0 +1,7 @@
+name = "seer"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "seer-db"
+database_id = "3c64cc0b-2970-4c1b-b8f8-35323431e0d5"

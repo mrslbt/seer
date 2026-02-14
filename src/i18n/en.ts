@@ -35,6 +35,10 @@ export const en = {
   'form.noTimeHint': 'Noon will be used. Rising sign and houses may be less accurate, but readings still work.',
   'form.enter': 'Enter',
   'form.save': 'Save',
+  'form.email': 'Email',
+  'form.emailPlaceholder': 'your@email.com',
+  'form.emailHint': 'Optional — for cosmic updates and transit alerts',
+  'form.emailConsent': 'Send me weekly oracle insights and cosmic events',
   'form.errorDate': 'Enter your birth date',
   'form.errorCity': 'Select a city from suggestions',
 

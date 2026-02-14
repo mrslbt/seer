@@ -302,11 +302,28 @@ function App() {
   }, [dailyReport]);
 
   // ── Birth data ──
-  const handleBirthDataSubmit = useCallback(async (data: BirthData, name: string) => {
+  const handleBirthDataSubmit = useCallback(async (data: BirthData, name: string, emailData?: { email: string; consent: boolean }) => {
     playClick();
     await setUserFromOldBirthData(data, name);
     trackProfileCreated();
     setSettingsView('hidden');
+
+    // Fire-and-forget email collection — never blocks onboarding
+    if (emailData?.email) {
+      fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailData.email,
+          name: name.trim() || 'Cosmic Traveler',
+          birthDate: data.date.toISOString().split('T')[0],
+          birthCity: data.city,
+          birthCountry: data.country,
+          emailConsent: emailData.consent ? 1 : 0,
+          language: document.documentElement.lang || 'en',
+        }),
+      }).catch(() => {});
+    }
   }, [setUserFromOldBirthData]);
 
   const editingProfile = useMemo(() => {
