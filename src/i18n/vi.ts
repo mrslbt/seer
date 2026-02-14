@@ -62,15 +62,13 @@ export const vi: Record<TranslationKey, string> = {
   'hint.chart': 'Bầu trời lúc sinh, đã được lập bản đồ',
   'hint.bonds': 'So sánh bản đồ sao của bạn với linh hồn khác',
 
-  // ── Placeholder câu hỏi ──
-  'q.placeholder1': 'Tôi là kiểu người yêu nào?',
-  'q.placeholder2': 'Tôi có nên nghỉ việc?',
-  'q.placeholder3': 'Tôi có phải nhân vật chính?',
-  'q.placeholder4': 'Tôi thực sự cần gì trong tình yêu?',
-  'q.placeholder5': 'Siêu năng lực của tôi là gì?',
-  'q.placeholder6': 'Tôi có đang đi đúng đường?',
-  'q.placeholder7': 'Tôi có nên tin linh cảm?',
-  'q.placeholder8': 'Tôi sẽ ổn chứ?',
+  // ── Placeholder câu hỏi (bầu không khí — không trùng gợi ý) ──
+  'q.placeholder1': 'Các vì sao đang lắng nghe...',
+  'q.placeholder2': 'Hỏi điều đè nặng trái tim bạn...',
+  'q.placeholder3': 'Bạn tìm kiếm sự thật nào?',
+  'q.placeholder4': 'Vũ trụ đang chờ câu hỏi của bạn...',
+  'q.placeholder5': 'Nói điều bạn cần biết...',
+  'q.placeholder6': 'Tâm hồn bạn đang tự hỏi gì?',
   'q.errorEmpty': 'Hãy nói câu hỏi trước',
   'q.errorMeaningful': 'Hãy hỏi một câu có ý nghĩa',
 

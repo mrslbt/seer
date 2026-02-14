@@ -62,15 +62,13 @@ export const ja: Record<TranslationKey, string> = {
   'hint.chart': 'あなたの誕生の空、マッピング済み',
   'hint.bonds': 'あなたのチャートを他の魂と比較する',
 
-  // ── 質問プレースホルダー ──
-  'q.placeholder1': '私はどんな恋人？',
-  'q.placeholder2': '仕事を辞めるべき？',
-  'q.placeholder3': '私が主人公？',
-  'q.placeholder4': '恋愛で本当に必要なものは？',
-  'q.placeholder5': '私の特別な力は？',
-  'q.placeholder6': '正しい道を歩いている？',
-  'q.placeholder7': '直感を信じるべき？',
-  'q.placeholder8': '私は大丈夫？',
+  // ── 質問プレースホルダー（雰囲気的 — 提案ピルと重複しない） ──
+  'q.placeholder1': '星が耳を傾けている...',
+  'q.placeholder2': '心に重くのしかかるものを問え...',
+  'q.placeholder3': 'どんな真実を求めている？',
+  'q.placeholder4': '宇宙があなたの問いを待っている...',
+  'q.placeholder5': '知りたいことを語れ...',
+  'q.placeholder6': '魂は何を思う？',
   'q.errorEmpty': 'まず質問を唱えよ',
   'q.errorMeaningful': '意味のある質問を',
 

@@ -5,8 +5,8 @@ import type { TranslationKey } from '../i18n/en';
 import './QuestionInput.css';
 
 const PLACEHOLDER_KEYS: TranslationKey[] = [
-  'q.placeholder1', 'q.placeholder2', 'q.placeholder3', 'q.placeholder4',
-  'q.placeholder5', 'q.placeholder6', 'q.placeholder7', 'q.placeholder8',
+  'q.placeholder1', 'q.placeholder2', 'q.placeholder3',
+  'q.placeholder4', 'q.placeholder5', 'q.placeholder6',
 ];
 
 interface QuestionInputProps {
@@ -25,12 +25,15 @@ export function QuestionInput({ value, onChange, onSubmit, disabled, error, cust
     () => Math.floor(Math.random() * PLACEHOLDER_KEYS.length)
   );
 
-  // Rotate placeholder every 4 seconds when input is empty
+  // Rotate placeholder every 8 seconds when input is empty
+  // Respect prefers-reduced-motion: no rotation, just show one
   useEffect(() => {
     if (value) return; // Don't rotate while typing
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return; // Static placeholder for reduced motion
     const interval = setInterval(() => {
       setPlaceholderIndex(prev => (prev + 1) % PLACEHOLDER_KEYS.length);
-    }, 4000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [value]);
 

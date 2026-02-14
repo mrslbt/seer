@@ -60,15 +60,13 @@ export const en = {
   'hint.chart': 'Your birth sky, mapped',
   'hint.bonds': 'Compare your chart with another soul',
 
-  // ── Question Placeholders ──
-  'q.placeholder1': 'What kind of lover am I?',
-  'q.placeholder2': 'Should I quit my job?',
-  'q.placeholder3': 'Am I the main character?',
-  'q.placeholder4': 'What do I really need in love?',
-  'q.placeholder5': 'What is my superpower?',
-  'q.placeholder6': 'Am I on the right path?',
-  'q.placeholder7': 'Should I trust my gut?',
-  'q.placeholder8': 'Will I be okay?',
+  // ── Question Placeholders (atmospheric — not duplicating suggestion pills) ──
+  'q.placeholder1': 'The stars are listening...',
+  'q.placeholder2': 'Ask what weighs on your heart...',
+  'q.placeholder3': 'What truth do you seek?',
+  'q.placeholder4': 'The cosmos awaits your question...',
+  'q.placeholder5': 'Speak what you need to know...',
+  'q.placeholder6': 'What does your soul wonder?',
   'q.errorEmpty': 'Speak your question first',
   'q.errorMeaningful': 'Ask a meaningful question',
 
